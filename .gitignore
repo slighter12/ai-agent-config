@@ -19,13 +19,6 @@ Thumbs.db
 *.swp
 *.swo
 
-# Python generated files
-__pycache__/
-*.py[cod]
-
-# Go generated files
-.gocache/
-
 # Local hook binaries
 plugins/*/hooks/bin/agent-*
 
