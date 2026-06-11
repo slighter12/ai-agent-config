@@ -68,7 +68,7 @@ If a user asks for one file that must run everywhere, keep provider-specific con
    - project-local skills use one canonical project source plus provider surfaces; `.agents/skills/<name>` is the preferred portable source convention, not proof of Codex project discovery;
    - link `.claude/skills/<name>` when Claude project discovery is needed, and report Codex project discovery as verified, unverified, not configured, or provider-specific;
    - `.codex/skills` is not the default shared or project-local mirror for this repo; create it only when a project/provider explicitly requires or verifies that surface.
-10. Run or recommend `scripts/quick_validate.py` when validation is requested or required by the packaging workflow.
+10. Run or recommend `agent-config validate-skill` when validation is requested or required by the packaging workflow.
 11. Return a concise summary of changed skill behavior, placement, provider-specific notes, validation, and manual verification checklist.
 
 ## Output Contract

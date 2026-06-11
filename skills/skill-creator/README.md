@@ -65,25 +65,25 @@ See `references/SKILL_TEMPLATE.md` for the full template.
 Create a shared skill source in this repo:
 
 ```bash
-skills/skill-creator/scripts/init_skill.py my-new-skill --path skills
+go run ./hooks-go/cmd/agent-config init-skill my-new-skill --path skills
 ```
 
 Create a project-local portable source:
 
 ```bash
-skills/skill-creator/scripts/init_skill.py my-new-skill --path .agents/skills
+go run ./hooks-go/cmd/agent-config init-skill my-new-skill --path .agents/skills
 ```
 
 Validate a skill:
 
 ```bash
-skills/skill-creator/scripts/quick_validate.py skills/my-new-skill
+go run ./hooks-go/cmd/agent-config validate-skill skills/my-new-skill
 ```
 
 Package a skill:
 
 ```bash
-skills/skill-creator/scripts/package_skill.py skills/my-new-skill ./dist
+go run ./hooks-go/cmd/agent-config package-skill skills/my-new-skill ./dist
 ```
 
 ## Provider Strategy
@@ -105,7 +105,7 @@ See `references/PLACEMENT_AND_INSTALLATION.md`.
 
 ## Validation Rules
 
-`quick_validate.py` checks:
+`agent-config validate-skill` checks:
 
 - `SKILL.md` exists and has valid YAML frontmatter.
 - Frontmatter contains `name`, `description`, and optional standard fields only.
