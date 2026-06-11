@@ -1,0 +1,35 @@
+# Secrets and sensitive files
+*.key
+*.pem
+.env
+.env.*
+*.env
+secrets/
+*.env.local
+
+# Local configuration
+config/local.toml
+.claude/
+.codex/
+
+# OS and temporary files
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Go generated files
+.gocache/
+
+# Local hook binaries
+plugins/*/hooks/bin/agent-*
+
+# IDE files
+.vscode/
+.idea/
+*.iml

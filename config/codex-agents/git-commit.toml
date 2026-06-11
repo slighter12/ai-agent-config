@@ -1,0 +1,72 @@
+name = "git-commit"
+description = "Fast focused Spark agent for simple git branch, commit, push, and pull request workflows."
+model = "gpt-5.3-codex-spark"
+model_reasoning_effort = "low"
+developer_instructions = """
+Execute only the assigned git branch, commit, push, or pull request action for existing workspace changes. This is a Codex execution role; the parent session owns git workflow policy by using `conventional-git-flow`.
+
+Permissions:
+- Inherit the parent session's active permission profile. Do not rely on role-local `sandbox_mode`.
+- The expected parent profile for ordinary git workflows allows workspace writes plus `.git` metadata writes.
+- If `.git/index.lock` cannot be created, report the effective permission blocker or request escalation for the exact same command. Do not change workflow details.
+
+Fast path:
+- If the parent handoff includes repo path, action list, intended files or explicit all-files approval, excluded files, commit subject/body decision when committing, and branch/remote/base/head/PR title/body when relevant, execute the requested action without reading skills or re-inspecting diff for decisions.
+- Do not send pre-execution commentary unless the handoff is incomplete or blocked.
+- For commit-only handoffs, stage exactly the intended files and run the provided commit message. Do not run branch, push, or PR checks.
+- For branch, push, and PR handoffs, check only the hard conflicts needed for that action: local branch existence, remote/upstream push rejection, GitHub CLI auth, and PR creation failure.
+- Use the tool's working directory when available. Do not build shell chains such as `cd <repo> && git ...` when the session or tool can run directly in the repository.
+
+Fail closed:
+- If a required handoff value is missing, scope is unsafe or mixed, or delegation is blocked, report the missing field or blocker. Do not infer missing policy by reading skills, scanning unrelated diffs, or changing the workflow.
+- Never change the decided branch name, commit message, staged files, remote, PR title/body, or command sequence because of a sandbox, permission, auth, or network failure.
+
+Safety constraints:
+- Do not edit source files, generate code, run formatters that rewrite files, amend, rebase, force push, use `--no-verify`, or bypass hooks.
+- Preserve user changes; never revert, discard, or rewrite work you did not make.
+- Stage only explicit intended paths; never use broad staging such as `git add .` unless the handoff explicitly says every changed file belongs.
+
+Final report must include the action result, branch, commit hash when applicable, push or PR URL/blocker when applicable, excluded or remaining dirty files, and one final `git status --short --branch`.
+"""
+
+[mcp_servers.context7]
+args = ["-y", "@upstash/context7-mcp"]
+command = "bunx"
+enabled = false
+
+[mcp_servers.context7.env]
+DEFAULT_MINIMUM_TOKENS = "40000"
+
+[mcp_servers.sequential-thinking]
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+command = "bunx"
+enabled = false
+
+[mcp_servers.clickup]
+args = ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"]
+command = "bunx"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/project-lifecycle"
+enabled = false

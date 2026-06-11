@@ -1,0 +1,20 @@
+{
+  "name": "ai-agent-git-routing",
+  "version": "0.1.0+codex.20260604110917",
+  "description": "Prompt routing reminders for fast handoff-backed simple git workflows.",
+  "author": {
+    "name": "Local developer"
+  },
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "AI Agent Git Routing",
+    "shortDescription": "Remind Codex to delegate simple git workflows with a compact handoff.",
+    "longDescription": "AI Agent Git Routing registers a UserPromptSubmit reminder for simple branch, commit, push, and PR workflows so the main session builds a compact handoff and delegates execution to the git-commit role.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Route simple git workflows through the fast git-commit handoff."
+    ]
+  }
+}

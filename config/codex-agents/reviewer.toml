@@ -1,0 +1,82 @@
+name = "reviewer"
+description = "Risk-first reviewer for defects, regressions, and missing validation."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+service_tier = "fast"
+default_permissions = ":read-only"
+developer_instructions = """
+Prioritize correctness, regression risk, and security impact.
+List findings first, ordered by severity and user impact.
+Attach precise file references for each finding.
+Review changed files plus the nearest adjacent contracts that could silently break.
+Avoid advisory noise; report only findings, validation gaps, and concrete residual risks.
+If no findings exist, state that clearly and list residual risks or validation gaps.
+Keep recommendations focused on required fixes, not broad refactors.
+Do not turn review into harness orchestration or lifecycle capture; report risks, validation gaps, and capture candidates for the orchestrator to route.
+"""
+
+[mcp_servers.context7]
+args = ["-y", "@upstash/context7-mcp"]
+command = "bunx"
+enabled = false
+
+[mcp_servers.context7.env]
+DEFAULT_MINIMUM_TOKENS = "40000"
+
+[mcp_servers.sequential-thinking]
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+command = "bunx"
+enabled = false
+
+[mcp_servers.clickup]
+args = ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"]
+command = "bunx"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/figma-implement-design"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/skill-creator"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/.system/skill-creator"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/.system/skill-installer"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/planning-grill"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/planning-grill"
+enabled = false

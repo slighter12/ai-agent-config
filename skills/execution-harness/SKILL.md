@@ -1,0 +1,143 @@
+---
+name: execution-harness
+description: Coordinate optional orchestration across phases, agents, git/workspace state, verification gates, diff sanity gates, lifecycle gates, and capture candidates. Use when the user asks for a harness, multi-agent delivery, explicit phase gates, long-running handoff, or cross-phase coordination. Avoid when the request is mainly implementation, diagnosis, design clarification, current-diff review, testing strategy, git workflow, or standalone lifecycle capture.
+license: MIT
+compatibility: [codex, claude, gemini]
+metadata:
+  version: "0.1.6"
+---
+
+# Execution Harness
+
+## Purpose
+
+Provide an optional execution envelope for complex agent work. This skill coordinates phases and owners without replacing task skills that own implementation, diagnosis, design clarification, review, testing strategy, git workflow, or lifecycle capture.
+
+## Use When
+
+- The user explicitly asks for a harness, structured workflow, phase plan, delivery envelope, or multi-agent execution model.
+- A task spans multiple phases, agents, sessions, or handoffs.
+- Git/workspace state, verification gates, diff sanity, or recovery points need explicit coordination.
+- The task needs a clear owner map and phase-by-phase evidence before continuing.
+- A phase boundary needs explicit gates across review, verification, commit readiness, or handoff.
+- A phase or final boundary needs signal-driven lifecycle routing for accepted decisions,
+  implementation pivots, status or documentation drift, capture-worthy handoff notes, loop active state,
+  discussion records, or reusable workflow lessons.
+- A completed harness-managed task may reveal a lifecycle capture candidate worth handing off to `project-lifecycle`.
+
+## Avoid When
+
+- A simple task can be completed directly with no extra coordination.
+- The request is only to implement code or config; use `implement-change` or the relevant implementation owner.
+- The request is to diagnose a bug, flaky behavior, or performance regression; use `diagnose`.
+- The request is to clarify design, architecture, requirements, or tradeoffs; use `planning-grill`.
+- The request is only to review code or current changes; use `code-review`. Use this skill only when multi-agent review, explicit gates, or orchestration are requested or approved.
+- The request is only to commit, push, or open a PR; use `conventional-git-flow`.
+- The request is only to decide testing scope; use `policy-testing`.
+- The request is only to create or update a skill; use `skill-creator`.
+- The request is only to classify lifecycle signals from a completed phase, sync docs, record a
+  capture-worthy handoff note, or capture workflow learning without broader orchestration; use
+  `project-lifecycle`.
+
+## Activation Model
+
+- Prefer `orchestrator-suggested / user-approved` activation.
+- Suggest this skill when a task needs explicit coordination across phases, agents, git/workspace state, verification gates, or capture.
+- Apply it directly only when the user explicitly asks for harness-style workflow or has already approved using it for the active task.
+- Do not self-apply it for ordinary implementation, review, testing, or git workflows.
+
+## Mandatory Behavior When Activated
+
+- Switch to orchestrator stance and state whether the response is a harness plan or a single-agent fallback.
+- Do not perform implementation work in the same response unless the user explicitly requests execution after the harness plan.
+- Keep every selected phase visible, including phases owned by the main agent instead of a delegated agent.
+- Every phase must name an owner, scope, expected evidence, and acceptance gate.
+- Every delegated owner must appear in both `phase_plan` and `agent_selection`.
+
+## Workflow
+
+1. Frame the objective, constraints, done criteria, and known blockers.
+2. Identify required gates: inspect, plan, git/workspace, execute, verify, review, commit, lifecycle capture, or handoff.
+3. Route each gate to the narrowest owner skill or agent role.
+4. Resolve delegated agent names and model facts at runtime from tool metadata, local configuration, or explicit user instruction.
+5. Keep one lightweight source of truth for assumptions, status, owner, and next action.
+6. Pass only the relevant guidance into handoffs; do not assume subagents can dynamically gain skills or MCPs.
+7. Verify each phase with the minimum evidence required by risk.
+8. At phase or final completion, route lifecycle classification to `project-lifecycle` when an
+   accepted decision, implementation pivot, status or documentation drift, capture-worthy handoff
+   note, loop active state, discussion record, or reusable workflow lesson is present and needs
+   classification.
+9. Keep reusable learning candidates as `project-lifecycle` capture candidates; otherwise set `capture_candidate` to `none`.
+
+## Agent Selection Disclosure
+
+- Do not keep a fixed list of agent names in this skill.
+- Resolve available agents at runtime from tool metadata, local configuration, or explicit user instruction.
+- Prefer the lowest-cost capable delegated role for each phase.
+- Treat inherited-model or unknown-cost agents as cost-opaque and disclose that before selecting them.
+- If model or cost cannot be resolved, write `unknown` or `inherits parent`; do not guess.
+
+## Tool And Side-Effect Boundaries
+
+- This skill coordinates capability routing; it does not perform runtime capability injection.
+- Do not assume an agent can use a skill or MCP that its role config disables.
+- Git staging, committing, pushing, branch creation, PR creation, destructive commands, and external-service side effects still require explicit approval.
+- Testing or command execution remains governed by the active repo policy and `policy-testing`.
+- Lifecycle capture signals found during phase closeout or session closeout are owned by
+  `project-lifecycle`; standalone phase gates such as review, verification, commit readiness, and
+  handoff packaging remain owned by their narrowest gate owner.
+- Shared skill updates remain governed by `skill-creator` and require explicit user approval.
+
+## Anti-Patterns
+
+- Do not discuss multi-agent execution without listing the actual selected runtime agents in `agent_selection`.
+- Do not guess model, cost, or tool availability for a delegated agent.
+- Do not drop a phase owner after pruning a costly or cost-opaque agent.
+- Do not assign overlapping write scopes to multiple agents without an ordering gate.
+- Do not treat this skill as general planning prose after it has been explicitly activated.
+
+## Output
+
+Return:
+
+- `objective`: active goal and done criteria.
+- `phase_plan`: current phases, gates, owners, and expected evidence.
+- `agent_selection`: selected runtime agents and model/cost disclosure, or `none` with the reason.
+- `handoffs`: bounded owner assignments, if delegation is needed.
+- `verification`: selected verification gates and owner roles.
+- `git_workspace_notes`: relevant status, checkpoint, or commit-readiness notes.
+- `lifecycle_capture`: `project-lifecycle` handoff summary, or `none`.
+- `capture_candidate`: lifecycle capture candidate, or `none`.
+- `next_action`: one concrete next step.
+
+For each delegated agent in `agent_selection`, include:
+
+- `agent_id_or_role`
+- `resolved_model_or_inheritance`
+- `model_source`: `tool_metadata`, `local_config`, `user_instruction`, `inherited`, or `unknown`
+- `cost_note`
+- `purpose`
+- `scope`
+- `spawn_timing`
+- `selection_reason`
+
+## Version History
+
+- v0.1.0 (2026-05-13): Initial optional execution envelope for orchestrator-suggested structured workflow.
+- v0.1.1 (2026-05-18): Reposition harness as orchestration only and route ordinary task work to task skills.
+- v0.1.2 (2026-05-21): Route ordinary code review to `code-review` while preserving harness ownership of multi-agent gates.
+- v0.1.3 (2026-05-22): Add phase closeout gate routing to `phase-closeout` while keeping learning capture separate.
+- v0.1.4 (2026-05-23): Add runtime agent selection disclosure and activated orchestrator behavior.
+- v0.1.5 (2026-05-28): Route lifecycle gates and capture candidates to `project-lifecycle`.
+- v0.1.6 (2026-06-11): Align harness lifecycle signals and targets with signal-driven lifecycle
+  capture.
+
+## References
+
+- `references/INDEX.md` - Navigation for harness references.
+- `references/HARNESS_OVERVIEW.md`
+- `references/ACTIVATION_MODEL.md`
+- `references/PHASES_AND_GATES.md`
+- `references/GIT_AND_WORKSPACE.md`
+- `references/VERIFICATION_GATES.md`
+- `references/HANDOFF_AND_STATE.md`

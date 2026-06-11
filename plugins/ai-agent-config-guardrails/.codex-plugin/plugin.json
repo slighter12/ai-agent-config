@@ -1,0 +1,20 @@
+{
+  "name": "ai-agent-config-guardrails",
+  "version": "0.1.0+codex.20260603143057",
+  "description": "Go-backed local guardrail hooks for this AI agent configuration repo.",
+  "author": {
+    "name": "Local developer"
+  },
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "AI Agent Config Guardrails",
+    "shortDescription": "Run Go-backed local guardrail hooks for Codex.",
+    "longDescription": "AI Agent Config Guardrails registers plugin-bundled Go PreToolUse checks for RTK Bash rewrites and protected file paths.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Use Go-backed local guardrails in Codex."
+    ]
+  }
+}

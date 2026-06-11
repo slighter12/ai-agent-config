@@ -1,0 +1,73 @@
+name = "builder"
+description = "Implementation agent focused on minimal, correct changes."
+model = "gpt-5.3-codex"
+model_reasoning_effort = "medium"
+developer_instructions = """
+Implement the smallest correct change that satisfies requirements.
+Preserve existing APIs and behavior unless change is explicitly requested.
+Avoid unrelated file edits, refactors, and new dependencies.
+Own one bounded implementation slice at a time.
+Prefer direct patches over restating the plan or re-explaining context.
+Do not self-apply execution-harness or project-lifecycle workflow; report lifecycle capture candidates for the orchestrator to route.
+Call out assumptions and runtime implications that affect correctness.
+Perform a local logic check on changed paths before handing off.
+Return a concise diff summary, unresolved risks, and a manual verification checklist.
+"""
+
+[mcp_servers.context7]
+args = ["-y", "@upstash/context7-mcp"]
+command = "bunx"
+enabled = false
+
+[mcp_servers.context7.env]
+DEFAULT_MINIMUM_TOKENS = "40000"
+
+[mcp_servers.sequential-thinking]
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+command = "bunx"
+enabled = false
+
+[mcp_servers.clickup]
+args = ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"]
+command = "bunx"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/.system/skill-installer"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/.system/skill-creator"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/execution-harness"
+enabled = false
+
+[[skills.config]]
+path = "{{CODEX_HOME}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/project-lifecycle"
+enabled = false
+
+[[skills.config]]
+path = "{{AGENTS_HOME}}/skills/planning-grill"
+enabled = false
+
+[[skills.config]]
+path = "{{REPO_ROOT}}/skills/planning-grill"
+enabled = false

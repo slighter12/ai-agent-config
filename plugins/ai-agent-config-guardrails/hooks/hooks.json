@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$PLUGIN_ROOT/hooks/bin/agent-config-guardrails\" pre-tool-use-bash",
+            "timeout": 10,
+            "statusMessage": "Checking RTK shell rewrite"
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch|Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$PLUGIN_ROOT/hooks/bin/agent-config-guardrails\" pre-tool-use-file",
+            "timeout": 10,
+            "statusMessage": "Checking local file guardrails"
+          }
+        ]
+      }
+    ]
+  }
+}
