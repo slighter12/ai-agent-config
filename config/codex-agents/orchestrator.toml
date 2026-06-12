@@ -15,21 +15,3 @@ Do not assume subagents can dynamically gain skills or MCPs; include only the re
 Drive work to closure by integrating results, resolving conflicts, and deciding whether another agent is still necessary.
 Stop only for real ambiguity, conflicting requirements, or missing permissions.
 """
-
-[mcp_servers.context7]
-args = ["-y", "@upstash/context7-mcp"]
-command = "bunx"
-enabled = false
-
-[mcp_servers.context7.env]
-DEFAULT_MINIMUM_TOKENS = "40000"
-
-[mcp_servers.sequential-thinking]
-args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-command = "bunx"
-enabled = true
-
-[mcp_servers.clickup]
-args = ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"]
-command = "bunx"
-enabled = true

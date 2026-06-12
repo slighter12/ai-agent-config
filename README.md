@@ -114,6 +114,7 @@ The installer creates symlinks (without overwriting existing files):
   - Also runs the Go-backed `setup-codex-agents` flow to:
     - link shared `skills/* -> ~/.agents/skills/*`
     - generate managed `~/.codex/agents/*.toml` files from `config/codex-agents/*.toml` templates
+      and `config/codex-agents/role-manifest.json`
     - warn if a legacy `~/.codex/agents -> ~/git/ai-config/agents` symlink still exists
   - Also runs the Go-backed `setup-codex-shell` flow to:
     - link `shell/codex-profile-auto.zsh -> ~/.codex/shell/codex-profile-auto.zsh`
@@ -324,12 +325,11 @@ Codex role files in `config/codex-agents/*.toml` can include:
 - `model_reasoning_effort`: `low|medium|high|xhigh`
 - `service_tier`: optional request tier such as `fast`
 - `default_permissions`: optional permission profile such as `:read-only` for read-only roles
-- `mcp_servers` / `[[skills.config]]`: optional per-role overrides when a role needs a narrower tool or skill surface
 
 Important compatibility note:
 
 - Agent role files are parsed as standalone config layers by current Codex builds.
-- `mcp_servers.<name>` entries inside a role file must include a full server identity such as `command` + `args` or `url`; a partial override like only `enabled = false` now fails with `invalid transport`.
+- MCP server definitions and `[[skills.config]]` entries are generated from `config/codex-agents/role-manifest.json`; do not add them directly to role templates.
 - Permission profiles do not compose with legacy `sandbox_mode`; do not add `sandbox_mode` to Codex role files when using `default_permissions`.
 
 Default Codex profile in this repo:
@@ -422,7 +422,9 @@ Claude read-only roles also define `tools` frontmatter so they do not inherit th
 - `explorer`, `reviewer`, and `oracle`: `Read, Glob, Grep`
 - `librarian`: `WebSearch, WebFetch, Read, Glob, Grep`
 
-Skills are discovered automatically from repo, user, and system skill directories. Per-agent `[[skills.config]]` is optional and should be added only when a role needs explicit enable/disable behavior.
+Skills are discovered automatically from repo, user, and system skill directories. For this repo's
+managed Codex role files, per-agent MCP and skill enablement is generated from
+`config/codex-agents/role-manifest.json`.
 
 Provider-specific role prompts should not duplicate full shared skill policy. For example,
 `conventional-git-flow` owns branch, commit, push, and PR workflow rules, while the Codex
@@ -453,11 +455,18 @@ guardrails against self-applying harness or lifecycle workflow.
 
 Antigravity CLI is optional. The `antigravity-design-bridge` skill can ask Antigravity CLI for bounded UI or visual design critique, and may allow low-risk direct edits when target files and scope are explicit. The installer does not install Antigravity CLI, and normal workflows do not depend on it.
 
-Context7 is also optional. The Codex librarian role keeps a full `context7` MCP definition in its TOML file, but it is disabled by default so machines without `bunx`, network access, or the package already available do not fail or stall on MCP startup. Enable it only on machines where the MCP dependency is intentionally configured.
+Context7 is also optional. Codex role MCP definitions are generated from
+`config/codex-agents/role-manifest.json`; a generated MCP is enabled only when the role allows it,
+`~/.codex/config.toml` already has a matching `[mcp_servers.<name>]` table, and the configured local
+command, such as `bunx`, is present on `PATH`. The installer treats the base config table as the
+local opt-in signal; it does not run MCP commands, probe package caches, download packages, or check
+remote services.
 
-Current `skills.config` entries primarily assume the installed layout. Some role files intentionally
-cover multiple possible skill roots such as `{{CODEX_HOME}}/skills`, `{{AGENTS_HOME}}/skills`, and
-this repo's local `skills/` path when a skill must be disabled for specialist roles. The
+Codex role MCP definitions and skill toggles are generated from
+`config/codex-agents/role-manifest.json`. Edit the manifest when a role needs an MCP allowed or a
+skill disabled; do not add `[mcp_servers.*]` or `[[skills.config]]` blocks to the role templates.
+Some generated skill entries intentionally cover multiple possible skill roots such as
+`{{CODEX_HOME}}/skills`, `{{AGENTS_HOME}}/skills`, and this repo's local `skills/` path. The
 `{{CODEX_HOME}}/skills` entries are retained as legacy/duplicate-root safeguards, not as the
 preferred shared skill installation path.
 
@@ -670,7 +679,8 @@ cp reviewer.toml security-auditor.toml
 ```
 
 Then update `security-auditor.toml` with a unique `name`, `description`, model settings, and any
-role-specific `mcp_servers` or `[[skills.config]]` entries.
+role-specific instructions. Add MCP allowances or disabled skill groups in
+`config/codex-agents/role-manifest.json`.
 
 If you also want a matching human-readable role brief for other tools or repo documentation, add a
 separate `agents/security-auditor.md`, but treat that as optional documentation rather than the
