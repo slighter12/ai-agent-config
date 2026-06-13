@@ -4,7 +4,7 @@ description: Audit, create, or repair a stable GOAL.md-style Goal Brief, then re
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.9"
+  version: "0.2.11"
 ---
 
 # Goal Context
@@ -31,13 +31,22 @@ explicitly asks for separate fields.
 Goal mode has prompt-length pressure. Keep durable background, full acceptance criteria, source
 lists, and stable constraints in the Goal Brief. Keep the launch context short: brief path, transient
 current state, the goal-mode activation command, acceptance gaps, and completion evidence to report.
+The launch context is also a runtime completion contract: it must name a checkable completion
+condition, require verification evidence to be reported in the conversation, and include a bounded
+stop condition instead of relying only on "see the brief."
+
+`Validation lineage evidence` means checked sources document a replayable gate chain, acceptance
+protocol, result document, checkpoint or artifact dependency, or prior final label. When that
+evidence exists, keep durable lineage in the Goal Brief and keep the launch context limited to the
+current-stage attempt, transient gap, and evidence to report.
 
 This is a manual-trigger skill. Do not use it only because the conversation mentions goals,
 planning, context, or Markdown. Use it only when the user explicitly asks to invoke this skill.
 
 This skill shapes the Goal Brief and launch context. It does not execute the goal, activate a
 runtime goal tool, prescribe implementation steps, perform lifecycle capture, commit, or implement
-the requested work.
+the requested work. Lineage rerun semantics are a completion contract to write into the brief or
+launcher, not work this skill performs in the current session.
 
 When the selected output includes a Goal Brief, the brief audit is mandatory and must be
 source-grounded. The launch context is downstream of the audit and must not substitute for fixing
@@ -88,15 +97,20 @@ weak, stale, or unsupported brief content.
 4. Sort every useful fact into `Goal Brief` or `Launch Context`:
    - Put stable past and present facts in `Context`: why this exists, what is true now, exact
      sources, constraints, non-goals, and open questions.
+   - Put durable validation lineage in `Context` only when validation lineage evidence exists.
+     Capture current stage, direct predecessor, relevant labels, required inputs, reproduction path,
+     and evidence sources using the template.
    - Put desired future outcomes in `Goal`: objective, deliverables, acceptance criteria,
      verification plan, and done condition.
    - Put transient startup facts in `goal_launch_context`: current worktree/session status, partial
-     acceptance evidence, acceptance gaps, the compact `/goal` activation command, and completion
-     evidence requirements.
+     acceptance evidence, acceptance gaps, current-stage-first attempt, necessary predecessor
+     fallback, the compact `/goal` activation command, and completion evidence requirements.
 5. Audit the Goal Brief when the selected behavior includes a brief. Treat this as a source-grounded
    content gate, not a formatting check:
    - Inspect the referenced files, repo state, or conversation facts needed to verify major claims.
    - `Context`: factual, stable, sourced, and free of future deliverables.
+   - `Validation Lineage`: required only when validation lineage evidence exists. Audit it against
+     the template fields and treat runtime-affecting omissions as `revised` or `blocked`.
    - `Goal`: future outcome only, not background narrative.
    - `Deliverables`: actual project artifacts, behavior, or decisions, not handoff metadata.
    - `Acceptance Criteria`: map to deliverables and to evidence available from checked sources.
@@ -104,9 +118,15 @@ weak, stale, or unsupported brief content.
      state checks.
    - `Done Condition`: exactly matches acceptance completion, verification evidence, and stated
      non-goals.
+   - `Runtime Completion Check`: names a command, file inspection, manual check, or evidence
+     condition that can falsify completion, requires surfaced evidence in the conversation, and
+     includes a retry or turn ceiling when repeated attempts are possible.
    - `Open Questions`: contains unresolved facts instead of silently assuming them.
    - `Launch Context Placement`: launch text, current session status, and `/goal` startup commands
      are not embedded in the brief unless the user explicitly asks for that file shape.
+   - If validation lineage evidence exists, a launch context that only delegates completion to the
+     brief without naming a runtime check or bounded stop is `revised`, or `blocked` when sources do
+     not support a checkable condition.
    - If sources were not inspected enough to verify a major claim, do not mark the audit as pass;
      report `brief_audit: blocked` or record the missing source under `open_questions`.
 6. Rewrite the Goal Brief using `references/GOAL_CONTEXT_TEMPLATE.md` when the selected behavior
@@ -125,9 +145,12 @@ weak, stale, or unsupported brief content.
    - When converting a prior plan into a Goal Brief, preserve every acceptance-relevant evidence
      requirement from the plan. Do not drop evidence requirements merely to avoid step-by-step
      implementation detail.
-9. If required information is missing, record it under `Open Questions` instead of inventing facts,
+9. Apply the template's current-stage-first semantics when validation lineage evidence exists. Do not
+   invent lineage, convert unrelated historical labels into required reruns, or require a full-chain
+   rerun unless the brief explicitly requires it or current evidence questions dependency validity.
+10. If required information is missing, record it under `Open Questions` instead of inventing facts,
    behavior, evidence, or success conditions.
-10. Generate `goal_launch_context` when the selected behavior includes launch output:
+11. Generate `goal_launch_context` when the selected behavior includes launch output:
     - Return one copy-ready fenced `md` block.
     - The first line inside the fenced block must be a compact `/goal <objective>` command so it can
       be pasted directly into goal mode.
@@ -136,6 +159,9 @@ weak, stale, or unsupported brief content.
       changing its meaning.
     - The same `/goal` line must point to the Goal Brief as the acceptance brief. Prefer
       `Use <GOAL.md> as the acceptance brief`.
+    - The same `/goal` line must name a runtime check, command, inspection, or evidence condition
+      that can falsify completion; require that result evidence to be reported in the conversation;
+      and include a brief-defined or default bounded stop condition.
     - Do not use `/goal Read <GOAL.md>` as the default wording. Reading the brief is an implied
       setup action; the `/goal` line should describe the objective and completion contract.
     - Do not use `Complete the goal defined in <GOAL.md>` as the default wording. It is too abstract
@@ -146,15 +172,19 @@ weak, stale, or unsupported brief content.
     - Include a compact `/goal` command that references the Goal Brief instead of copying it.
     - Include only transient current-state facts and acceptance gaps needed to start without prior
       chat history.
+    - When validation lineage exists, include only the current stage to try first, at most one
+      documented command needed to regenerate the current stage's missing input, the direct
+      predecessor fallback, and any brief-defined retry or turn ceiling.
     - Point to the brief for objective, deliverables, acceptance criteria, verification plan,
-      constraints, non-goals, open questions, and done condition instead of restating them.
+      durable validation lineage, protocol commands, acceptance rules, fallback rules, constraints,
+      non-goals, open questions, and done condition instead of restating them.
     - Include the expected completion evidence in the response.
-    - Require the next agent to surface verification evidence in the conversation because the runtime
-      goal evaluator may not inspect files or command output directly.
+    - Require the next agent to surface verification evidence in the conversation; do not assume the
+      runtime can inspect files, diffs, or command output unless those results are reported.
     - Include a clear warning not to paste launch context into the Goal Brief, exactly once.
     - Do not include step-by-step implementation instructions unless a specific procedure is itself
       part of the acceptance criteria.
-11. Format the final response for a user, not as an internal field dump:
+12. Format the final response for a user, not as an internal field dump:
     - Use short Markdown sections, usually `Summary`, `Brief Audit`, `Goal Launch Context`, and
       `Verification`.
     - Show `source_checks` as compact bullets with source, checked claim, and result. Avoid wide
@@ -165,7 +195,7 @@ weak, stale, or unsupported brief content.
       fields unless the user explicitly asks for them.
     - Avoid repeating the full acceptance criteria, source list, or verification plan outside the
       Goal Brief.
-12. Self-review before returning:
+13. Self-review before returning:
     - `Context` contains no future deliverables or acceptance criteria.
     - `Goal` contains no long background narrative.
     - `brief_audit` is present when the selected behavior includes a brief.
@@ -181,7 +211,8 @@ weak, stale, or unsupported brief content.
     - `goal_launch_context` tells the fresh session which `/goal` command to activate or use.
     - The first line inside the `goal_launch_context` fenced block starts with `/goal`.
     - The first line uses the Goal Brief's `Objective` as the objective summary, points to the brief
-      as the acceptance brief, and does not use `Read` as the default verb.
+      as the acceptance brief, names a runtime completion check, requires surfaced evidence, and does
+      not use `Read` as the default verb.
     - The first line does not use `Complete the goal defined in <GOAL.md>` as the default wording.
     - The first line does not narrow the goal to an audit, review, or verification task unless that
       narrower task is the actual brief objective.
@@ -189,13 +220,19 @@ weak, stale, or unsupported brief content.
     - `goal_launch_context` is not embedded in the Goal Brief unless explicitly requested.
     - `goal_launch_context` does not prescribe how to implement the solution unless that procedure
       is part of the requirement.
+    - `goal_launch_context` does not rely only on "use the brief" for completion; it includes a
+      checkable condition and bounded stop.
     - Prior-plan acceptance evidence is fully mapped into the Goal Brief's acceptance criteria,
       verification plan, done condition, or explicit acceptance gaps.
+    - Validation lineage is present only when checked sources show it exists, and the brief captures
+      the template fields as far as sources support them.
+    - Missing generated or transient artifacts use documented regeneration before terminal blockers,
+      and unrelated rejected branches are not treated as required reruns.
     - Acceptance criteria validate the real goal outcome and include observable `Then` and concrete
       `Evidence`.
     - Vague quality words such as "better", "complete", "normal", "reasonable", and "proper" are
       replaced with concrete outcomes or moved to `Open Questions`.
-13. Stop after the goal document or review and launch context are complete. Do not proceed into
+14. Stop after the goal document or review and launch context are complete. Do not proceed into
     implementation.
 
 ## Tool And Side-Effect Boundaries
@@ -212,6 +249,9 @@ weak, stale, or unsupported brief content.
   point back to the stable Goal Brief when background context is needed.
 - Do not let the launch context become a background essay or duplicate brief; keep background, full
   acceptance criteria, source lists, and detailed verification plans in the Goal Brief.
+- Do not copy durable validation lineage, full protocol commands, downstream commands, acceptance
+  rules, or fallback rules into launch context. Reference the Goal Brief and include at most one
+  documented command needed to regenerate the current stage's missing input.
 - Do not make producing `goal_launch_context`, `runtime_goal_command`, or
   `next_session_context_prompt` a project acceptance criterion unless the user is explicitly
   authoring or testing this skill.
@@ -246,10 +286,13 @@ lower-level split.
 `goal_launch_context` should use this compact form:
 
 ```md
-/goal <objective copied or tightly summarized from the Goal Brief>. Use `<goal brief path>` as the acceptance brief. Report verification evidence and blockers. Stay within the brief's constraints and non-goals.
+/goal <objective copied or tightly summarized from the Goal Brief>. Use `<goal brief path>` as the acceptance brief. Runtime check: <named command, inspection, or evidence condition>. Report that evidence in conversation. Stop and report blocked after <brief-defined ceiling or default bounded attempts>. Stay within the brief's constraints and non-goals.
 
 Current context:
 - <transient current-state facts only>
+
+Current-stage first attempt:
+- <current stage to rerun/complete first; at most one documented command to regenerate its missing input if needed; direct predecessor fallback if blocked; retry/turn ceiling if specified>
 
 Acceptance gaps:
 - <missing evidence or "Use the brief to verify all acceptance criteria.">
@@ -260,13 +303,18 @@ Completion evidence to report:
 - Verification results
 - Blockers or follow-up
 
-Do not paste this launch context into the Goal Brief. Use the brief for stable context, objective,
-deliverables, acceptance criteria, verification plan, constraints, non-goals, open questions, and
-done condition.
+Do not paste this launch context into the Goal Brief. Use the brief for stable context, durable
+validation lineage, objective, deliverables, acceptance criteria, verification plan, constraints,
+non-goals, open questions, and done condition.
 ```
 
 ## Version History
 
+- v0.2.11 (2026-06-13): Add runtime completion contract requirements to launch output: a
+  falsifiable runtime check, conversation-surfaced evidence, and bounded retry or turn stop so goal
+  mode does not over-trust "see the brief" or continue unbounded after a failed check.
+- v0.2.10 (2026-06-13): Add replayable validation lineage, current-stage-first rerun semantics, and
+  regenerable artifact handling for projects with documented gate chains or result lineage.
 - v0.2.9 (2026-06-10): Require prior-plan acceptance evidence requirements to be preserved when
   converting plans into Goal Briefs.
 - v0.2.8 (2026-06-10): Use the Goal Brief Objective as the launch objective summary while pointing

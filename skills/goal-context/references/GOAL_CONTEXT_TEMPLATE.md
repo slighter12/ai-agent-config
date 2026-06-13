@@ -17,6 +17,21 @@ mixed with outcomes, acceptance criteria, or launch prompts.
 
 <What is true now. Include stable status, blockers, and known constraints.>
 
+### Validation Lineage
+
+<Optional. Include only when checked sources show validation lineage evidence. Otherwise use `None
+found in checked sources`.>
+
+- Current stage: <stage to complete or rerun first>
+- Direct dependency predecessor: <immediate predecessor stage or `None documented`>
+- Relevant prior final labels: <accepted/rejected/inconclusive/blocked labels that affect context>
+- Required input artifacts: <project-defined transient artifact path, generated checkpoint/log
+  location, or durable source artifact, using generic descriptions when paths are unstable>
+- Regeneration/reproduction path: <documented regeneration command, reproduction command, or
+  `None documented`>
+- Retry/turn ceiling: <brief-defined limit, or default bounded attempt policy>
+- Result evidence sources: <result docs, logs, acceptance records, or reviewed evidence>
+
 ### Relevant Sources
 
 - <Exact file path, issue, doc, source, or conversation fact.>
@@ -60,10 +75,13 @@ mixed with outcomes, acceptance criteria, or launch prompts.
 ### Verification Plan
 
 - <Smallest useful command, review, manual checklist, or evidence path.>
+- Runtime completion check: <single command, file inspection, manual check, or named evidence
+  condition that can falsify completion.>
 
 ### Done Condition
 
-<The exact condition where the agent should stop and report complete.>
+<The exact condition where the agent should stop and report complete, including surfaced runtime
+completion evidence and any retry/turn ceiling.>
 ```
 
 ## Section Rules
@@ -78,6 +96,12 @@ mixed with outcomes, acceptance criteria, or launch prompts.
 - Do not include secrets, credentials, private tokens, or unverifiable claims.
 - Do not include session launch context, current worktree chatter, `/goal` startup text, or
   copy-ready next-session prompts in the Goal Brief. Return those in `goal_launch_context` instead.
+- `Validation lineage evidence` means checked sources document a replayable gate chain, acceptance
+  protocol, result document, checkpoint or artifact dependency, or prior final label. Do not invent
+  lineage for projects that have only ordinary verification steps.
+- Keep durable lineage, protocol commands, acceptance rules, fallback rules, and result evidence
+  sources in the Goal Brief. Keep the launch context limited to the transient current-stage rerun,
+  immediate acceptance gap, necessary predecessor fallback, and completion evidence.
 
 ## Goal Brief Audit Rules
 
@@ -88,6 +112,10 @@ check.
 Audit these sections:
 
 - `Context`: factual, stable, sourced, and free of future deliverables.
+- `Validation Lineage`: required only when validation lineage evidence exists. It must identify the
+  current stage, direct dependency predecessor, relevant prior final labels, required input artifacts,
+  documented regeneration or reproduction command, retry/turn ceiling, and result evidence sources
+  as far as sources support them.
 - `Goal`: future outcomes only, not background narrative.
 - `Deliverables`: actual project artifacts, behavior, or decisions, not handoff metadata.
 - `Acceptance Criteria`: map to deliverables, validate the real goal, and include observable
@@ -95,7 +123,9 @@ Audit these sections:
 - `Verification Plan`: can prove the acceptance criteria and does not omit required source or repo
   state checks.
 - `Done Condition`: exactly matches acceptance completion, verification evidence, and stated
-  non-goals.
+  non-goals, and includes a bounded stop condition when repeated attempts are possible.
+- `Runtime Completion Check`: names a command, file inspection, manual check, or evidence condition
+  that can falsify completion and can be reported in the conversation.
 - `Open Questions`: contains unresolved facts instead of silently assuming them.
 - `Launch Context Placement`: launch prompts and current session status are not embedded in the
   brief unless the user explicitly asks for that file shape.
@@ -103,13 +133,32 @@ Audit these sections:
 For every major claim in the brief, verify it against the provided sources or repo state:
 
 - Current State claims must match referenced files, git state, or conversation facts.
+- Validation Lineage claims must match documented gates, protocols, result docs, artifact
+  dependencies, reproduction commands, and final labels.
 - Deliverables must correspond to actual expected files, decisions, or artifacts.
 - Acceptance Criteria must map to deliverables and to evidence from the referenced sources.
 - Verification Plan must be sufficient to prove the ACs.
 - Done Condition must not add requirements outside AC completion and stated non-goals.
+- Runtime Completion Check must be specific enough for a fresh session to know what evidence to
+  report, not only a pointer to the brief.
 
 If sources were not inspected enough to verify a major claim, do not mark the audit as pass. Use
 `brief_audit: blocked` or record the missing source under `open_questions`.
+
+When lineage evidence exists, treat these as `brief_audit: revised` or `brief_audit: blocked` if
+they affect runtime behavior:
+
+- The current stage is unclear.
+- The direct dependency predecessor is unclear.
+- An artifact dependency lacks a documented regeneration or reproduction path.
+- A missing generated or transient artifact is treated as terminal `blocked` before regeneration is
+  attempted.
+- A rejected prior branch is incorrectly added to the required rerun path when the current stage does
+  not directly depend on it.
+- Launch context copies long-term lineage, full protocol commands, or full acceptance criteria
+  instead of pointing back to the Goal Brief.
+- Launch context only delegates completion to the Goal Brief without a named runtime check,
+  conversation-surfaced evidence requirement, or bounded stop.
 
 Do not use `format: pass` as a substitute for this audit. `format: pass` only means the `Context` /
 `Goal` section split is structurally correct.
@@ -133,6 +182,52 @@ producing launch output.
 - If the available information is not enough to write an acceptance criterion, put the missing input
   under `Open Questions` instead of inventing a success condition.
 
+## Validation Lineage Rules
+
+- Lineage is optional. Require it only when validation lineage evidence exists.
+- The current stage is the first rerun or completion target.
+- If the current stage cannot proceed because a generated or transient input artifact is missing,
+  use the documented regeneration or reproduction command before declaring the goal blocked.
+- If regeneration fails, the source/runtime is unavailable, no documented regeneration path exists,
+  or predecessor validity cannot be established, fall back to validating the direct dependency
+  predecessor.
+- Do not require a full-chain rerun unless the brief explicitly requires it or current evidence
+  questions dependency validity.
+- Include at most the single command needed to regenerate the current stage's missing input in launch
+  context. Do not include the full protocol, downstream stage commands, or historical stage rerun
+  lists there.
+- Prior final labels such as accepted, rejected, inconclusive, and blocked are lineage context. A
+  rejected branch is not a required rerun unless the current stage directly depends on that branch.
+- If an accepted predecessor supplies current input artifacts, record its reproduction path or
+  predecessor verification path when the sources document one.
+- If the brief does not define a retry or turn ceiling, default to one current-stage attempt, one
+  documented regeneration attempt when needed, and one direct predecessor fallback attempt before
+  reporting blocked with evidence.
+- The launcher's `/goal` line should include a runtime check that can be reported in the
+  conversation. Do not rely only on "use the brief" for completion.
+
+Example:
+
+```md
+### Validation Lineage
+
+- Current stage: Stage C validation, attempted first.
+- Direct dependency predecessor: Stage B output validation, previously accepted.
+- Relevant prior final labels: Stage B accepted; one alternate Stage C branch rejected and kept as
+  context only because the current stage does not depend on it.
+- Required input artifacts: generated checkpoint/log location for Stage C input.
+- Regeneration/reproduction path: run the documented regeneration command for the current stage's
+  missing input.
+- Retry/turn ceiling: one current-stage attempt, one documented regeneration attempt, and one direct
+  predecessor fallback attempt unless the brief states a stricter limit.
+- Result evidence sources: accepted predecessor result doc, current-stage failure note, and
+  documented regeneration instructions.
+
+Example launch line:
+
+`/goal Validate Stage C output. Use <goal brief path> as the acceptance brief. Runtime check: run the documented Stage C validation check and report result evidence in conversation. Stop and report blocked after one current-stage attempt, one documented regeneration attempt if needed, and one predecessor fallback.`
+```
+
 ## Goal Launch Context Rules
 
 Return a copy-ready `goal_launch_context` in the assistant response after drafting, revising, or
@@ -149,6 +244,8 @@ The launch context should include:
   meaning.
 - The same `/goal` line should point to the Goal Brief as the acceptance brief, preferably with
   `Use <GOAL.md> as the acceptance brief`.
+- The same `/goal` line should name a runtime completion check, require that result evidence to be
+  reported in the conversation, and include a brief-defined or default bounded stop condition.
 - Do not use `/goal Read <GOAL.md>` as the default wording. Reading the brief is setup; the goal
   line should state the completion objective.
 - Do not use `Complete the goal defined in <GOAL.md>` as the default wording. It is too abstract and
@@ -157,12 +254,16 @@ The launch context should include:
   unless that narrower task is the exact user-authored objective.
 - Only transient current-state context and partial acceptance evidence the next agent needs before
   acting.
+- When validation lineage exists, include only the current stage to try first, at most one documented
+  command needed to regenerate the current stage's missing input, the direct predecessor fallback if
+  the current stage cannot proceed, and any brief-defined retry or turn ceiling.
 - Acceptance gaps, when the goal is already partially done.
 - Completion evidence requirements.
-- A clear instruction that verification evidence must be surfaced in the conversation because the
-  runtime goal evaluator may not inspect files or command output directly.
+- A clear instruction that verification evidence must be surfaced in the conversation. Do not assume
+  the runtime can inspect files, diffs, or command output unless those results are reported.
 - A clear instruction to use the brief for objective, deliverables, acceptance criteria,
-  verification plan, constraints, non-goals, open questions, and done condition.
+  verification plan, durable validation lineage, protocol commands, acceptance rules, fallback rules,
+  constraints, non-goals, open questions, and done condition.
 - A clear instruction not to paste launch context into the Goal Brief.
 - A clear instruction not to include step-by-step implementation directions unless a specific
   procedure is part of the acceptance criteria.
@@ -170,10 +271,13 @@ The launch context should include:
 Use this structure by default:
 
 ```md
-/goal <objective copied or tightly summarized from the Goal Brief>. Use `<goal brief path>` as the acceptance brief. Report verification evidence and blockers. Stay within the brief's constraints and non-goals.
+/goal <objective copied or tightly summarized from the Goal Brief>. Use `<goal brief path>` as the acceptance brief. Runtime check: <named command, inspection, or evidence condition>. Report that evidence in conversation. Stop and report blocked after <brief-defined ceiling or default bounded attempts>. Stay within the brief's constraints and non-goals.
 
 Current context:
 - <transient status or partial acceptance evidence not worth adding to the brief>
+
+Current-stage first attempt:
+- <current stage to rerun/complete first; at most one documented command to regenerate its missing input if needed; direct predecessor fallback if the current stage cannot proceed; retry/turn ceiling if specified>
 
 Acceptance gaps:
 - <missing evidence or unmet acceptance criterion, or "Use the brief to verify all acceptance criteria.">
@@ -184,11 +288,12 @@ Completion evidence to report:
 - Verification results
 - Blockers or follow-up
 
-Use the brief for objective, deliverables, acceptance criteria, verification plan, constraints,
-non-goals, open questions, and done condition. Do not duplicate those sections in this launcher.
+Use the brief for objective, deliverables, acceptance criteria, verification plan, durable validation
+lineage, protocol commands, acceptance rules, fallback rules, constraints, non-goals, open questions,
+and done condition. Do not duplicate those sections in this launcher.
 
-Surface verification evidence in the conversation. Do not assume the runtime goal evaluator can read
-files, inspect diffs, or see command output unless those results are reported.
+Surface verification evidence in the conversation. Do not assume the runtime can read files, inspect
+diffs, or see command output unless those results are reported.
 
 Do not paste this launch context into the Goal Brief.
 
@@ -250,6 +355,8 @@ Formatting requirements:
 - The first line inside the `goal_launch_context` block must start with `/goal`.
 - The first line should use the Goal Brief's `Objective` as the objective summary and point to the
   brief as the acceptance brief.
+- The first line should name a runtime check, require evidence to be reported in conversation, and
+  include a bounded stop.
 - The first line should avoid both `/goal Read <GOAL.md>` setup wording and `Complete the goal
   defined in <GOAL.md>` meta wording.
 - The first line must not narrow the goal into an audit, review, or verification task unless that is
@@ -292,12 +399,21 @@ Expected outputs for trigger cases:
 - The first line does not rename the goal into a narrower audit, review, or verification task unless
   that is the actual brief objective.
 - `goal_launch_context` contains the compact `/goal` command, transient current context, acceptance
-  gaps, completion evidence, and one warning not to paste launch context into the Goal Brief.
+  gaps, current-stage-first attempt when relevant, completion evidence, and one warning not to paste
+  launch context into the Goal Brief.
+- `goal_launch_context` does not rely only on `Use <GOAL.md> as the acceptance brief`; it includes a
+  runtime completion check and bounded stop.
 - The `/goal` command references the Goal Brief and does not copy long context, full acceptance
   criteria, source lists, or detailed verification plans.
 - Runtime context is not embedded into the Goal Brief.
 - Acceptance criteria validate the actual target outcome, not just the brief format.
 - Prior-plan acceptance evidence requirements are preserved in the Goal Brief's acceptance criteria,
   verification plan, done condition, or explicit acceptance gaps.
+- Replayable validation lineage is included only when source evidence shows it exists.
+- Current-stage-first rerun, documented regeneration or reproduction path, and direct predecessor
+  fallback are represented without making all historical stages required reruns.
+- Missing generated or transient artifacts are not treated as terminal blockers when a documented
+  regeneration or reproduction path exists.
+- Prior rejected branches are not required reruns unless the current stage directly depends on them.
 - The final response is concise Markdown, not a long field-by-field dump.
 - Source checks are readable bullets, not a wide table that wraps long file names.
