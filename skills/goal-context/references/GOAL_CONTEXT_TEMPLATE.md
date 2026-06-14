@@ -30,6 +30,8 @@ found in checked sources`.>
 - Regeneration/reproduction path: <documented regeneration command, reproduction command, or
   `None documented`>
 - Retry/turn ceiling: <brief-defined limit, or default bounded attempt policy>
+- Runtime gate evidence: <when runtime gates exist, exact command(s), exit code(s),
+  reached/skipped attempt ledger, and log paths or embedded output excerpts>
 - Result evidence sources: <result docs, logs, acceptance records, or reviewed evidence>
 
 ### Relevant Sources
@@ -77,11 +79,13 @@ found in checked sources`.>
 - <Smallest useful command, review, manual checklist, or evidence path.>
 - Runtime completion check: <single command, file inspection, manual check, or named evidence
   condition that can falsify completion.>
+- Durable runtime evidence required: <for runtime gates, exact command(s), exit code(s),
+  reached/skipped attempt ledger, and log paths or embedded output excerpts.>
 
 ### Done Condition
 
 <The exact condition where the agent should stop and report complete, including surfaced runtime
-completion evidence and any retry/turn ceiling.>
+completion evidence, durable runtime evidence for runtime gates, and any retry/turn ceiling.>
 ```
 
 ## Section Rules
@@ -126,6 +130,9 @@ Audit these sections:
   non-goals, and includes a bounded stop condition when repeated attempts are possible.
 - `Runtime Completion Check`: names a command, file inspection, manual check, or evidence condition
   that can falsify completion and can be reported in the conversation.
+- `Runtime Gate Evidence`: when validation lineage includes runtime gates, requires durable
+  evidence: exact commands, actual and expected exit code semantics, reached/skipped attempt ledger,
+  and log paths or embedded output excerpts.
 - `Open Questions`: contains unresolved facts instead of silently assuming them.
 - `Launch Context Placement`: launch prompts and current session status are not embedded in the
   brief unless the user explicitly asks for that file shape.
@@ -141,6 +148,8 @@ For every major claim in the brief, verify it against the provided sources or re
 - Done Condition must not add requirements outside AC completion and stated non-goals.
 - Runtime Completion Check must be specific enough for a fresh session to know what evidence to
   report, not only a pointer to the brief.
+- Runtime Gate Evidence must be durable enough for review after the session. Transcript-only claims
+  are insufficient unless the result document embeds the necessary output excerpts.
 
 If sources were not inspected enough to verify a major claim, do not mark the audit as pass. Use
 `brief_audit: blocked` or record the missing source under `open_questions`.
@@ -159,6 +168,9 @@ they affect runtime behavior:
   instead of pointing back to the Goal Brief.
 - Launch context only delegates completion to the Goal Brief without a named runtime check,
   conversation-surfaced evidence requirement, or bounded stop.
+- Runtime-gated validation is marked complete using only transcript claims such as "passed" or
+  "looked good" without exact command, exit code, reached/skipped attempt ledger, and log path or
+  embedded output excerpt.
 
 Do not use `format: pass` as a substitute for this audit. `format: pass` only means the `Context` /
 `Goal` section split is structurally correct.
@@ -205,6 +217,12 @@ producing launch output.
   reporting blocked with evidence.
 - The launcher's `/goal` line should include a runtime check that can be reported in the
   conversation. Do not rely only on "use the brief" for completion.
+- When validation lineage includes runtime gates, durable runtime evidence is required. Record exact
+  commands, actual and expected exit code semantics, reached/skipped attempt ledger, and log paths or
+  embedded output excerpts.
+- If a log path is unavailable or points to a transient location, embed enough output excerpt in the
+  result document or conversation summary to prove the gate result. Do not copy full logs when a
+  focused excerpt is sufficient.
 
 Example:
 
@@ -220,12 +238,16 @@ Example:
   missing input.
 - Retry/turn ceiling: one current-stage attempt, one documented regeneration attempt, and one direct
   predecessor fallback attempt unless the brief states a stricter limit.
+- Runtime gate evidence: exact Stage C validation command; exit code `0` means accepted and nonzero
+  means rejected or blocked by the documented gate; attempt ledger records current-stage attempt
+  reached, regeneration attempt skipped or reached, and predecessor fallback skipped or reached;
+  generated log location or embedded output excerpt records the decisive result lines.
 - Result evidence sources: accepted predecessor result doc, current-stage failure note, and
   documented regeneration instructions.
 
 Example launch line:
 
-`/goal Validate Stage C output. Use <goal brief path> as the acceptance brief. Runtime check: run the documented Stage C validation check and report result evidence in conversation. Stop and report blocked after one current-stage attempt, one documented regeneration attempt if needed, and one predecessor fallback.`
+`/goal Validate Stage C output. Use <goal brief path> as the acceptance brief. Runtime check: run the documented Stage C validation check and report durable runtime evidence in conversation: exact command, exit code, reached/skipped attempt ledger, and generated log location or embedded output excerpt. Stop and report blocked after one current-stage attempt, one documented regeneration attempt if needed, and one predecessor fallback.`
 ```
 
 ## Goal Launch Context Rules
@@ -259,6 +281,9 @@ The launch context should include:
   the current stage cannot proceed, and any brief-defined retry or turn ceiling.
 - Acceptance gaps, when the goal is already partially done.
 - Completion evidence requirements.
+- For runtime gates, completion evidence must include exact command, exit code, reached/skipped
+  attempt ledger, and log path or embedded output excerpt. Transcript-only evidence is insufficient
+  unless the result document embeds the necessary excerpts.
 - A clear instruction that verification evidence must be surfaced in the conversation. Do not assume
   the runtime can inspect files, diffs, or command output unless those results are reported.
 - A clear instruction to use the brief for objective, deliverables, acceptance criteria,
@@ -286,6 +311,7 @@ Completion evidence to report:
 - Files touched
 - Acceptance status
 - Verification results
+- Runtime gate evidence when applicable: exact command, exit code, reached/skipped attempt ledger, and log path or embedded output excerpt
 - Blockers or follow-up
 
 Use the brief for objective, deliverables, acceptance criteria, verification plan, durable validation
@@ -403,6 +429,8 @@ Expected outputs for trigger cases:
   launch context into the Goal Brief.
 - `goal_launch_context` does not rely only on `Use <GOAL.md> as the acceptance brief`; it includes a
   runtime completion check and bounded stop.
+- Runtime-gated launch contexts require durable runtime evidence. Transcript-only evidence fails
+  unless a result document embeds the needed output excerpts.
 - The `/goal` command references the Goal Brief and does not copy long context, full acceptance
   criteria, source lists, or detailed verification plans.
 - Runtime context is not embedded into the Goal Brief.

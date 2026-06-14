@@ -4,7 +4,7 @@ description: Audit, create, or repair a stable GOAL.md-style Goal Brief, then re
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.11"
+  version: "0.2.12"
 ---
 
 # Goal Context
@@ -34,6 +34,9 @@ current state, the goal-mode activation command, acceptance gaps, and completion
 The launch context is also a runtime completion contract: it must name a checkable completion
 condition, require verification evidence to be reported in the conversation, and include a bounded
 stop condition instead of relying only on "see the brief."
+When validation lineage includes runtime gates, conversation-surfaced evidence is required but is
+not sufficient by itself; it must include or point to durable runtime evidence such as exact
+commands, exit codes, an attempt ledger, and log paths or embedded output excerpts.
 
 `Validation lineage evidence` means checked sources document a replayable gate chain, acceptance
 protocol, result document, checkpoint or artifact dependency, or prior final label. When that
@@ -121,12 +124,19 @@ weak, stale, or unsupported brief content.
    - `Runtime Completion Check`: names a command, file inspection, manual check, or evidence
      condition that can falsify completion, requires surfaced evidence in the conversation, and
      includes a retry or turn ceiling when repeated attempts are possible.
+   - `Runtime Gate Evidence`: when validation lineage includes runtime gates, requires durable
+     evidence: exact commands, actual and expected exit code semantics, reached/skipped attempt
+     ledger, and log paths or embedded output excerpts. Transcript-only claims are insufficient
+     unless a result document embeds the necessary excerpts.
    - `Open Questions`: contains unresolved facts instead of silently assuming them.
    - `Launch Context Placement`: launch text, current session status, and `/goal` startup commands
      are not embedded in the brief unless the user explicitly asks for that file shape.
    - If validation lineage evidence exists, a launch context that only delegates completion to the
      brief without naming a runtime check or bounded stop is `revised`, or `blocked` when sources do
      not support a checkable condition.
+   - If runtime gates are documented but durable runtime evidence is missing or reduced to "it
+     passed" transcript claims, use `brief_audit: revised`; use `blocked` or `open_questions` when
+     checked sources cannot establish durable evidence requirements.
    - If sources were not inspected enough to verify a major claim, do not mark the audit as pass;
      report `brief_audit: blocked` or record the missing source under `open_questions`.
 6. Rewrite the Goal Brief using `references/GOAL_CONTEXT_TEMPLATE.md` when the selected behavior
@@ -175,6 +185,9 @@ weak, stale, or unsupported brief content.
     - When validation lineage exists, include only the current stage to try first, at most one
       documented command needed to regenerate the current stage's missing input, the direct
       predecessor fallback, and any brief-defined retry or turn ceiling.
+    - When validation lineage includes runtime gates, require completion evidence to report exact
+      commands, exit codes, reached/skipped attempt ledger, and log paths or embedded output
+      excerpts. Do not ask for full logs when a focused excerpt proves the gate result.
     - Point to the brief for objective, deliverables, acceptance criteria, verification plan,
       durable validation lineage, protocol commands, acceptance rules, fallback rules, constraints,
       non-goals, open questions, and done condition instead of restating them.
@@ -222,6 +235,8 @@ weak, stale, or unsupported brief content.
       is part of the requirement.
     - `goal_launch_context` does not rely only on "use the brief" for completion; it includes a
       checkable condition and bounded stop.
+    - Runtime-gated lineage includes durable runtime evidence requirements; transcript-only evidence
+      is not accepted unless necessary output excerpts are embedded in a result document.
     - Prior-plan acceptance evidence is fully mapped into the Goal Brief's acceptance criteria,
       verification plan, done condition, or explicit acceptance gaps.
     - Validation lineage is present only when checked sources show it exists, and the brief captures
@@ -301,6 +316,7 @@ Completion evidence to report:
 - Files touched
 - Acceptance status
 - Verification results
+- Runtime gate evidence when applicable: exact command, exit code, reached/skipped attempt ledger, and log path or embedded output excerpt
 - Blockers or follow-up
 
 Do not paste this launch context into the Goal Brief. Use the brief for stable context, durable
@@ -310,6 +326,9 @@ non-goals, open questions, and done condition.
 
 ## Version History
 
+- v0.2.12 (2026-06-13): Require durable runtime evidence for runtime-gated validation lineage,
+  including exact commands, exit codes, reached/skipped attempt ledgers, and log paths or embedded
+  output excerpts instead of transcript-only claims.
 - v0.2.11 (2026-06-13): Add runtime completion contract requirements to launch output: a
   falsifiable runtime check, conversation-surfaced evidence, and bounded retry or turn stop so goal
   mode does not over-trust "see the brief" or continue unbounded after a failed check.
