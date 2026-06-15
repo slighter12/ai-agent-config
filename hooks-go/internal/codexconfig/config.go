@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	ProfileName = "workspace-git"
+	ProfileName        = "workspace-git"
+	BasePermissionName = ":workspace"
 )
 
 var (
@@ -89,7 +90,7 @@ func EnsureWorkspaceGitProfile(input string) (string, error) {
 		return "", err
 	}
 	text = removeWorkspaceGitBlocks(text)
-	text = upsertDefaultPermissions(text)
+	text = upsertBaseDefaultPermissions(text)
 	text = insertWorkspaceGitBlock(text)
 	return normalizeNewline(text), nil
 }
@@ -138,32 +139,51 @@ func removeWorkspaceGitBlocks(text string) string {
 	return strings.TrimRight(strings.Join(out, "\n"), "\n") + "\n"
 }
 
-func upsertDefaultPermissions(text string) string {
+func upsertBaseDefaultPermissions(text string) string {
 	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
 	if len(lines) == 1 && lines[0] == "" {
-		return `default_permissions = "` + ProfileName + `"` + "\n"
+		return `default_permissions = "` + BasePermissionName + `"` + "\n"
 	}
+	currentTable := ""
 	insertIndex := -1
 	for index, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if table, ok := tableName(trimmed); ok {
-			_ = table
-			insertIndex = index
-			break
+			currentTable = table
+			if insertIndex == -1 {
+				insertIndex = index
+			}
 		}
-		if topLevelDefaultPermissionsRE.MatchString(trimmed) {
-			lines[index] = `default_permissions = "` + ProfileName + `"`
+		if currentTable == "" && topLevelDefaultPermissionsRE.MatchString(trimmed) {
+			if workspaceGitDefaultPermissions(trimmed) {
+				lines[index] = `default_permissions = "` + BasePermissionName + `"`
+			}
 			return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
 		}
 	}
 	if insertIndex == -1 {
-		lines = append(lines, `default_permissions = "`+ProfileName+`"`)
+		lines = append(lines, `default_permissions = "`+BasePermissionName+`"`)
 	} else {
 		before := append([]string{}, lines[:insertIndex]...)
-		before = append(before, `default_permissions = "`+ProfileName+`"`)
+		before = append(before, `default_permissions = "`+BasePermissionName+`"`)
 		lines = append(before, lines[insertIndex:]...)
 	}
 	return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
+}
+
+func workspaceGitDefaultPermissions(line string) bool {
+	if !topLevelDefaultPermissionsRE.MatchString(line) {
+		return false
+	}
+	parts := strings.SplitN(line, "=", 2)
+	if len(parts) != 2 {
+		return false
+	}
+	value := strings.TrimSpace(parts[1])
+	if index := strings.Index(value, "#"); index >= 0 {
+		value = strings.TrimSpace(value[:index])
+	}
+	return value == `"`+ProfileName+`"`
 }
 
 func insertWorkspaceGitBlock(text string) string {

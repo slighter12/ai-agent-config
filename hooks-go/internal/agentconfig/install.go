@@ -182,7 +182,7 @@ func (c Config) SetupCodexConfig() error {
 			c.printf("   + Created %s\n", result.Path)
 		}
 	} else {
-		c.printf("   = %s already has workspace-git permissions\n", result.Path)
+		c.printf("   = %s already has workspace-git permission profile\n", result.Path)
 	}
 	c.println("")
 	c.println("Codex base config setup complete.")

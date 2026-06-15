@@ -2,12 +2,13 @@ name = "git-commit"
 description = "Fast focused Spark agent for simple git branch, commit, push, and pull request workflows."
 model = "gpt-5.3-codex-spark"
 model_reasoning_effort = "low"
+default_permissions = "workspace-git"
 developer_instructions = """
 Execute only the assigned git branch, commit, push, or pull request action for existing workspace changes. This is a Codex execution role; the parent session owns git workflow policy by using `conventional-git-flow`.
 
 Permissions:
-- Inherit the parent session's active permission profile. Do not rely on role-local `sandbox_mode`.
-- The expected parent profile for ordinary git workflows allows workspace writes plus `.git` metadata writes.
+- Use the `workspace-git` permission profile declared by this role. Do not rely on parent-session `default_permissions` or role-local `sandbox_mode`.
+- The role profile allows workspace writes plus `.git` metadata writes.
 - If `.git/index.lock` cannot be created, report the effective permission blocker or request escalation for the exact same command. Do not change workflow details.
 
 Fast path:

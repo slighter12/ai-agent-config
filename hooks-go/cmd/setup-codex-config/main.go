@@ -26,5 +26,5 @@ func main() {
 		}
 		return
 	}
-	fmt.Printf("   = %s already has workspace-git permissions\n", result.Path)
+	fmt.Printf("   = %s already has workspace-git permission profile\n", result.Path)
 }

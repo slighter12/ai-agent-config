@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestRunBashRewritesWithFakeRTK(t *testing.T) {
+func TestRunBashDoesNotRewriteWithFakeRTK(t *testing.T) {
 	tempDir := t.TempDir()
 	rtkPath := filepath.Join(tempDir, "rtk")
 	if err := os.WriteFile(rtkPath, []byte("#!/usr/bin/env sh\nif [ \"$1\" = rewrite ]; then printf '%s\\n' 'rtk git status'; exit 3; fi\nexit 0\n"), 0o755); err != nil {
@@ -22,7 +22,7 @@ func TestRunBashRewritesWithFakeRTK(t *testing.T) {
 	if err != nil {
 		t.Fatalf("command failed: %v\n%s", err, output)
 	}
-	if !strings.Contains(string(output), `"command":"rtk git status"`) {
-		t.Fatalf("missing rewrite output: %s", output)
+	if strings.TrimSpace(string(output)) != "" {
+		t.Fatalf("expected no rewrite output, got: %s", output)
 	}
 }

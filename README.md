@@ -108,6 +108,7 @@ The installer creates symlinks (without overwriting existing files):
   - `AGENTS.md -> ~/git/ai-config/AGENTS.md`
   - Also runs the Go-backed `setup-codex-config` flow to:
     - upsert the `workspace-git` permission profile in `~/.codex/config.toml`
+    - set repo-managed top-level `default_permissions = "workspace-git"` back to `:workspace`
     - back up `config.toml` only when the script changes it
     - fail that setup step if legacy `sandbox_mode` settings would conflict with permission profiles
     - let `install.sh` continue with agents and shell setup if this config step is skipped or fails
@@ -167,10 +168,10 @@ RTK binary updates are handled by Homebrew. RTK instruction/template updates are
 `brew upgrade`; rerun `rtk init -g --codex` only when you intentionally want to refresh the generated
 `~/.codex/RTK.md`.
 
-Codex hook integration uses RTK as the command rewrite source of truth. The Codex `PreToolUse` Bash
-hook is an RTK-only adapter that rewrites eligible Bash input through `updatedInput.command`. Claude
-uses its live `rtk hook claude` configuration when enabled. Commands without an RTK rewrite continue
-normally.
+Codex hook integration does not rewrite Bash commands. Earlier versions used RTK as a
+`PreToolUse` Bash rewrite source, but command rewriting could change shell semantics such as
+`rg --files` becoming a compact grep invocation. RTK may still be used explicitly by typing
+`rtk ...`; Claude uses its live `rtk hook claude` configuration when enabled.
 
 Codex hooks are distributed as repo-local plugins. Register the repo marketplace once, then install
 or reinstall affected plugins when hook metadata changes:
@@ -337,7 +338,7 @@ Default Codex profile in this repo:
 - `orchestrator`: `gpt-5.5` + `high` + `fast`
 - `explorer`: `gpt-5.5` + `medium` + `fast`
 - `builder`: `gpt-5.3-codex` + `medium`
-- `git-commit`: `gpt-5.3-codex-spark` + `low`, inheriting the parent `workspace-git` permission profile
+- `git-commit`: `gpt-5.3-codex-spark` + `low` + `workspace-git`
 - `reviewer`: `gpt-5.4` + `high` + `fast` + `:read-only`
 - `oracle`: `gpt-5.5` + `high` + `:read-only`
 - `librarian`: `gpt-5.4` + `medium` + `fast`
@@ -365,19 +366,19 @@ agent and avoid a second confirmation loop unless the delegate output is incompl
 contradictory. Hook layers still protect the shell commands that role runs and may add reminders, but
 hooks do not select models or delegate workflow.
 
-Simple git delegation expects the parent session to run with a `workspace-git` permission profile in
-`~/.codex/config.toml`. The Go installer manages this profile idempotently during `./install.sh`: it
-backs up the config only when it changes the file and upserts the block below. The setup step is
-best-effort inside `install.sh`: legacy `sandbox_mode` conflicts are reported without blocking
-agent, skill, or shell symlink setup. Run `scripts/setup_codex_config.sh` directly for a focused
-failure message after resolving legacy sandbox settings. The profile extends
-`:workspace`, keeps normal workspace protections, adds write access to `.git` metadata, and allows
-GitHub network domains used by `git push` and `gh pr create`. Subagents inherit the parent session's
-effective permission profile, so `git-commit` does not use role-local `sandbox_mode =
-"danger-full-access"`.
+Simple git delegation uses the `workspace-git` permission profile declared by the `git-commit`
+role file. The Go installer manages this named profile idempotently during `./install.sh`: it backs
+up the config only when it changes the file, sets the old repo-managed top-level
+`default_permissions = "workspace-git"` value back to the legal built-in `:workspace` default, and
+upserts the block below. The setup step is best-effort inside `install.sh`: legacy `sandbox_mode`
+conflicts are reported without blocking agent, skill, or shell symlink setup. Run
+`scripts/setup_codex_config.sh` directly for a focused failure message after resolving legacy
+sandbox settings. The profile extends `:workspace`, keeps normal workspace protections, adds write
+access to `.git` metadata, and allows GitHub network domains used by `git push` and `gh pr create`.
+`git-commit` does not use role-local `sandbox_mode = "danger-full-access"`.
 
 ```toml
-default_permissions = "workspace-git"
+default_permissions = ":workspace"
 
 [permissions.workspace-git]
 description = "Workspace editing with git metadata writes and GitHub network access."
@@ -510,21 +511,16 @@ Current plugins:
 
 - `ai-agent-config-guardrails`: Go-backed `PreToolUse` guardrails that block direct file-tool writes
   to `.env*`, block direct file-tool writes to global agent configuration such as
-  `~/.codex/config.toml`, `~/.codex/hooks.json`, and `~/.claude/settings.json`, and rewrite eligible
-  Codex Bash commands to their RTK form.
+  `~/.codex/config.toml`, `~/.codex/hooks.json`, and `~/.claude/settings.json`.
 - `ai-agent-git-routing`: Go-backed `UserPromptSubmit` reminder for direct simple git action prompts
   so the main session sees that branch creation, commit, push, or PR creation should route through
   the `git-commit` role.
 
-The Bash RTK adapter returns `permissionDecision: "allow"` with `updatedInput.command` because Codex
-requires `allow` when a `PreToolUse` hook changes tool input. This is a rewrite hook, not a Bash
-safety gate.
-
 Codex uses repo-local plugins instead of owning `~/.codex/hooks.json`. The configured events include
-`PreToolUse` guardrails and a lightweight `UserPromptSubmit` reminder. Open `/hooks` in Codex after
-installation to review and trust the plugin hooks. Bash hooks are RTK-only and fail open when RTK is
-unavailable. Hook commands call plugin-bundled Go binaries through the Codex plugin runtime root
-(`${PLUGIN_ROOT}`) and do not require a `~/.codex/hooks` symlink.
+file-tool `PreToolUse` guardrails and a lightweight `UserPromptSubmit` reminder. Open `/hooks` in
+Codex after installation to review and trust the plugin hooks. Hook commands call plugin-bundled Go
+binaries through the Codex plugin runtime root (`${PLUGIN_ROOT}`) and do not require a
+`~/.codex/hooks` symlink.
 
 Static context belongs in `AGENTS.md`, `CLAUDE.md`, or skills. The prompt hook is reinforcement only:
 it appends a visible reminder for matching git action prompts, while `AGENTS.md` and
@@ -552,7 +548,7 @@ Official compatibility boundaries:
   hooks should be added only when there is a concrete guardrail worth enforcing.
 - Codex file-tool `PreToolUse` is a guardrail, not a complete enforcement boundary, because
   equivalent work may be possible through another supported tool path or through shell commands that
-  obscure touched files. Bash `PreToolUse` is RTK-only and does not block shell writes.
+  obscure touched files.
 - Claude hook support is broader, but this repo keeps v0 aligned to the shared command-hook subset to
   avoid provider-specific drift.
 
@@ -568,10 +564,6 @@ JSON
 
 "$PLUGIN_ROOT/hooks/bin/agent-config-guardrails" pre-tool-use-file <<'JSON'
 {"hook_event_name":"PreToolUse","tool_name":"Write","tool_input":{"file_path":".env.local"}}
-JSON
-
-"$PLUGIN_ROOT/hooks/bin/agent-config-guardrails" pre-tool-use-bash <<'JSON'
-{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git status"}}
 JSON
 
 PLUGIN_ROOT="$PWD/plugins/ai-agent-git-routing"
@@ -597,10 +589,8 @@ JSON
 ```
 
 The first command should print nothing and exit `0`. The second should print a deny JSON object for
-the `.env*` file-tool write. The third should print an allow JSON object with
-`updatedInput.command` set to the RTK rewritten command when RTK is installed, or print nothing when
-RTK is unavailable. The next four git-routing commands should each print a `systemMessage` reminder
-for the `git-commit` route. The final text-only command should print nothing.
+the `.env*` file-tool write. The next four git-routing commands should each print a `systemMessage`
+reminder for the `git-commit` route. The final text-only command should print nothing.
 
 ## Update Workflow
 

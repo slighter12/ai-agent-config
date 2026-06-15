@@ -13,7 +13,8 @@ func TestEnsureWorkspaceGitProfileCreatesProfile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	mustContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `default_permissions = ":workspace"`)
+	mustNotContain(t, got, `default_permissions = "workspace-git"`)
 	mustContain(t, got, `[permissions.workspace-git]`)
 	mustContain(t, got, `".git" = "write"`)
 	mustContain(t, got, `[permissions.workspace-git.network]`)
@@ -39,7 +40,7 @@ trust_level = "trusted"
 }
 
 func TestEnsureWorkspaceGitProfileReplacesExistingBlock(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`default_permissions = "old"
+	got, err := EnsureWorkspaceGitProfile(`default_permissions = "workspace-git"
 
 [permissions.workspace-git]
 description = "old"
@@ -61,10 +62,25 @@ enabled = false
 	if strings.Contains(got, `enabled = false`) {
 		t.Fatalf("old workspace-git network block was not removed:\n%s", got)
 	}
-	mustContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `default_permissions = ":workspace"`)
+	mustNotContain(t, got, `default_permissions = "workspace-git"`)
 	mustContain(t, got, `enabled = true`)
 	mustContain(t, got, `"api.github.com" = "allow"`)
 	mustContain(t, got, `[hooks.state]`)
+}
+
+func TestEnsureWorkspaceGitProfilePreservesUserDefaultPermissions(t *testing.T) {
+	got, err := EnsureWorkspaceGitProfile(`default_permissions = ":read-only"
+
+[projects."/tmp/demo"]
+trust_level = "trusted"
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	mustContain(t, got, `default_permissions = ":read-only"`)
+	mustContain(t, got, `[permissions.workspace-git]`)
+	mustContain(t, got, `[projects."/tmp/demo"]`)
 }
 
 func TestEnsureWorkspaceGitProfilePreservesUnrelatedTables(t *testing.T) {
@@ -128,5 +144,12 @@ func mustContain(t *testing.T, text, want string) {
 	t.Helper()
 	if !strings.Contains(text, want) {
 		t.Fatalf("expected output to contain %q:\n%s", want, text)
+	}
+}
+
+func mustNotContain(t *testing.T, text, want string) {
+	t.Helper()
+	if strings.Contains(text, want) {
+		t.Fatalf("expected output not to contain %q:\n%s", want, text)
 	}
 }
