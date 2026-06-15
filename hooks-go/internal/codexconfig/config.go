@@ -12,7 +12,7 @@ import (
 
 const (
 	ProfileName        = "workspace-git"
-	BasePermissionName = ":workspace"
+	BasePermissionName = ProfileName
 )
 
 var (
@@ -155,7 +155,7 @@ func upsertBaseDefaultPermissions(text string) string {
 			}
 		}
 		if currentTable == "" && topLevelDefaultPermissionsRE.MatchString(trimmed) {
-			if workspaceGitDefaultPermissions(trimmed) {
+			if repoManagedDefaultPermissions(trimmed) {
 				lines[index] = `default_permissions = "` + BasePermissionName + `"`
 			}
 			return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
@@ -171,7 +171,7 @@ func upsertBaseDefaultPermissions(text string) string {
 	return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
 }
 
-func workspaceGitDefaultPermissions(line string) bool {
+func repoManagedDefaultPermissions(line string) bool {
 	if !topLevelDefaultPermissionsRE.MatchString(line) {
 		return false
 	}
@@ -183,7 +183,7 @@ func workspaceGitDefaultPermissions(line string) bool {
 	if index := strings.Index(value, "#"); index >= 0 {
 		value = strings.TrimSpace(value[:index])
 	}
-	return value == `"`+ProfileName+`"`
+	return value == `"`+ProfileName+`"` || value == `":workspace"`
 }
 
 func insertWorkspaceGitBlock(text string) string {

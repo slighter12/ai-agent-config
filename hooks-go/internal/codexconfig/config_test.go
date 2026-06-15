@@ -13,8 +13,7 @@ func TestEnsureWorkspaceGitProfileCreatesProfile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	mustContain(t, got, `default_permissions = ":workspace"`)
-	mustNotContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `default_permissions = "workspace-git"`)
 	mustContain(t, got, `[permissions.workspace-git]`)
 	mustContain(t, got, `".git" = "write"`)
 	mustContain(t, got, `[permissions.workspace-git.network]`)
@@ -62,11 +61,24 @@ enabled = false
 	if strings.Contains(got, `enabled = false`) {
 		t.Fatalf("old workspace-git network block was not removed:\n%s", got)
 	}
-	mustContain(t, got, `default_permissions = ":workspace"`)
-	mustNotContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `default_permissions = "workspace-git"`)
 	mustContain(t, got, `enabled = true`)
 	mustContain(t, got, `"api.github.com" = "allow"`)
 	mustContain(t, got, `[hooks.state]`)
+}
+
+func TestEnsureWorkspaceGitProfileConvertsWorkspaceDefault(t *testing.T) {
+	got, err := EnsureWorkspaceGitProfile(`default_permissions = ":workspace"
+
+[projects."/tmp/demo"]
+trust_level = "trusted"
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	mustContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `[permissions.workspace-git]`)
+	mustContain(t, got, `[projects."/tmp/demo"]`)
 }
 
 func TestEnsureWorkspaceGitProfilePreservesUserDefaultPermissions(t *testing.T) {

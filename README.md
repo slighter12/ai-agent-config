@@ -108,7 +108,7 @@ The installer creates symlinks (without overwriting existing files):
   - `AGENTS.md -> ~/git/ai-config/AGENTS.md`
   - Also runs the Go-backed `setup-codex-config` flow to:
     - upsert the `workspace-git` permission profile in `~/.codex/config.toml`
-    - set repo-managed top-level `default_permissions = "workspace-git"` back to `:workspace`
+    - set repo-managed top-level `default_permissions` to `workspace-git`
     - back up `config.toml` only when the script changes it
     - fail that setup step if legacy `sandbox_mode` settings would conflict with permission profiles
     - let `install.sh` continue with agents and shell setup if this config step is skipped or fails
@@ -366,21 +366,22 @@ agent and avoid a second confirmation loop unless the delegate output is incompl
 contradictory. Hook layers still protect the shell commands that role runs and may add reminders, but
 hooks do not select models or delegate workflow.
 
-Simple git delegation uses the `workspace-git` permission profile declared inside the `git-commit`
-role file. The Go installer also keeps the same named profile in `~/.codex/config.toml` for manual
-selection and compatibility: it backs up the config only when it changes the file, sets the old
-repo-managed top-level `default_permissions = "workspace-git"` value back to the legal built-in
-`:workspace` default, and upserts the block below. The setup step is best-effort inside
+Simple git delegation uses the `workspace-git` permission profile from the parent Codex session.
+Subagents inherit the active sandbox policy, so the Go installer keeps that profile in
+`~/.codex/config.toml`, backs up the config only when it changes the file, converts repo-managed
+top-level `default_permissions = ":workspace"` or `"workspace-git"` values to
+`default_permissions = "workspace-git"`, and upserts the block below. The setup step is best-effort inside
 `install.sh`: legacy `sandbox_mode` conflicts are reported without blocking agent, skill, or shell
 symlink setup. Run `scripts/setup_codex_config.sh` directly for a focused failure message after
 resolving legacy sandbox settings. The profile extends `:workspace`, keeps normal workspace
 protections, adds write access to `.git` metadata, and allows GitHub network domains used by
-`git push` and `gh pr create`. The generated `~/.codex/agents/git-commit.toml` includes its own
-copy of this profile block so commit delegation does not depend on the parent session's
-`default_permissions`. `git-commit` does not use role-local `sandbox_mode = "danger-full-access"`.
+`git push` and `gh pr create`. The generated `~/.codex/agents/git-commit.toml` includes the same
+profile block for standalone compatibility, but commit delegation still depends on the parent
+session running with the `workspace-git` profile. `git-commit` does not use role-local
+`sandbox_mode = "danger-full-access"`.
 
 ```toml
-default_permissions = ":workspace"
+default_permissions = "workspace-git"
 
 [permissions.workspace-git]
 description = "Workspace editing with git metadata writes and GitHub network access."
