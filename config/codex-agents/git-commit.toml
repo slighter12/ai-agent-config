@@ -29,3 +29,24 @@ Safety constraints:
 
 Final report must include the action result, branch, commit hash when applicable, push or PR URL/blocker when applicable, excluded or remaining dirty files, and one final `git status --short --branch`.
 """
+
+[permissions.workspace-git]
+description = "Workspace editing with git metadata writes and GitHub network access."
+extends = ":workspace"
+
+[permissions.workspace-git.filesystem.":workspace_roots"]
+"." = "write"
+".git" = "write"
+".codex" = "read"
+".agents" = "read"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+"**/*.env" = "deny"
+
+[permissions.workspace-git.network]
+enabled = true
+
+[permissions.workspace-git.network.domains]
+"github.com" = "allow"
+"api.github.com" = "allow"
+"uploads.github.com" = "allow"
