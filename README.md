@@ -405,6 +405,24 @@ enabled = true
 "uploads.github.com" = "allow"
 ```
 
+The repo-managed shell wrapper also auto-adds native developer cache and store directories as
+Codex writable roots when it launches profile-managed session commands. It does not relocate tool caches or
+rewrite per-command environment variables; it asks installed tools for their own paths and passes
+them through `--add-dir`. Current probes include Go build/module caches from `go env`, uv cache and
+managed Python directories, Bun's install cache/global/bin directories, and Cargo's `registry`,
+`git`, and `bin` subdirectories without opening the whole `~/.cargo` root. npm, pip, golangci-lint,
+Cloud SDK config/logs, k6, and protobuf are not auto-added; add those explicitly for workflows that
+need them. Set `CODEX_AUTO_DEV_DIRS=0` before launching Codex to disable this behavior.
+
+Manual verification for the auto-added developer directories:
+
+```bash
+go env GOCACHE GOMODCACHE GOPATH GOBIN
+uv cache dir
+test -w "$(go env GOCACHE)"
+test -w "$(go env GOMODCACHE)"
+```
+
 Examples:
 
 - Spark-backed simple action: "Create a branch.", "Commit this.", "Push this branch.", or
