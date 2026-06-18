@@ -4,7 +4,7 @@ description: Implement or revise tests and verification loops when tests or exec
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # Verification-Driven Change
@@ -39,8 +39,9 @@ Keep test and verification work anchored to executable evidence instead of broad
    - For characterization work, lock current behavior before refactoring.
    - For contract or API work, preserve documented status codes, response shapes, error codes, and compatibility expectations.
    - For property or invariant work, state the invariant before choosing examples or generators.
-5. Implement only the scoped production changes needed by the selected verification loop.
-6. Run or describe the narrowest useful verification allowed by repo policy, then report evidence, skipped checks, assumptions, and residual risk.
+5. Before finalizing the verification approach, load `policy-testing` for risk level, fixture/mock, determinism, coverage, and validation-gate decisions. Also load the corresponding `policy-*` skill when API contracts, security/auth/secrets/PII, runtime/deploy/config behavior, or language/framework ownership boundaries materially affect correctness, safety, or acceptance.
+6. Implement only the scoped production changes needed by the selected verification loop.
+7. Run or describe the narrowest useful verification allowed by repo policy, then report evidence, skipped checks, assumptions, and residual risk.
 
 ## Guardrails
 
@@ -50,7 +51,7 @@ Keep test and verification work anchored to executable evidence instead of broad
 - Do not weaken assertions or broaden fixtures just to make a failing check pass.
 - Do not hardcode or log secrets, tokens, credentials, PII, or sensitive request/response bodies in tests.
 - If a correct verification seam does not exist, state that as a finding instead of adding a weak or misleading test.
-- Use `policy-testing` for detailed risk level, fixture, mock, determinism, coverage, and validation-gate rules.
+- Load `policy-testing` for detailed risk level, fixture, mock, determinism, coverage, and validation-gate rules.
 
 ## Tool And Side-Effect Boundaries
 
@@ -74,3 +75,4 @@ Return:
 
 - v0.1.0 (2026-05-19): Initial verification-driven task workflow for test and executable-evidence changes.
 - v0.1.1 (2026-05-21): Route current-change review requests to renamed `code-review`.
+- v0.1.2 (2026-06-18): Add hard policy gate for testing and material API, security, infra, and language/framework verification risks.

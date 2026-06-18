@@ -4,7 +4,7 @@ description: "Review code or current git changes through sanity, project-profile
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.4"
+  version: "0.2.5"
 ---
 
 # Code Review
@@ -49,9 +49,10 @@ Provide an independent code review workflow for current diffs, focused code path
 3. Infer the project profile from repo and prompt facts before setting review depth: application, library/SDK, infrastructure, firmware/embedded, security-sensitive, docs/skill repo, or mixed.
 4. If the review appears high-impact, cross-layer, security-sensitive, firmware/safety-critical, too large for one context, or likely to need independent perspectives, ask whether to escalate through `execution-harness` or multi-agent review.
 5. Establish a clean review frame using current git state, relevant diffs or code paths, nearby files, repo rules, and active policy references.
-6. Inspect enough evidence for the selected mode and project profile; keep `sanity` bounded, but allow `full` and `security` to widen scope when the risk justifies it.
-7. Report only material, evidence-backed findings. If no material issue is found, say so and list residual risks or skipped checks.
-8. Do not modify files unless the user explicitly asks for fixes after the review.
+6. Before finalizing the verdict, load the corresponding `policy-*` skill when that policy area materially affects correctness, safety, or acceptance. This is a hard gate for API contracts, security/auth/secrets/PII, verification strategy, runtime/deploy/config behavior, and language/framework ownership boundaries. Do not load unrelated policy skills for routine review surfaces where the review frame fully covers the risk.
+7. Inspect enough evidence for the selected mode and project profile; keep `sanity` bounded, but allow `full` and `security` to widen scope when the risk justifies it.
+8. Report only material, evidence-backed findings. If no material issue is found, say so and list residual risks or skipped checks.
+9. Do not modify files unless the user explicitly asks for fixes after the review.
 
 ## User-Supplied Focus
 
@@ -67,7 +68,7 @@ Use focus text to guide inspection, but do not treat it as proof. If the focus c
 
 - For `sanity`, use `references/REVIEW_FRAME.md` and keep inspection diff-centered.
 - For `full`, use project-profile guidance from `references/REVIEW_FRAME.md` before deciding breadth.
-- For `security`, use `policy-security` as the disclosure and trust-boundary authority; use optional API, frontend, infra, language, or testing policy detail only when that surface is in scope.
+- For `security`, load `policy-security` as the disclosure and trust-boundary authority; load API, frontend, infra, language, or testing policy when that surface is materially in scope.
   At minimum, inspect auth/authz boundary changes, secrets/tokens/PII in code/logs/tests/responses, unsafe user-facing error disclosure, custom crypto, and validation of attacker-controlled input.
 - For `architecture-diff-risk`, review only architecture risk visible in the current diff or targeted code path. Whole-codebase architecture discovery belongs to `planning-grill`.
 
@@ -118,6 +119,7 @@ Return:
 - v0.2.3 (2026-05-29): Align security review routing wording with optional-depth policy handoffs.
 - v0.2.4 (2026-06-11): Route capture-worthy handoff notes to project lifecycle while keeping
   ordinary handoff packaging out of code review.
+- v0.2.5 (2026-06-18): Add hard policy gate before review verdicts for material API, security, testing, infra, and language/framework risks.
 
 ## References
 

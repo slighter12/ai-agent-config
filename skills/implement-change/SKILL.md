@@ -4,7 +4,7 @@ description: Implement scoped code, config, or ordinary documentation changes wi
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.7"
+  version: "0.1.8"
 ---
 
 # Implement Change
@@ -42,14 +42,15 @@ Keep implementation work aligned with the existing repo while avoiding broad ref
    - Auth, authorization, attacker-controlled input, or crypto impact: preserve existing auth/authz boundaries, validate untrusted input, and use existing vetted auth/crypto mechanisms instead of inventing new ones.
    - Testing or verification depth needed for the risk level; for test-first work, use one behavior slice at a public interface and existing test conventions.
    - Runtime/config/deploy impact when env vars, ports, services, external dependencies, or runtime requirements change.
-5. If implementation reveals a product/architecture decision, rejected approach, deferred scope,
+5. Before finalizing the approach, load the corresponding `policy-*` skill when that policy area materially affects correctness, safety, or acceptance. This is a hard gate for API contracts, security/auth/secrets/PII, verification strategy, runtime/deploy/config behavior, and language/framework ownership boundaries. Do not load unrelated policy skills for routine edits where the built-in guardrails fully cover the risk.
+6. If implementation reveals a product/architecture decision, rejected approach, deferred scope,
    scope-changing pivot, status or documentation drift, capture-worthy handoff note, loop active
    state, discussion record, or reusable workflow lesson that future work would need to remember, emit a
    `project-lifecycle` capture candidate before continuing or in the final summary. If none of
    those signals appear, report `lifecycle_capture_candidate: none` rather than asking for lifecycle
    capture on every ordinary completion.
-6. Validate with the narrowest useful evidence allowed by the repo policy: focused tests, type checks, smoke checks, review, or manual checklist.
-7. Summarize changed behavior, files touched, verification, assumptions, lifecycle capture candidates, and residual risk.
+7. Validate with the narrowest useful evidence allowed by the repo policy: focused tests, type checks, smoke checks, review, or manual checklist.
+8. Summarize changed behavior, files touched, verification, assumptions, lifecycle capture candidates, and residual risk.
 
 ## Tool And Side-Effect Boundaries
 
@@ -59,7 +60,7 @@ Keep implementation work aligned with the existing repo while avoiding broad ref
 - Do not expose internal errors, stack traces, SQL, hostnames, paths, or sensitive details in user-facing responses.
 - Do not invent new test frameworks, fixture systems, dependencies, public API names, or business logic unless explicitly approved.
 - If infra-impact triggers are present but infra updates are skipped, state why infra changes are not required.
-- Use policy references only for deeper detail; this skill carries the minimum implementation guardrails even if no policy skill is separately loaded.
+- This skill carries the minimum implementation guardrails for routine edits, but the policy gate above is mandatory when a policy area materially affects correctness, safety, or acceptance.
 
 ## Output
 
@@ -84,3 +85,4 @@ Return:
 - v0.1.5 (2026-05-28): Emit lifecycle capture candidates for implementation pivots and project-level decisions.
 - v0.1.6 (2026-05-29): Add minimal auth, input-validation, and crypto implementation guardrails.
 - v0.1.7 (2026-06-11): Add signal-driven lifecycle candidate checks at ordinary task completion.
+- v0.1.8 (2026-06-18): Add hard policy gate for material API, security, testing, infra, and language/framework risks.
