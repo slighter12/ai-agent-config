@@ -17,6 +17,12 @@ mixed with outcomes, acceptance criteria, or launch prompts.
 
 <What is true now. Include stable status, blockers, and known constraints.>
 
+### Claim Boundary
+
+- Accepted Scope: <what this stage is allowed to claim>
+- Non-Claims: <nearby stronger claims that are not established>
+- Rejected Evidence: <prior, tempting, stale, or too-broad evidence that must not count, with why>
+
 ### Validation Lineage
 
 <Optional. Include only when checked sources show validation lineage evidence. Otherwise use `None
@@ -60,6 +66,18 @@ found in checked sources`.>
 
 - <Artifact, behavior, doc, code change, or decision expected from the work.>
 
+### Metric Type
+
+<Use one: deterministic_validator | frozen_metric | evidence_review | subjective_rubric |
+human_review_required. Explain the selected standard and why broader or weaker evidence is
+insufficient.>
+
+### Evaluator Contract
+
+<What evidence proves completion, where it must be surfaced, and whether a human reviewer is
+required. Do not assume provider memory, an independent evaluator, context isolation, or hidden tool
+access.>
+
 ### Acceptance Criteria
 
 - [ ] AC-1: <happy path / primary outcome>
@@ -81,19 +99,31 @@ found in checked sources`.>
   condition that can falsify completion.>
 - Durable runtime evidence required: <for runtime gates, exact command(s), exit code(s),
   reached/skipped attempt ledger, and log paths or embedded output excerpts.>
+- Completion audit source: <authoritative current-state source to inspect before claiming done.>
+
+### Stop Or Escalate
+
+<Retry, turn, budget, blocker, tool-failure, and human-review stop rules. If Metric Type is
+`human_review_required`, stop after producing the review packet and wait for human judgment.>
 
 ### Done Condition
 
 <The exact condition where the agent should stop and report complete, including surfaced runtime
-completion evidence, durable runtime evidence for runtime gates, and any retry/turn ceiling.>
+completion evidence, durable runtime evidence for runtime gates, authoritative completion audit,
+human-review packet when required, and any retry/turn ceiling.>
 ```
 
 ## Section Rules
 
 - `Context` contains only background, current state, constraints, sources, non-goals, and unknowns.
   Do not put future deliverables or acceptance criteria here.
-- `Goal` contains only objective, deliverables, acceptance criteria, verification, and done
-  condition. Do not put long background narrative here.
+- `Claim Boundary` is required for long-running goal use. It must include `Accepted Scope`,
+  `Non-Claims`, and `Rejected Evidence`.
+- `Goal` contains only objective, deliverables, metric type, evaluator contract, acceptance
+  criteria, verification, stop or escalate rules, and done condition. Do not put long background
+  narrative here.
+- `Metric Type`, `Evaluator Contract`, and `Stop Or Escalate` are part of the completion contract.
+  They are not provider runtime features.
 - Replace placeholders instead of leaving angle-bracket text in the final file.
 - Use absolute dates for status and decisions.
 - Cite exact local paths when the context depends on repo files.
@@ -116,18 +146,26 @@ check.
 Audit these sections:
 
 - `Context`: factual, stable, sourced, and free of future deliverables.
+- `Claim Boundary`: includes accepted scope, non-claims, and rejected evidence. Accepted scope must
+  not be broader than the evidence supports.
 - `Validation Lineage`: required only when validation lineage evidence exists. It must identify the
   current stage, direct dependency predecessor, relevant prior final labels, required input artifacts,
   documented regeneration or reproduction command, retry/turn ceiling, and result evidence sources
   as far as sources support them.
 - `Goal`: future outcomes only, not background narrative.
 - `Deliverables`: actual project artifacts, behavior, or decisions, not handoff metadata.
+- `Metric Type`: uses deterministic validators or frozen metrics when available. If no quantified,
+  replayable, evidence-review, or calibrated rubric standard exists, it must be
+  `human_review_required`.
+- `Evaluator Contract`: states what evidence can prove completion and where the evidence must be
+  surfaced. It must not assume provider memory, hidden evaluator state, or unsurfaced tool output.
 - `Acceptance Criteria`: map to deliverables, validate the real goal, and include observable
   evidence available from checked sources.
 - `Verification Plan`: can prove the acceptance criteria and does not omit required source or repo
   state checks.
 - `Done Condition`: exactly matches acceptance completion, verification evidence, and stated
   non-goals, and includes a bounded stop condition when repeated attempts are possible.
+- `Stop Or Escalate`: covers retry, turn, budget, blocker, tool-failure, and human-review stops.
 - `Runtime Completion Check`: names a command, file inspection, manual check, or evidence condition
   that can falsify completion and can be reported in the conversation.
 - `Runtime Gate Evidence`: when validation lineage includes runtime gates, requires durable
@@ -146,6 +184,9 @@ For every major claim in the brief, verify it against the provided sources or re
 - Acceptance Criteria must map to deliverables and to evidence from the referenced sources.
 - Verification Plan must be sufficient to prove the ACs.
 - Done Condition must not add requirements outside AC completion and stated non-goals.
+- Metric Type and Evaluator Contract must not let the agent self-certify subjective or unquantified
+  claims. Human review is required unless an objective validator, frozen metric, evidence-review
+  protocol, or calibrated rubric exists.
 - Runtime Completion Check must be specific enough for a fresh session to know what evidence to
   report, not only a pointer to the brief.
 - Runtime Gate Evidence must be durable enough for review after the session. Transcript-only claims
@@ -171,6 +212,8 @@ they affect runtime behavior:
 - Runtime-gated validation is marked complete using only transcript claims such as "passed" or
   "looked good" without exact command, exit code, reached/skipped attempt ledger, and log path or
   embedded output excerpt.
+- Broad claims are not accepted from narrow evidence. For example, `scaffolded synthetic
+  compositional recombination` evidence must not be rewritten as broad generalization.
 
 Do not use `format: pass` as a substitute for this audit. `format: pass` only means the `Context` /
 `Goal` section split is structurally correct.
@@ -193,6 +236,20 @@ producing launch output.
   that plan. Do not remove required evidence merely to avoid step-by-step implementation detail.
 - If the available information is not enough to write an acceptance criterion, put the missing input
   under `Open Questions` instead of inventing a success condition.
+
+## Metric And Human Review Rules
+
+- Prefer deterministic validators and frozen metrics when they exist.
+- A frozen metric must be outside the agent's edit boundary.
+- `evidence_review` is acceptable only when the criteria and required artifacts are named.
+- `subjective_rubric` must include criteria, negative examples or rejected patterns, and calibration
+  status.
+- If the goal depends on taste, broad quality, or direction and no calibrated rubric exists, use
+  `human_review_required`.
+- For `human_review_required`, the done condition is a review packet with accepted scope,
+  non-claims, rejected evidence, artifacts changed, verification performed, open questions, and the
+  specific human decision needed.
+- LLM-as-judge is supporting evidence only unless the user explicitly accepts it as the evaluator.
 
 ## Validation Lineage Rules
 
@@ -311,7 +368,10 @@ Completion evidence to report:
 - Files touched
 - Acceptance status
 - Verification results
+- Metric type and evaluator contract result
+- Completion audit against authoritative current state
 - Runtime gate evidence when applicable: exact command, exit code, reached/skipped attempt ledger, and log path or embedded output excerpt
+- Human-review packet when the brief requires human judgment
 - Blockers or follow-up
 
 Use the brief for objective, deliverables, acceptance criteria, verification plan, durable validation
@@ -350,7 +410,10 @@ source_checks:
 
 brief_audit: pass / revised / blocked
 brief_changes: <changed sections, none_needed with one short rationale, or blocker>
+claim_boundary_review: pass / revised / blocked
+metric_type_review: pass / revised / blocked
 acceptance_criteria_review: pass / revised / blocked
+completion_contract_review: pass / revised / blocked
 
 ## Goal Launch Context
 
@@ -429,6 +492,10 @@ Expected outputs for trigger cases:
   launch context into the Goal Brief.
 - `goal_launch_context` does not rely only on `Use <GOAL.md> as the acceptance brief`; it includes a
   runtime completion check and bounded stop.
+- `goal_launch_context` requires authoritative current-state completion audit, not progress-ledger
+  or transcript-only completion.
+- If no objective or calibrated standard exists, the launch context stops at a human-review packet
+  instead of telling the agent to self-certify completion.
 - Runtime-gated launch contexts require durable runtime evidence. Transcript-only evidence fails
   unless a result document embeds the needed output excerpts.
 - The `/goal` command references the Goal Brief and does not copy long context, full acceptance

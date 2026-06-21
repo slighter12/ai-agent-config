@@ -32,9 +32,11 @@ Status: proposed | accepted | superseded
 
 ## Memory Classification
 
-- Active state: <what the next run needs>
+- Active state: <current phase, owner, accepted progress, rejected evidence, blockers,
+  verification status, evidence pointers, and next check>
 - Long-lived capture: <decision/implementation pivot/status or documentation drift/capture-worthy handoff note/workflow lesson>
-- Not captured: <raw transcript, unstable idea, duplicate, etc.>
+- Not captured: <raw transcript, full logs, provider memory assumptions, unstable idea, duplicate,
+  prose-only confidence, etc.>
 
 ## Open Questions
 
@@ -50,6 +52,9 @@ Status: proposed | accepted | superseded
 - Keep source material factual and compact.
 - Do not invent owners, completion status, dates, or product facts.
 - Keep raw transcripts and verbose logs out of committed docs by default.
+- Treat active state as continuity, not completion proof. Final completion still requires
+  authoritative current-state evidence or human review when no objective or calibrated standard
+  exists.
 - Route accepted long-lived changes through `CAPTURE_GATE.md`.
 - Route approved shared skill changes to `skill-creator`; do not edit skills directly from a
   workflow lesson without approval.

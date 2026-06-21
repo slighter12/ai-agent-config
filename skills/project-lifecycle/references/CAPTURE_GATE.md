@@ -60,6 +60,19 @@ Use a discussion record when source material or decisions would be hard to recon
 record names the sources, separates accepted decisions from rejected alternatives, and routes any
 long-lived follow-up through the capture targets above.
 
+For loop state, separate layers:
+
+- Active state: current phase, owner, accepted progress, rejected evidence, blockers, verification
+  status, evidence pointers, and next check.
+- Durable capture: accepted decisions, status changes, pivots, documentation drift, handoff notes,
+  or workflow lessons.
+- Not captured by default: raw transcripts, full logs, provider memory assumptions, and prose-only
+  confidence.
+
+An active state checkpoint does not prove completion. Completion claims must be verified against
+authoritative current state or routed to human review when no deterministic validator, frozen
+metric, evidence-review protocol, or calibrated rubric exists.
+
 ## Workflow Learning And Skill Evolution
 
 Only propose shared skill or agent behavior changes when all are true:

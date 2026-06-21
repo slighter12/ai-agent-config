@@ -4,7 +4,7 @@ description: Audit, create, or repair a stable GOAL.md-style Goal Brief, then re
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.12"
+  version: "0.2.13"
 ---
 
 # Goal Context
@@ -21,7 +21,8 @@ Audit, write, revise, or review goal handoff material so the user ends with two 
 The Goal Brief separates two information sets:
 
 - `Context`: background, current state, sources, constraints, non-goals, and open questions.
-- `Goal`: objective, deliverables, acceptance criteria, verification plan, and done condition.
+- `Goal`: objective, deliverables, metric type, evaluator contract, acceptance criteria,
+  verification plan, stop or escalate rule, and done condition.
 
 The launch context is not a second goal brief. It may contain a compact `/goal` command, but the user
 should not have to understand separate `runtime_goal_command` and `next_session_context_prompt`
@@ -55,6 +56,12 @@ When the selected output includes a Goal Brief, the brief audit is mandatory and
 source-grounded. The launch context is downstream of the audit and must not substitute for fixing
 weak, stale, or unsupported brief content.
 
+This skill follows the provider-neutral loop contract vocabulary from `policy-core`: Goal Briefs
+must define a checkable completion contract without assuming that Codex, Claude, Gemini, or another
+runtime shares the same evaluator, memory, isolation, or tool access. Codex goal mode can continue a
+persisted thread goal and the model can mark it complete; Claude goal mode can evaluate surfaced
+conversation evidence. Neither behavior removes the need for a source-grounded completion contract.
+
 ## Use When
 
 - The user explicitly invokes `goal-context`, `$goal-context`, `/goal-context`, or asks to run this
@@ -83,6 +90,24 @@ weak, stale, or unsupported brief content.
 - The task would require inventing objectives, owners, status, deadlines, evidence, or acceptance
   criteria.
 
+## Loop Contract Minimums
+
+Every Goal Brief or launch context for long-running agent use must include or point to these
+contract parts:
+
+- `Claim Boundary`: `Accepted Scope`, `Non-Claims`, and `Rejected Evidence`.
+- `Metric Type`: one of `deterministic_validator`, `frozen_metric`, `evidence_review`,
+  `subjective_rubric`, or `human_review_required`.
+- `Evaluator Contract`: what evidence can prove the goal and where that evidence must be surfaced.
+- `Stop Or Escalate`: retry, turn, blocker, tool-failure, budget, and human-review stop rules.
+- `Completion Audit`: the final check must return to authoritative current state, not a progress
+  ledger, transcript memory, or model confidence.
+
+If a deterministic validator or frozen metric exists, make it the primary completion evidence. If no
+quantified, replayable, or calibrated standard exists, the goal must stop at a human-review packet
+and must not allow the agent to self-certify completion. LLM judgment is supporting evidence only
+unless the user explicitly accepts LLM-as-judge.
+
 ## Workflow
 
 1. Confirm the manual invocation. If this skill was loaded without an explicit user request to run
@@ -97,30 +122,48 @@ weak, stale, or unsupported brief content.
    - `brief-only`: use only when the user explicitly asks for just the stable goal document.
 3. Read the user's rough request, existing draft, or referenced file. Inspect only the sources needed
    to preserve factual context and avoid contradicting existing project state.
-4. Sort every useful fact into `Goal Brief` or `Launch Context`:
+4. Run the Goal Readiness Gate before drafting or repairing launch text:
+   - If roadmap, product direction, architecture tradeoff, or success criteria are not settled, stop
+     and route to `planning-grill` with the smallest set of questions or handoff facts needed to
+     converge direction. Do not write a Goal Brief that invents direction.
+   - If direction is settled but scope boundary, evidence, metric type, evaluator contract, or stop
+     rule is missing, ask only material questions needed to make the goal evaluable. Do not impose a
+     fixed question count.
+   - If no deterministic validator, frozen metric, evidence review criteria, or calibrated rubric
+     exists, set `Metric Type` to `human_review_required` and make the done condition produce a
+     review packet and stop for human judgment.
+5. Sort every useful fact into `Goal Brief` or `Launch Context`:
    - Put stable past and present facts in `Context`: why this exists, what is true now, exact
      sources, constraints, non-goals, and open questions.
+   - Put `Claim Boundary` in `Context`: accepted scope, non-claims, and rejected evidence. Rejected
+     evidence must name why prior or tempting evidence cannot support the accepted claim.
    - Put durable validation lineage in `Context` only when validation lineage evidence exists.
      Capture current stage, direct predecessor, relevant labels, required inputs, reproduction path,
      and evidence sources using the template.
-   - Put desired future outcomes in `Goal`: objective, deliverables, acceptance criteria,
-     verification plan, and done condition.
+   - Put desired future outcomes in `Goal`: objective, deliverables, metric type, evaluator
+     contract, acceptance criteria, verification plan, stop or escalate rule, and done condition.
    - Put transient startup facts in `goal_launch_context`: current worktree/session status, partial
      acceptance evidence, acceptance gaps, current-stage-first attempt, necessary predecessor
      fallback, the compact `/goal` activation command, and completion evidence requirements.
-5. Audit the Goal Brief when the selected behavior includes a brief. Treat this as a source-grounded
+6. Audit the Goal Brief when the selected behavior includes a brief. Treat this as a source-grounded
    content gate, not a formatting check:
    - Inspect the referenced files, repo state, or conversation facts needed to verify major claims.
    - `Context`: factual, stable, sourced, and free of future deliverables.
+   - `Claim Boundary`: includes `Accepted Scope`, `Non-Claims`, and `Rejected Evidence`; the
+     accepted scope is not broader than the evidence supports.
    - `Validation Lineage`: required only when validation lineage evidence exists. Audit it against
      the template fields and treat runtime-affecting omissions as `revised` or `blocked`.
    - `Goal`: future outcome only, not background narrative.
    - `Deliverables`: actual project artifacts, behavior, or decisions, not handoff metadata.
+   - `Metric Type`: uses a deterministic validator or frozen metric when available; requires a
+     human-review packet when no quantified or calibrated standard exists.
+   - `Evaluator Contract`: says what evidence can prove completion and where it must be surfaced.
    - `Acceptance Criteria`: map to deliverables and to evidence available from checked sources.
    - `Verification Plan`: can prove the acceptance criteria and does not omit required source or repo
      state checks.
    - `Done Condition`: exactly matches acceptance completion, verification evidence, and stated
-     non-goals.
+     non-goals. When `Metric Type` is `human_review_required`, done means producing the review packet
+     and stopping for human judgment, not self-certifying the final quality claim.
    - `Runtime Completion Check`: names a command, file inspection, manual check, or evidence
      condition that can falsify completion, requires surfaced evidence in the conversation, and
      includes a retry or turn ceiling when repeated attempts are possible.
@@ -139,13 +182,13 @@ weak, stale, or unsupported brief content.
      checked sources cannot establish durable evidence requirements.
    - If sources were not inspected enough to verify a major claim, do not mark the audit as pass;
      report `brief_audit: blocked` or record the missing source under `open_questions`.
-6. Rewrite the Goal Brief using `references/GOAL_CONTEXT_TEMPLATE.md` when the selected behavior
+7. Rewrite the Goal Brief using `references/GOAL_CONTEXT_TEMPLATE.md` when the selected behavior
    includes edits and audit findings require changes. Keep background tight and move future behavior
    out of `Context`.
-7. If the audit passes without required edits, set `brief_changes` to `none_needed` only when
+8. If the audit passes without required edits, set `brief_changes` to `none_needed` only when
    `source_checks` names the sources checked and the specific major claims they support. Do not use
    `format: pass` as a substitute for source-grounded content audit.
-8. Write acceptance criteria that validate the real required outcome, not the implementation steps
+9. Write acceptance criteria that validate the real required outcome, not the implementation steps
    or just the document format:
    - Use `Given / When / Then / Evidence` for behavior-oriented criteria.
    - Use checklist criteria only for pure documentation work, and still include `Evidence`.
@@ -155,12 +198,12 @@ weak, stale, or unsupported brief content.
    - When converting a prior plan into a Goal Brief, preserve every acceptance-relevant evidence
      requirement from the plan. Do not drop evidence requirements merely to avoid step-by-step
      implementation detail.
-9. Apply the template's current-stage-first semantics when validation lineage evidence exists. Do not
+10. Apply the template's current-stage-first semantics when validation lineage evidence exists. Do not
    invent lineage, convert unrelated historical labels into required reruns, or require a full-chain
    rerun unless the brief explicitly requires it or current evidence questions dependency validity.
-10. If required information is missing, record it under `Open Questions` instead of inventing facts,
+11. If required information is missing, record it under `Open Questions` instead of inventing facts,
    behavior, evidence, or success conditions.
-11. Generate `goal_launch_context` when the selected behavior includes launch output:
+12. Generate `goal_launch_context` when the selected behavior includes launch output:
     - Return one copy-ready fenced `md` block.
     - The first line inside the fenced block must be a compact `/goal <objective>` command so it can
       be pasted directly into goal mode.
@@ -194,10 +237,14 @@ weak, stale, or unsupported brief content.
     - Include the expected completion evidence in the response.
     - Require the next agent to surface verification evidence in the conversation; do not assume the
       runtime can inspect files, diffs, or command output unless those results are reported.
+    - Require final completion audit against authoritative current state. Do not let progress ledgers,
+      active state notes, or prior transcript claims prove completion by themselves.
+    - When `Metric Type` is `human_review_required`, require a human-review packet and stop for
+      human judgment instead of calling the goal complete.
     - Include a clear warning not to paste launch context into the Goal Brief, exactly once.
     - Do not include step-by-step implementation instructions unless a specific procedure is itself
       part of the acceptance criteria.
-12. Format the final response for a user, not as an internal field dump:
+13. Format the final response for a user, not as an internal field dump:
     - Use short Markdown sections, usually `Summary`, `Brief Audit`, `Goal Launch Context`, and
       `Verification`.
     - Show `source_checks` as compact bullets with source, checked claim, and result. Avoid wide
@@ -208,9 +255,15 @@ weak, stale, or unsupported brief content.
       fields unless the user explicitly asks for them.
     - Avoid repeating the full acceptance criteria, source list, or verification plan outside the
       Goal Brief.
-13. Self-review before returning:
+14. Self-review before returning:
     - `Context` contains no future deliverables or acceptance criteria.
+    - `Claim Boundary` has `Accepted Scope`, `Non-Claims`, and `Rejected Evidence`.
+    - The accepted scope does not claim broad generalization when evidence only supports scaffolded
+      synthetic compositional recombination or another narrower condition.
     - `Goal` contains no long background narrative.
+    - `Metric Type` is present and matches available evidence. Missing objective standards route to
+      human review instead of agent self-certification.
+    - `Evaluator Contract` and `Stop Or Escalate` are present or explicitly blocked as missing.
     - `brief_audit` is present when the selected behavior includes a brief.
     - `source_checks` is present when the selected behavior includes a brief and `brief_audit` is
       `pass` or `revised`.
@@ -247,7 +300,7 @@ weak, stale, or unsupported brief content.
       `Evidence`.
     - Vague quality words such as "better", "complete", "normal", "reasonable", and "proper" are
       replaced with concrete outcomes or moved to `Open Questions`.
-14. Stop after the goal document or review and launch context are complete. Do not proceed into
+15. Stop after the goal document or review and launch context are complete. Do not proceed into
     implementation.
 
 ## Tool And Side-Effect Boundaries
@@ -262,6 +315,9 @@ weak, stale, or unsupported brief content.
   `Context`.
 - Do not treat `/goal` text as global memory. It is a thread/session completion contract and should
   point back to the stable Goal Brief when background context is needed.
+- Do not assume provider memory, goal evaluators, context isolation, or tool access unless the
+  runtime explicitly provides it. Use repo artifacts, Goal Briefs, handoff references, and surfaced
+  evidence for cross-session continuity.
 - Do not let the launch context become a background essay or duplicate brief; keep background, full
   acceptance criteria, source lists, and detailed verification plans in the Goal Brief.
 - Do not copy durable validation lineage, full protocol commands, downstream commands, acceptance
@@ -289,7 +345,8 @@ Return a concise Markdown response. Prefer this shape:
 - `Summary`: whether the Goal Brief was drafted, revised, reviewed, unchanged, or blocked, with exact
   Markdown paths changed if any.
 - `Brief Audit`: `format`, compact bullet `source_checks`, `brief_audit`, `brief_changes`, and
-  `acceptance_criteria_review`.
+  `claim_boundary_review`, `metric_type_review`, `acceptance_criteria_review`, and
+  `completion_contract_review`.
 - `Goal Launch Context`: one fenced `md` block named `goal_launch_context`, unless the selected
   behavior excludes launch output.
 - `Verification`: checks run, assumptions, open questions, and manual verification checklist.
@@ -316,6 +373,8 @@ Completion evidence to report:
 - Files touched
 - Acceptance status
 - Verification results
+- Metric type and evaluator contract result
+- Completion audit against authoritative current state
 - Runtime gate evidence when applicable: exact command, exit code, reached/skipped attempt ledger, and log path or embedded output excerpt
 - Blockers or follow-up
 
@@ -326,6 +385,9 @@ non-goals, open questions, and done condition.
 
 ## Version History
 
+- v0.2.13 (2026-06-21): Adopt provider-neutral loop contract rules with Goal Readiness Gate,
+  mandatory claim boundaries, metric type classification, evaluator contracts, authoritative
+  completion audits, and human-review stops when no objective or calibrated standard exists.
 - v0.2.12 (2026-06-13): Require durable runtime evidence for runtime-gated validation lineage,
   including exact commands, exit codes, reached/skipped attempt ledgers, and log paths or embedded
   output excerpts instead of transcript-only claims.

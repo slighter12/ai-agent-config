@@ -1,7 +1,7 @@
 interface:
   display_name: "Goal Context"
   short_description: "Audit or repair GOAL.md, then return one fenced goal launch context."
-  default_prompt: "$goal-context Audit this Goal Brief against its sources/repo state, revise GOAL.md if requested or needed by the task, then return one concise fenced goal_launch_context whose first line is a /goal command using the brief's Objective and pointing to the brief as the acceptance brief: "
+  default_prompt: "$goal-context Audit this Goal Brief against its sources/repo state, revise GOAL.md if requested or needed by the task, ensure Claim Boundary, Metric Type, Evaluator Contract, Stop Or Escalate, and authoritative completion audit are present, then return one concise fenced goal_launch_context whose first line is a /goal command using the brief's Objective and pointing to the brief as the acceptance brief: "
 
 policy:
   allow_implicit_invocation: false

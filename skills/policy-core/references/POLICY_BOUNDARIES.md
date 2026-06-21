@@ -22,6 +22,15 @@ Use this file when multiple policy skills govern the same decision point and own
 It does not replace policy ownership:
 
 - `policy-core` owns baseline behavior and shared vocabulary.
+- `policy-core/references/LOOP_CONTRACT.md` owns provider-neutral loop contract vocabulary for
+  long-running goals, repeated phase loops, surfaced evidence, claim boundaries, metric types, and
+  active-state hygiene. It does not define any provider's runtime implementation.
+- `planning-grill` owns unresolved roadmap, product direction, architecture tradeoffs, and success
+  criteria before a goal contract is ready.
+- `goal-context` owns manual Goal Brief and launch contract authoring. It should route unresolved
+  direction to `planning-grill`, not invent a goal.
+- `execution-harness` owns phase, owner, gate, and evidence coordination for long-running or
+  repeated work. It should not write `/goal` launch contracts.
 - `policy-testing` owns verification strategy and gate selection.
 - `project-lifecycle` owns capture-worthy lifecycle signal classification: accepted project
   decision/status synchronization, implementation pivots, documentation drift, capture-worthy
@@ -36,15 +45,18 @@ It does not replace policy ownership:
 ## Precedence Outcomes (When Policies Overlap)
 
 1. `policy-core` provides baseline constraints when loaded or when cross-policy alignment is needed. Trigger it for detected precedence/conflict, not for ordinary clear policy overlap where a narrower policy fully covers the task.
-2. For language/framework implementation details, language/framework policy wins:
+2. For long-running loop contracts, use `LOOP_CONTRACT.md` vocabulary while keeping the narrowest
+   workflow owner responsible for the artifact: `goal-context` for Goal Briefs, `execution-harness`
+   for phase contracts, and `project-lifecycle` for capture classification.
+3. For language/framework implementation details, language/framework policy wins:
    - Go details -> `policy-go`
    - Rust details -> `policy-rust`
    - Frontend framework/UI details -> `policy-frontend`
-3. For API wire contracts, `policy-api` is authoritative over language-specific implementation preferences.
-4. For trust boundaries, leaks, secrets, and crypto concerns, `policy-security` is authoritative and may tighten any other policy outcome.
-5. For verification scope and risk-based evidence, `policy-testing` is authoritative on test strategy and acceptance confidence.
-6. For runtime/deploy/config injection concerns, `policy-infra` is authoritative for operational constraints.
-7. If two authorities still conflict, keep the stricter safety/correctness constraint and document the assumption briefly.
+4. For API wire contracts, `policy-api` is authoritative over language-specific implementation preferences.
+5. For trust boundaries, leaks, secrets, and crypto concerns, `policy-security` is authoritative and may tighten any other policy outcome.
+6. For verification scope and risk-based evidence, `policy-testing` is authoritative on test strategy and acceptance confidence.
+7. For runtime/deploy/config injection concerns, `policy-infra` is authoritative for operational constraints.
+8. If two authorities still conflict, keep the stricter safety/correctness constraint and document the assumption briefly.
 
 ## Policy Overlap Examples
 

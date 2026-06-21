@@ -4,7 +4,7 @@ description: "Coordinate lifecycle capture for project decisions, implementation
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # Project Lifecycle
@@ -15,6 +15,10 @@ Provide one lifecycle/capture gate for project memory. This skill classifies whe
 work segment, decision point, implementation pivot, phase boundary, loop run, discussion record,
 capture-worthy handoff note, status change, or workflow lesson should be captured, where it belongs,
 and what approval is needed before mutation.
+
+For loop memory, this skill classifies state layers. It does not assume provider memory, hidden
+context isolation, or automatic cross-session recall. Durable continuity should use repo artifacts,
+Goal Briefs, handoff references, result docs, or explicit active-state checkpoints.
 
 ## Use When
 
@@ -76,6 +80,21 @@ and what approval is needed before mutation.
 8. After approved edits, make the smallest reversible change and summarize what changed, what stayed
    open, and any remaining confirmation needed.
 
+## Loop State Rules
+
+- `active_state_checkpoint` is short-lived continuity for the next run: current phase, owner,
+  accepted progress, rejected evidence, blockers, verification status, evidence pointers, and next
+  check.
+- Long-lived capture is for accepted decisions, status, pivots, documentation drift, reusable
+  workflow lessons, and capture-worthy handoff notes.
+- Raw transcripts, full logs, and verbose run history are not committed by default. Store focused
+  excerpts or paths only when they are needed as evidence.
+- Progress ledgers and active-state notes guide future work but do not prove completion. Completion
+  claims must return to authoritative current state.
+- If a loop has no deterministic validator, frozen metric, evidence-review protocol, or calibrated
+  rubric, lifecycle capture should preserve the review packet and the human decision needed instead
+  of recording the agent's self-certification as accepted.
+
 ## Tool And Side-Effect Boundaries
 
 - Do not silently modify long-lived docs, shared skills, agent config, git state, or external
@@ -92,6 +111,8 @@ and what approval is needed before mutation.
   accepted constraints, and decisions that would otherwise be surprising.
 - Do not turn active loop state into a permanent transcript ledger by default. Preserve only the
   summary needed for next-run continuity unless the user explicitly asks for an audit trail.
+- Do not describe provider memory as required or available unless the current runtime explicitly
+  provides it. Checked-in docs and explicit artifacts are the portable source of truth.
 - Propose ADR capture only when the decision is hard to reverse, has a real tradeoff, or would be
   surprising without rationale.
 
@@ -112,6 +133,8 @@ Return:
 
 ## Version History
 
+- v0.1.2 (2026-06-21): Clarify loop state layers, active-state evidence pointers, human-review
+  capture, and no default reliance on provider memory or raw transcripts.
 - v0.1.1 (2026-06-11): Add loop memory, discussion record, and manual capture packet guidance.
 - v0.1.0 (2026-05-28): Initial lifecycle/capture gate consolidating phase closeout, decision-doc
   sync, handoff, status capture, and workflow learning triage.

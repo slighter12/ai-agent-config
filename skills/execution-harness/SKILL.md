@@ -4,7 +4,7 @@ description: Coordinate optional orchestration across phases, agents, git/worksp
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.6"
+  version: "0.1.8"
 ---
 
 # Execution Harness
@@ -12,6 +12,14 @@ metadata:
 ## Purpose
 
 Provide an optional execution envelope for complex agent work. This skill coordinates phases and owners without replacing task skills that own implementation, diagnosis, design clarification, review, testing strategy, git workflow, or lifecycle capture.
+
+For long-running, repeated, or multi-session work, this skill adopts the provider-neutral loop
+contract vocabulary from `policy-core` at the phase level. It does not write `/goal` launch
+contracts and does not depend on any provider-specific evaluator, memory, or context isolation.
+
+When routing work to another skill, distinguish routing ownership from loaded availability. Do not
+say a sibling skill is unavailable merely because it has not been loaded into the current prompt;
+name it as the owner unless the runtime or skill registry explicitly reports it missing.
 
 ## Use When
 
@@ -52,6 +60,8 @@ Provide an optional execution envelope for complex agent work. This skill coordi
 - Do not perform implementation work in the same response unless the user explicitly requests execution after the harness plan.
 - Keep every selected phase visible, including phases owned by the main agent instead of a delegated agent.
 - Every phase must name an owner, scope, expected evidence, and acceptance gate.
+- Long-running or repeated phases must also name a work unit, evaluator contract, verified-progress
+  update target, and stop-or-escalate rule.
 - Every delegated owner must appear in both `phase_plan` and `agent_selection`.
 
 ## Workflow
@@ -61,13 +71,20 @@ Provide an optional execution envelope for complex agent work. This skill coordi
 3. Route each gate to the narrowest owner skill or agent role.
 4. Resolve delegated agent names and model facts at runtime from tool metadata, local configuration, or explicit user instruction.
 5. Keep one lightweight source of truth for assumptions, status, owner, and next action.
-6. Pass only the relevant guidance into handoffs; do not assume subagents can dynamically gain skills or MCPs.
-7. Verify each phase with the minimum evidence required by risk.
-8. At phase or final completion, route lifecycle classification to `project-lifecycle` when an
+6. For any long-running, repeated, or multi-session phase, define:
+   - `work_unit`: the smallest verifiable unit for that phase.
+   - `evaluator_contract`: what evidence proves the phase gate and where it must be surfaced.
+   - `verified_progress`: where accepted and rejected progress evidence pointers are tracked.
+   - `stop_or_escalate`: retry, turn, blocker, tool-failure, budget, and human-review stops.
+   Use deterministic validators or frozen metrics when available. If no objective or calibrated
+   standard exists, route the phase to a human-review packet instead of self-certifying completion.
+7. Pass only the relevant guidance into handoffs; do not assume subagents can dynamically gain skills or MCPs.
+8. Verify each phase with the minimum evidence required by risk.
+9. At phase or final completion, route lifecycle classification to `project-lifecycle` when an
    accepted decision, implementation pivot, status or documentation drift, capture-worthy handoff
    note, loop active state, discussion record, or reusable workflow lesson is present and needs
    classification.
-9. Keep reusable learning candidates as `project-lifecycle` capture candidates; otherwise set `capture_candidate` to `none`.
+10. Keep reusable learning candidates as `project-lifecycle` capture candidates; otherwise set `capture_candidate` to `none`.
 
 ## Agent Selection Disclosure
 
@@ -81,6 +98,10 @@ Provide an optional execution envelope for complex agent work. This skill coordi
 
 - This skill coordinates capability routing; it does not perform runtime capability injection.
 - Do not assume an agent can use a skill or MCP that its role config disables.
+- Do not assume provider memory, a goal evaluator, hidden context isolation, or unsurfaced tool
+  evidence. Phase gates must rely on surfaced evidence and authoritative current state.
+- Do not generate Goal Briefs or `/goal` launch contexts; route that work to `goal-context` after
+  roadmap and success criteria are settled.
 - Git staging, committing, pushing, branch creation, PR creation, destructive commands, and external-service side effects still require explicit approval.
 - Testing or command execution remains governed by the active repo policy and `policy-testing`.
 - Lifecycle capture signals found during phase closeout or session closeout are owned by
@@ -94,6 +115,7 @@ Provide an optional execution envelope for complex agent work. This skill coordi
 - Do not guess model, cost, or tool availability for a delegated agent.
 - Do not drop a phase owner after pruning a costly or cost-opaque agent.
 - Do not assign overlapping write scopes to multiple agents without an ordering gate.
+- Do not treat progress ledgers, transcripts, or model confidence as completion evidence.
 - Do not treat this skill as general planning prose after it has been explicitly activated.
 
 ## Output
@@ -102,6 +124,8 @@ Return:
 
 - `objective`: active goal and done criteria.
 - `phase_plan`: current phases, gates, owners, and expected evidence.
+- For long-running or repeated phases, include `work_unit`, `evaluator_contract`,
+  `verified_progress`, and `stop_or_escalate` in the phase entry.
 - `agent_selection`: selected runtime agents and model/cost disclosure, or `none` with the reason.
 - `handoffs`: bounded owner assignments, if delegation is needed.
 - `verification`: selected verification gates and owner roles.
@@ -123,6 +147,11 @@ For each delegated agent in `agent_selection`, include:
 
 ## Version History
 
+- v0.1.8 (2026-06-21): Clarify sibling skill routing ownership versus loaded availability, so
+  harness does not describe `goal-context` as unavailable when it is only not loaded.
+- v0.1.7 (2026-06-21): Adopt phase-level loop contract fields for long-running and repeated work
+  while keeping `/goal` authoring with `goal-context` and lifecycle capture with
+  `project-lifecycle`.
 - v0.1.0 (2026-05-13): Initial optional execution envelope for orchestrator-suggested structured workflow.
 - v0.1.1 (2026-05-18): Reposition harness as orchestration only and route ordinary task work to task skills.
 - v0.1.2 (2026-05-21): Route ordinary code review to `code-review` while preserving harness ownership of multi-agent gates.

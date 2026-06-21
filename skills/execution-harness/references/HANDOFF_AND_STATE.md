@@ -55,6 +55,15 @@ Keep one short source of truth for:
 - Verification status.
 - Next action.
 
+For long-running, repeated, or multi-session phases, also track:
+
+- `work_unit`: smallest verifiable unit.
+- `evaluator_contract`: evidence that proves the phase gate and where it is surfaced.
+- `verified_progress`: accepted progress, rejected evidence, and evidence pointers.
+- `stop_or_escalate`: retry, turn, blocker, tool-failure, budget, and human-review stops.
+
+This state guides the next action; it does not prove final completion by itself.
+
 ## Lifecycle Capture Candidates
 
 At completion or a phase boundary, create a `project-lifecycle` handoff when there is an accepted
