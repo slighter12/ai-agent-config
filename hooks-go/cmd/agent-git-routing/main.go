@@ -19,6 +19,9 @@ func main() {
 		return
 	}
 	fmt.Println(string(hookjson.MustJSON(map[string]any{
-		"systemMessage": decision.Reason,
+		"hookSpecificOutput": map[string]any{
+			"hookEventName":     "UserPromptSubmit",
+			"additionalContext": decision.Reason,
+		},
 	})))
 }
