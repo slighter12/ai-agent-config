@@ -354,15 +354,15 @@ Why this mix:
 For simple git actions, direct requests to create a branch, commit, push, or open a PR for
 already-existing changes are independent explicit standing authorization to delegate execution to the
 Spark-backed `git-commit` role. The main session should inspect enough context to produce a compact
-execution handoff packet: repo path, action list, exact file inclusions or explicit all-files
-approval, exclusions, commit subject/body decision, branch/remote/base/head values, PR title/body
-when relevant, and no amend/rebase/force/no-verify/code-edit constraints. `conventional-git-flow`
-owns the reusable git workflow policy; `git-commit.toml` is only the thin Codex execution role. With
-a complete handoff, the role should execute directly without re-reading the skill or re-inspecting
-diffs for policy decisions. If runtime policy blocks delegation or the handoff is incomplete, the
-role fails closed and reports the blocker instead of guessing. On success, the delegate's final
-status confirmation is authoritative enough to relay; the main session should close the completed
-agent and avoid a second confirmation loop unless the delegate output is incomplete or
+context handoff packet: repo path, original user request, requested actions, explicit user-provided
+constraints, known session context, and no amend/rebase/force/no-verify/code-edit constraints.
+`conventional-git-flow` owns the reusable git workflow policy; `git-commit.toml` is the Codex
+execution role that inspects the git diff, chooses safe intended files, and generates branch, commit,
+and PR text unless the user explicitly provided those values. If runtime policy blocks delegation or
+the handoff is missing required context, the role fails closed and reports the blocker instead of
+guessing. On success, the delegate's final status confirmation is authoritative enough to relay; the
+main session should close the completed agent and avoid a second confirmation loop unless the
+delegate output is incomplete or
 contradictory. Hook layers still protect the shell commands that role runs and may add reminders, but
 hooks do not select models or delegate workflow.
 
@@ -450,9 +450,9 @@ managed Codex role files, per-agent MCP and skill enablement is generated from
 
 Provider-specific role prompts should not duplicate full shared skill policy. For example,
 `conventional-git-flow` owns branch, commit, push, and PR workflow rules, while the Codex
-`git-commit` role only defines the fast execution model, non-interactive boundaries, and minimal
-fallback when the skill is unavailable. Git metadata writes are handled by the parent session's
-`workspace-git` permission profile, not by role-local sandbox overrides.
+`git-commit` role owns provider-specific execution details such as diff inspection, safe scope
+selection, git text generation, and non-interactive boundaries. Git metadata writes are handled by the
+parent session's `workspace-git` permission profile, not by role-local sandbox overrides.
 
 `execution-harness` is an optional process skill for structured coordination across phases, agents, git/workspace state, verification gates, diff sanity, lifecycle gates, and capture candidates. It is orchestrator-suggested and user-approved; it is not a mandatory SDLC and does not replace domain policy skills.
 
@@ -544,8 +544,9 @@ binaries through the Codex plugin runtime root (`${PLUGIN_ROOT}`) and do not req
 `~/.codex/hooks` symlink.
 
 Static context belongs in `AGENTS.md`, `CLAUDE.md`, or skills. The prompt hook is reinforcement only:
-it appends a visible reminder for matching git action prompts, while `AGENTS.md` and
-`conventional-git-flow` own the fail-closed routing rule. This repo does not register a
+it injects a visible reminder for matching git action prompts so the main agent opens the
+`git-commit` subagent when appropriate; `conventional-git-flow` owns the handoff schema and
+fail-closed git routing rule. This repo does not register a
 `SessionStart` hook unless future dynamic session context is worth the startup/resume cost.
 
 Claude hook behavior is owned by the active `rtk hook claude` entry in `~/.claude/settings.json`.

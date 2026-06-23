@@ -77,14 +77,16 @@ git switch -c <branch>
 git add <explicit paths>
 git commit -m "<commit headline>" -m "<commit body>"
 git push -u origin <branch>
-gh pr create --title "<pr title>" --body "<pr body>"
+gh pr create --title "<pr title>" --body-file <temporary-pr-body-file>
 ```
 
 Stage explicit paths from the intended logical change. Include dependency manifests, lockfiles, generated dependency metadata, and version files when `VERSION_AND_DEPENDENCY_CLOSURE.md` classifies them as required closure for the change.
 
 If the commit does not need a body, use only `git commit -m "<commit headline>"`.
 
-Never run the execution sequence until the user has approved the exact branch, files, commit message, PR title, PR body, and commands.
+Write the explicit or resolved PR body exactly to a temporary body file outside tracked paths before running `gh pr create`; do not pass multiline Markdown through inline `--body`.
+
+For non-delegated execution, never run the sequence until the user has approved the exact branch, files, commit message, PR title, PR body, and commands. For delegated simple git actions, the direct user request authorizes the git execution role to resolve these details from the diff and handoff context.
 
 ## Sandbox And Permission Failures
 
@@ -98,7 +100,7 @@ When a side-effect command fails:
 
 - If the error mentions `.git`, `index.lock`, `.lock`, `Operation not permitted`, `Permission denied`, DNS resolution, or network access, classify it as a likely sandbox or environment permission failure first.
 - Re-run the exact failed command with the provider's escalation mechanism when available, using a concise justification tied to that command.
-- Do not change the approved branch name, branch `<type>/` prefix, staged file list, Conventional Commit type, commit message, remote, PR title, or PR body just because the first attempt hit a sandbox or network error.
+- Do not change the explicit or resolved branch name, branch `<type>/` prefix, staged file list, Conventional Commit type, commit message, remote, PR title, or PR body just because the first attempt hit a sandbox or network error.
 - Only propose a different branch name after a concrete ref conflict is confirmed, such as an existing branch, tag, or ref that blocks the requested path.
 - For slash-prefixed branch names such as `feat/<slug>`, `fix/<slug>`, `docs/<slug>`, or `ci/<slug>`, do not assume the slash or type prefix is invalid. Confirm a real ref conflict before falling back to a flat branch name or removing the type prefix.
 
@@ -113,7 +115,7 @@ git show-ref --verify refs/heads/<prefix>
 git show-ref --verify refs/tags/<prefix>
 ```
 
-If these checks do not prove a ref conflict, keep the approved branch name exactly, including its `<type>/` prefix, and retry the failed side-effect command with the necessary sandbox permission.
+If these checks do not prove a ref conflict, keep the explicit or resolved branch name exactly, including its `<type>/` prefix, and retry the failed side-effect command with the necessary sandbox permission.
 
 ## Existing PR Review Feedback
 

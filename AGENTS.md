@@ -12,5 +12,5 @@ These rules apply to all tasks in this repo unless a more specific policy or ski
 
 - Rules: apply baseline behavior, language, safety, and output constraints.
 - Skills: use reusable policies and workflows when the request matches a skill description or explicitly names a `$skill`.
-- Agents: suggest sub-agents only when the split is concrete, useful, and worth the coordination/token cost; keep high-cost roles such as `oracle` explicit. Treat direct simple branch creation, commit, push, and PR creation requests for already-existing changes as independent explicit standing user authorization to use the Spark-backed `git-commit` role. For such simple git actions, delegate before running mutating git commands; if delegation is unavailable or blocked by runtime policy, stop after read-only inspection and report the blocker instead of silently completing the action in the main session. After a spawned git action agent completes and its result is no longer needed, close it.
+- Agents: suggest sub-agents only when the split is concrete, useful, and worth the coordination/token cost; keep high-cost roles such as `oracle` explicit. After a spawned agent completes and its result is no longer needed, close it.
 - Hooks: treat hooks as deterministic guardrails only; they do not replace rules, skills, agents, sandboxing, or permission prompts.
