@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"strings"
 
 	"ai-agent-config/hooks/internal/hookjson"
 )
@@ -29,7 +31,37 @@ func main() {
 }
 
 func runBash(event hookjson.Event) {
-	_ = event
+	if hookjson.ToolName(event) != "Bash" {
+		return
+	}
+	commandText := hookjson.CommandText(event)
+	if strings.TrimSpace(commandText) == "" || strings.HasPrefix(commandText, "rtk ") {
+		return
+	}
+	rtkPath, err := exec.LookPath("rtk")
+	if err != nil {
+		return
+	}
+	cmd := exec.Command(rtkPath, "rewrite", commandText)
+	output, err := cmd.Output()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); !ok || exitErr.ExitCode() != 3 {
+			return
+		}
+	}
+	rewritten := strings.TrimRight(string(output), "\r\n")
+	if rewritten == "" || rewritten == commandText {
+		return
+	}
+	write(map[string]any{
+		"hookSpecificOutput": map[string]any{
+			"hookEventName":      "PreToolUse",
+			"permissionDecision": "allow",
+			"updatedInput": map[string]any{
+				"command": rewritten,
+			},
+		},
+	})
 }
 
 func runFile(event hookjson.Event) {

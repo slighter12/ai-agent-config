@@ -13,7 +13,11 @@ func TestEnsureWorkspaceGitProfileCreatesProfile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	mustContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `default_permissions = ":workspace"`)
+	mustContain(t, got, `approval_policy = "on-request"`)
+	mustContain(t, got, `approvals_reviewer = "auto_review"`)
+	mustNotContain(t, got, `exec_permission_approvals`)
+	mustNotContain(t, got, `request_permissions_tool`)
 	mustContain(t, got, `[permissions.workspace-git]`)
 	mustContain(t, got, `".git" = "write"`)
 	mustContain(t, got, `[permissions.workspace-git.network]`)
@@ -61,14 +65,15 @@ enabled = false
 	if strings.Contains(got, `enabled = false`) {
 		t.Fatalf("old workspace-git network block was not removed:\n%s", got)
 	}
-	mustContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `default_permissions = ":workspace"`)
 	mustContain(t, got, `enabled = true`)
 	mustContain(t, got, `"api.github.com" = "allow"`)
 	mustContain(t, got, `[hooks.state]`)
 }
 
-func TestEnsureWorkspaceGitProfileConvertsWorkspaceDefault(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`default_permissions = ":workspace"
+func TestEnsureWorkspaceGitProfileConvertsRepoManagedDefault(t *testing.T) {
+	got, err := EnsureWorkspaceGitProfile(`default_permissions = "workspace-git"
+approvals_reviewer = "user"
 
 [projects."/tmp/demo"]
 trust_level = "trusted"
@@ -76,9 +81,31 @@ trust_level = "trusted"
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	mustContain(t, got, `default_permissions = "workspace-git"`)
+	mustContain(t, got, `default_permissions = ":workspace"`)
+	mustContain(t, got, `approval_policy = "on-request"`)
+	mustContain(t, got, `approvals_reviewer = "auto_review"`)
 	mustContain(t, got, `[permissions.workspace-git]`)
 	mustContain(t, got, `[projects."/tmp/demo"]`)
+}
+
+func TestEnsureWorkspaceGitProfileRemovesPermissionFeatureFlags(t *testing.T) {
+	got, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+
+[features]
+exec_permission_approvals = false
+terminal_resize_reflow = true
+request_permissions_tool = true
+
+[projects."/tmp/demo"]
+trust_level = "trusted"
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	mustNotContain(t, got, `exec_permission_approvals`)
+	mustContain(t, got, `terminal_resize_reflow = true`)
+	mustContain(t, got, `[projects."/tmp/demo"]`)
+	mustNotContain(t, got, `request_permissions_tool`)
 }
 
 func TestEnsureWorkspaceGitProfilePreservesUserDefaultPermissions(t *testing.T) {

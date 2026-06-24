@@ -108,7 +108,8 @@ The installer creates symlinks (without overwriting existing files):
   - `AGENTS.md -> ~/git/ai-config/AGENTS.md`
   - Also runs the Go-backed `setup-codex-config` flow to:
     - upsert the `workspace-git` permission profile in `~/.codex/config.toml`
-    - set repo-managed top-level `default_permissions` to `workspace-git`
+    - set repo-managed top-level permissions to `:workspace` with `on-request` approval and `auto_review`
+    - remove repo-managed under-development permission feature flags
     - back up `config.toml` only when the script changes it
     - fail that setup step if legacy `sandbox_mode` settings would conflict with permission profiles
     - let `install.sh` continue with agents and shell setup if this config step is skipped or fails
@@ -168,10 +169,9 @@ RTK binary updates are handled by Homebrew. RTK instruction/template updates are
 `brew upgrade`; rerun `rtk init -g --codex` only when you intentionally want to refresh the generated
 `~/.codex/RTK.md`.
 
-Codex hook integration does not rewrite Bash commands. Earlier versions used RTK as a
-`PreToolUse` Bash rewrite source, but command rewriting could change shell semantics such as
-`rg --files` becoming a compact grep invocation. RTK may still be used explicitly by typing
-`rtk ...`; Claude uses its live `rtk hook claude` configuration when enabled.
+RTK does not currently provide an official `rtk hook codex` entrypoint. Codex Bash rewrite is
+handled by this repo's `ai-agent-config-guardrails` plugin, which calls `rtk rewrite` from a
+`PreToolUse` Bash hook. Claude uses its live `rtk hook claude` configuration when enabled.
 
 Codex hooks are distributed as repo-local plugins. Register the repo marketplace once, then install
 or reinstall affected plugins when hook metadata changes:
@@ -366,22 +366,25 @@ delegate output is incomplete or
 contradictory. Hook layers still protect the shell commands that role runs and may add reminders, but
 hooks do not select models or delegate workflow.
 
-Simple git delegation uses the `workspace-git` permission profile from the parent Codex session.
-Subagents inherit the active sandbox policy, so the Go installer keeps that profile in
-`~/.codex/config.toml`, backs up the config only when it changes the file, converts repo-managed
-top-level `default_permissions = ":workspace"` or `"workspace-git"` values to
-`default_permissions = "workspace-git"`, and upserts the block below. The setup step is best-effort inside
-`install.sh`: legacy `sandbox_mode` conflicts are reported without blocking agent, skill, or shell
-symlink setup. Run `scripts/setup_codex_config.sh` directly for a focused failure message after
-resolving legacy sandbox settings. The profile extends `:workspace`, keeps normal workspace
-protections, adds write access to `.git` metadata, and allows GitHub network domains used by
-`git push` and `gh pr create`. The generated `~/.codex/agents/git-commit.toml` includes the same
-profile block for standalone compatibility, but commit delegation still depends on the parent
-session running with the `workspace-git` profile. `git-commit` does not use role-local
-`sandbox_mode = "danger-full-access"`.
+The parent Codex session stays on the official workspace profile with approval review. The Go
+installer keeps `default_permissions = ":workspace"`, `approval_policy = "on-request"`, and
+`approvals_reviewer = "auto_review"` in `~/.codex/config.toml`, removes repo-managed
+under-development permission feature flags, and upserts the `workspace-git` profile below. The setup
+step is best-effort inside `install.sh`: legacy `sandbox_mode` conflicts are reported without
+blocking agent, skill, or shell symlink setup. Run `scripts/setup_codex_config.sh` directly for a
+focused failure message after resolving legacy sandbox settings.
+
+Simple git delegation uses `git-commit` role-local `default_permissions = "workspace-git"`. Codex
+applies role files as spawn-time config layers, so that role gets normal workspace writes plus `.git`
+metadata writes and GitHub domains used by `git push` and `gh pr create` without making the parent
+session broadly git-writable. `git-commit` does not use role-local `sandbox_mode =
+"danger-full-access"`. Bash hooks and RTK rewrites do not grant permissions; parent-session
+`rtk git add` still relies on normal approval/rules or should be delegated to the git role.
 
 ```toml
-default_permissions = "workspace-git"
+default_permissions = ":workspace"
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
 
 [permissions.workspace-git]
 description = "Workspace editing with git metadata writes and GitHub network access."
@@ -452,7 +455,7 @@ Provider-specific role prompts should not duplicate full shared skill policy. Fo
 `conventional-git-flow` owns branch, commit, push, and PR workflow rules, while the Codex
 `git-commit` role owns provider-specific execution details such as diff inspection, safe scope
 selection, git text generation, and non-interactive boundaries. Git metadata writes are handled by the
-parent session's `workspace-git` permission profile, not by role-local sandbox overrides.
+role-local `workspace-git` permission profile, not by legacy sandbox overrides.
 
 `execution-harness` is an optional process skill for structured coordination across phases, agents, git/workspace state, verification gates, diff sanity, lifecycle gates, and capture candidates. It is orchestrator-suggested and user-approved; it is not a mandatory SDLC and does not replace domain policy skills.
 
@@ -530,16 +533,17 @@ provider sandboxing, permission prompts, `AGENTS.md`, `CLAUDE.md`, skills, or ag
 
 Current plugins:
 
-- `ai-agent-config-guardrails`: Go-backed `PreToolUse` guardrails that block direct file-tool writes
-  to `.env*`, block direct file-tool writes to global agent configuration such as
+- `ai-agent-config-guardrails`: Go-backed `PreToolUse` guardrails that rewrite Bash commands through
+  `rtk rewrite`, block direct file-tool writes to `.env*`, and block direct file-tool writes to
+  global agent configuration such as
   `~/.codex/config.toml`, `~/.codex/hooks.json`, and `~/.claude/settings.json`.
 - `ai-agent-git-routing`: Go-backed `UserPromptSubmit` context injection for direct simple git
   action prompts so the main session sees that branch creation, commit, push, or PR creation should
   route through the `git-commit` role.
 
 Codex uses repo-local plugins instead of owning `~/.codex/hooks.json`. The configured events include
-file-tool `PreToolUse` guardrails and lightweight `UserPromptSubmit` context injection. Open
-`/hooks` in Codex after installation to review and trust the plugin hooks. Hook commands call
+Bash and file-tool `PreToolUse` guardrails plus lightweight `UserPromptSubmit` context injection.
+Open `/hooks` in Codex after installation to review and trust the plugin hooks. Hook commands call
 plugin-bundled Go binaries through the Codex plugin runtime root (`${PLUGIN_ROOT}`) and do not require a
 `~/.codex/hooks` symlink.
 
@@ -581,6 +585,14 @@ Manual hook verification:
 scripts/build_go_hooks.sh
 PLUGIN_ROOT="$PWD/plugins/ai-agent-config-guardrails"
 
+"$PLUGIN_ROOT/hooks/bin/agent-config-guardrails" pre-tool-use-bash <<'JSON'
+{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git status"}}
+JSON
+
+"$PLUGIN_ROOT/hooks/bin/agent-config-guardrails" pre-tool-use-bash <<'JSON'
+{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"rtk git status"}}
+JSON
+
 "$PLUGIN_ROOT/hooks/bin/agent-config-guardrails" pre-tool-use-file <<'JSON'
 {"hook_event_name":"PreToolUse","tool_name":"Write","tool_input":{"file_path":"notes.txt"}}
 JSON
@@ -611,8 +623,9 @@ JSON
 JSON
 ```
 
-The first command should print nothing and exit `0`. The second should print a deny JSON object for
-the `.env*` file-tool write. The next four git-routing commands should each print
+The first command should print a JSON object with `updatedInput.command` rewritten through RTK. The
+second and third commands should print nothing and exit `0`. The fourth should print a deny JSON
+object for the `.env*` file-tool write. The next four git-routing commands should each print
 `hookSpecificOutput.additionalContext` for the `git-commit` route. The final text-only command should
 print nothing.
 

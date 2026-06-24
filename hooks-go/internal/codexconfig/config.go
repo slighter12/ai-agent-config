@@ -12,12 +12,15 @@ import (
 
 const (
 	ProfileName        = "workspace-git"
-	BasePermissionName = ProfileName
+	BasePermissionName = ":workspace"
 )
 
 var (
 	topLevelDefaultPermissionsRE = regexp.MustCompile(`^\s*default_permissions\s*=`)
+	topLevelApprovalPolicyRE     = regexp.MustCompile(`^\s*approval_policy\s*=`)
+	topLevelApprovalsReviewerRE  = regexp.MustCompile(`^\s*approvals_reviewer\s*=`)
 	topLevelSandboxModeRE        = regexp.MustCompile(`^\s*sandbox_mode\s*=`)
+	execPermissionApprovalsRE    = regexp.MustCompile(`^\s*exec_permission_approvals\s*=`)
 )
 
 type Result struct {
@@ -91,6 +94,9 @@ func EnsureWorkspaceGitProfile(input string) (string, error) {
 	}
 	text = removeWorkspaceGitBlocks(text)
 	text = upsertBaseDefaultPermissions(text)
+	text = upsertApprovalPolicy(text)
+	text = upsertApprovalsReviewer(text)
+	text = removePermissionFeatureFlags(text)
 	text = insertWorkspaceGitBlock(text)
 	return normalizeNewline(text), nil
 }
@@ -164,6 +170,7 @@ func upsertBaseDefaultPermissions(text string) string {
 	if insertIndex == -1 {
 		lines = append(lines, `default_permissions = "`+BasePermissionName+`"`)
 	} else {
+		insertIndex = beforeTopLevelSeparator(lines, insertIndex)
 		before := append([]string{}, lines[:insertIndex]...)
 		before = append(before, `default_permissions = "`+BasePermissionName+`"`)
 		lines = append(before, lines[insertIndex:]...)
@@ -184,6 +191,76 @@ func repoManagedDefaultPermissions(line string) bool {
 		value = strings.TrimSpace(value[:index])
 	}
 	return value == `"`+ProfileName+`"` || value == `":workspace"`
+}
+
+func upsertApprovalPolicy(text string) string {
+	return upsertTopLevelString(text, topLevelApprovalPolicyRE, "approval_policy", "on-request", repoManagedApprovalPolicy)
+}
+
+func repoManagedApprovalPolicy(line string) bool {
+	value, ok := topLevelStringValue(line)
+	return ok && (value == "on-request" || value == "")
+}
+
+func upsertApprovalsReviewer(text string) string {
+	return upsertTopLevelString(text, topLevelApprovalsReviewerRE, "approvals_reviewer", "auto_review", repoManagedApprovalsReviewer)
+}
+
+func repoManagedApprovalsReviewer(line string) bool {
+	value, ok := topLevelStringValue(line)
+	return ok && (value == "user" || value == "auto_review" || value == "")
+}
+
+func upsertTopLevelString(text string, lineRE *regexp.Regexp, key, value string, shouldReplace func(string) bool) string {
+	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
+	if len(lines) == 1 && lines[0] == "" {
+		return key + ` = "` + value + `"` + "\n"
+	}
+	currentTable := ""
+	insertIndex := -1
+	for index, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if table, ok := tableName(trimmed); ok {
+			currentTable = table
+			if insertIndex == -1 {
+				insertIndex = index
+			}
+		}
+		if currentTable == "" && lineRE.MatchString(trimmed) {
+			if shouldReplace(trimmed) {
+				lines[index] = key + ` = "` + value + `"`
+			}
+			return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
+		}
+	}
+	if insertIndex == -1 {
+		lines = append(lines, key+` = "`+value+`"`)
+	} else {
+		insertIndex = beforeTopLevelSeparator(lines, insertIndex)
+		before := append([]string{}, lines[:insertIndex]...)
+		before = append(before, key+` = "`+value+`"`)
+		lines = append(before, lines[insertIndex:]...)
+	}
+	return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
+}
+
+func beforeTopLevelSeparator(lines []string, index int) int {
+	for index > 0 && strings.TrimSpace(lines[index-1]) == "" {
+		index--
+	}
+	return index
+}
+
+func topLevelStringValue(line string) (string, bool) {
+	parts := strings.SplitN(line, "=", 2)
+	if len(parts) != 2 {
+		return "", false
+	}
+	value := strings.TrimSpace(parts[1])
+	if index := strings.Index(value, "#"); index >= 0 {
+		value = strings.TrimSpace(value[:index])
+	}
+	return strings.Trim(value, `"`), true
 }
 
 func insertWorkspaceGitBlock(text string) string {
@@ -212,6 +289,46 @@ func insertWorkspaceGitBlock(text string) string {
 	default:
 		return before + "\n\n" + block + "\n" + after + "\n"
 	}
+}
+
+func removePermissionFeatureFlags(text string) string {
+	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
+	if len(lines) == 1 && lines[0] == "" {
+		return ""
+	}
+
+	featuresStart := -1
+	featuresEnd := len(lines)
+	for index, line := range lines {
+		if table, ok := tableName(strings.TrimSpace(line)); ok {
+			if featuresStart != -1 {
+				featuresEnd = index
+				break
+			}
+			if table == "features" {
+				featuresStart = index
+			}
+		}
+	}
+
+	if featuresStart == -1 {
+		return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
+	}
+
+	filtered := append([]string{}, lines[:featuresStart+1]...)
+	for index := featuresStart + 1; index < featuresEnd; index++ {
+		trimmed := strings.TrimSpace(lines[index])
+		if execPermissionApprovalsRE.MatchString(trimmed) {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "request_permissions_tool") {
+			continue
+		}
+		filtered = append(filtered, lines[index])
+	}
+
+	updated := append(filtered, lines[featuresEnd:]...)
+	return strings.TrimRight(strings.Join(updated, "\n"), "\n") + "\n"
 }
 
 func workspaceGitBlock() string {
