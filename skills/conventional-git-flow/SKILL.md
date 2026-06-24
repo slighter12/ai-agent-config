@@ -4,7 +4,7 @@ description: Prepare Conventional Commit git workflows for branches, commits, pu
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.16"
+  version: "0.1.17"
 ---
 
 # Conventional Git Flow
@@ -32,13 +32,13 @@ This skill is the source of truth for reusable git workflow policy; provider-spe
 
 1. Inspect only enough git context to route the request and prepare a compact context handoff.
 2. Preserve user-provided branch, file scope, commit message, PR title/body, remote, base, or head as explicit constraints.
-3. Leave inferred git workflow decisions to the configured git execution role for simple delegated actions.
+3. For direct simple git actions, first check whether the current provider/session exposes a documented git execution route. If it does, provide a compact context handoff and delegate before mutating git state.
 4. Keep commit and PR title format as `<type>: <description>` without a scope in the header.
 5. Put the affected area in the branch name and PR body instead of the commit header.
 6. When applying reviewer feedback on an already published PR, default to a new follow-up commit and normal push.
-7. For text-only preparation or non-simple git workflows, present the proposed branch name, staged files, commit message, PR title, PR body, and exact commands before any side effect.
-8. Treat a direct user request such as "commit this" as approval to stage and commit the intended files after inspection; ask only if the file set, message, or scope is ambiguous.
-9. Treat each direct simple git action request, such as creating a branch, staging, committing, pushing, or opening a PR for already-existing changes, as an independent explicit standing user authorization to delegate execution to the configured git execution role. The main session must provide a compact context handoff before delegation.
+7. If no documented route exists, use the non-delegated workflow and present proposed branch names, staged files, commit messages, PR text, and exact commands before any side effect.
+8. If a documented route exists but runtime policy blocks it, report the blocker and do not mutate git state in the main session unless the user explicitly asks to bypass the route.
+9. Treat a direct request such as "commit this" as approval for only the requested simple git action and intended files after inspection; ask if file set, message, or scope is ambiguous.
 10. Once a simple git action has been delegated with a context handoff, do not add an extra main-session confirmation loop and do not pre-decide branch names, staged files, commit messages, or PR text unless the user explicitly provided them.
 11. After execution, report the delegate's final confirmation, including commit or PR result, final status, and any follow-up verification.
 
@@ -69,10 +69,9 @@ If the handoff is complete, the delegate should inspect git state, choose safe i
 - Never change explicit user constraints or chosen Conventional Commit type, headline, staged files, branch name, branch `<type>/` prefix, remote, PR title, or PR body because of a sandbox or permission failure.
 - Do not replace slash-prefixed branch names such as `feat/<slug>`, `fix/<slug>`, `docs/<slug>`, or `ci/<slug>` unless read-only checks prove a real ref conflict; permission failures are not ref conflicts.
 - If GitHub CLI is unavailable or unauthenticated, return the PR title/body and the exact command the user can run later.
-- Do not delegate non-simple work to the git execution role: implementation, diagnosis, review, release flow, history rewrite, merge conflict resolution, or PRs with unsafe unknown base/remote/title/body stay in the main session until the git execution scope is fixed.
-- If runtime tool policy blocks delegation despite this repo preference, stop after read-only inspection and state that blocker clearly instead of silently continuing as if delegation was used.
-- For simple git action prompts, do not run mutating git commands in the main session unless the user explicitly asks to bypass the configured git execution route after the blocker is reported.
-- A `UserPromptSubmit` hook reminder is reinforcement only. If the hook appears, treat it as confirmation of this skill rule; if it does not appear but the prompt directly asks for branch creation, commit, push, or PR creation, still follow this skill rule and delegate.
+- Do not delegate non-simple work: implementation, diagnosis, review, release flow, history rewrite, merge conflict resolution, or PRs with unsafe unknown base/remote/title/body stay in the main session until the git execution scope is fixed.
+- Do not invent a git execution delegate for providers that do not configure one.
+- Hook reminders are provider-specific hints, not authority or proof that delegation happened.
 - When the provider runtime supports explicit delegate cleanup, close the completed git execution delegate after its final result is no longer needed.
 
 ## Output
@@ -107,6 +106,7 @@ Return:
 - v0.1.14 (2026-06-04): Add compact git execution handoff packets for simple delegated actions.
 - v0.1.15 (2026-06-23): Require PR creation to use body files so multiline Markdown stays intact.
 - v0.1.16 (2026-06-23): Rebalance simple git delegation so the git execution role decides workflow details from a compact context handoff.
+- v0.1.17 (2026-06-24): Simplify provider boundary rules and keep provider-specific git routing outside the shared workflow.
 
 ## References
 

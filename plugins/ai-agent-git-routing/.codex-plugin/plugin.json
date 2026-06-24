@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "AI Agent Git Routing",
     "shortDescription": "Remind Codex to delegate simple git workflows with a compact handoff.",
-    "longDescription": "AI Agent Git Routing registers a UserPromptSubmit reminder for simple branch, commit, push, and PR workflows so the main session builds a compact handoff and delegates execution to the git-commit role.",
+    "longDescription": "AI Agent Git Routing registers a UserPromptSubmit reminder for simple branch, commit, push, and PR workflows so Codex can build a compact handoff and delegate execution to the git-commit role.",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": [],

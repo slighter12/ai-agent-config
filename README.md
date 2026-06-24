@@ -538,8 +538,8 @@ Current plugins:
   global agent configuration such as
   `~/.codex/config.toml`, `~/.codex/hooks.json`, and `~/.claude/settings.json`.
 - `ai-agent-git-routing`: Go-backed `UserPromptSubmit` context injection for direct simple git
-  action prompts so the main session sees that branch creation, commit, push, or PR creation should
-  route through the `git-commit` role.
+  action prompts so Codex receives a reminder to route branch creation, commit, push, or PR creation
+  through the `git-commit` role.
 
 Codex uses repo-local plugins instead of owning `~/.codex/hooks.json`. The configured events include
 Bash and file-tool `PreToolUse` guardrails plus lightweight `UserPromptSubmit` context injection.
@@ -549,9 +549,9 @@ plugin-bundled Go binaries through the Codex plugin runtime root (`${PLUGIN_ROOT
 
 Static context belongs in `AGENTS.md`, `CLAUDE.md`, or skills. The prompt hook is reinforcement only:
 it injects `hookSpecificOutput.additionalContext` for matching git action prompts so the main agent
-opens the `git-commit` subagent when appropriate; `systemMessage` is only a warning/event-stream
-surface and is not used for this routing context. `conventional-git-flow` owns the handoff schema and
-fail-closed git routing rule. This repo does not register a
+gets a Codex-specific routing reminder; `systemMessage` is only a warning/event-stream surface and is
+not used for this routing context. `conventional-git-flow` owns the handoff schema and shared git
+workflow rules. This repo does not register a
 `SessionStart` hook unless future dynamic session context is worth the startup/resume cost.
 
 Claude hook behavior is owned by the active `rtk hook claude` entry in `~/.claude/settings.json`.
@@ -626,8 +626,8 @@ JSON
 The first command should print a JSON object with `updatedInput.command` rewritten through RTK. The
 second and third commands should print nothing and exit `0`. The fourth should print a deny JSON
 object for the `.env*` file-tool write. The next four git-routing commands should each print
-`hookSpecificOutput.additionalContext` for the `git-commit` route. The final text-only command should
-print nothing.
+`hookSpecificOutput.additionalContext` for the Codex `git-commit` routing reminder; this verifies
+hook emission, not runtime delegation. The final text-only command should print nothing.
 
 ## Update Workflow
 

@@ -12,7 +12,7 @@ const (
 	Deny  = "deny"
 )
 
-const GitWorkflowReminder = "This user prompt matched a direct simple branch, commit, push, or PR action. The main agent should open the `git-commit` subagent, build the compact context handoff defined by `conventional-git-flow`, and delegate before mutating git state. Trust the delegate's final confirmation on success and close the agent after its result is no longer needed. If delegation is unavailable or blocked, stop and report that blocker instead of completing the git action in the main session."
+const GitWorkflowReminder = "This user prompt matched a direct simple branch, commit, push, or PR action. This is a Codex-specific routing reminder: build the compact context handoff defined by `conventional-git-flow` and use the `git-commit` role when available before mutating git state. Trust the delegate's final confirmation on success and close the agent after its result is no longer needed. If delegation is unavailable or blocked, stop and report that blocker instead of completing the git action in the main session."
 
 var globalConfigPaths = []string{
 	".codex/config.toml",
