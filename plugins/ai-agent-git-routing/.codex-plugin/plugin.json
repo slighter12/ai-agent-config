@@ -8,13 +8,13 @@
   "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "AI Agent Git Routing",
-    "shortDescription": "Give Codex a fixed git context pack and preferred git-commit route.",
-    "longDescription": "AI Agent Git Routing registers UserPromptSubmit context for simple branch, commit, push, and PR workflows so Codex first runs a fixed read-only Git Context Pack, prefers the git-commit role when callable, and falls back to main-session execution when no spawn route exists.",
+    "shortDescription": "Start git-commit routing and git preflight concurrently.",
+    "longDescription": "AI Agent Git Routing registers UserPromptSubmit context for simple branch, commit, push, and PR workflows so Codex starts spawn discovery/launch and a fixed read-only Git Context Pack concurrently, prefers the git-commit role when callable, and falls back to main-session execution when no spawn route exists.",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": [],
     "defaultPrompt": [
-      "Run the fixed Git Context Pack, then prefer the fast git-commit handoff for simple git workflows."
+      "Start git-commit routing and the fixed Git Context Pack concurrently for simple git workflows."
     ]
   }
 }

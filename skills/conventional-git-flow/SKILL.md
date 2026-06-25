@@ -4,7 +4,7 @@ description: Prepare Conventional Commit git workflows for branches, commits, pu
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.18"
+  version: "0.1.19"
 ---
 
 # Conventional Git Flow
@@ -30,13 +30,13 @@ This skill is the source of truth for reusable git workflow policy; provider-spe
 
 ## Workflow
 
-1. Run the Git Context Pack before deciding files, commit text, branch names, push targets, or PR text.
+1. For direct simple git actions, start provider route discovery/launch and the read-only Git Context Pack without waiting for one to finish before starting the other.
 2. Preserve user-provided branch, file scope, commit message, PR title/body, remote, base, or head as explicit constraints.
-3. For direct simple git actions, check whether the current provider/session exposes a callable git execution route. If it does, provide a compact context handoff and delegate before mutating git state.
+3. If a callable git execution route starts, provide a compact context handoff and delegate before mutating git state.
 4. Keep commit and PR title format as `<type>: <description>` without a scope in the header.
 5. Put the affected area in the branch name and PR body instead of the commit header.
 6. When applying reviewer feedback on an already published PR, default to a new follow-up commit and normal push.
-7. If no callable route exists after provider tool discovery, use the non-delegated workflow and present proposed branch names, staged files, commit messages, PR text, and exact commands before any side effect.
+7. If no callable route exists after provider tool discovery, use the non-delegated workflow with the Git Context Pack results and present proposed branch names, staged files, commit messages, PR text, and exact commands before any side effect.
 8. If a delegated route starts but fails because of incomplete context, unsafe scope, permission, auth, or network issues, follow the failure and escalation rules below instead of changing the approved workflow.
 9. Treat a direct request such as "commit this" as approval for only the requested simple git action and intended files after inspection; ask if file set, message, or scope is ambiguous.
 10. Once a simple git action has been delegated with a context handoff, do not add an extra main-session confirmation loop and do not pre-decide branch names, staged files, commit messages, or PR text unless the user explicitly provided them.
@@ -63,11 +63,11 @@ For simple delegated git actions, pass a compact context handoff packet so the d
 - `original_user_request`: the exact user request that triggered the git action.
 - `requested_actions`: ordered list of `branch`, `commit`, `push`, or `pr`.
 - `explicit_user_constraints`: user-provided files, exclusions, branch, commit message, remote/base/head, PR title/body, or approval for all current changes.
-- `git_context_pack_results`: outputs or failures from the Git Context Pack, plus any intended-file diff outputs already inspected.
+- `git_context_pack_results`: optional outputs or failures from the Git Context Pack, plus any intended-file diff outputs already inspected.
 - `known_context`: current task summary, known files touched in this session, and validation run or skipped.
 - `safety_constraints`: no source edits, no amend, no rebase, no force push, no `--no-verify`, preserve user changes, and no broad staging unless explicitly approved.
 
-If the handoff is complete, the delegate should use the Git Context Pack results, choose safe intended files and git text, execute the requested actions, and return success or the first hard failure. If context is missing or stale, the delegate may rerun the fixed pack or the narrow intended-file diff commands. If the handoff is incomplete or the diff scope is mixed, the delegate should fail closed instead of guessing.
+If the handoff is complete, the delegate should use any fresh Git Context Pack results, choose safe intended files and git text, execute the requested actions, and return success or the first hard failure. If context is missing or stale, the delegate should run the fixed pack or the narrow intended-file diff commands itself without waiting for the parent to finish. If the handoff is incomplete or the diff scope is mixed, the delegate should fail closed instead of guessing.
 
 ## Tool And Side-Effect Boundaries
 
@@ -86,6 +86,7 @@ If the handoff is complete, the delegate should use the Git Context Pack results
 - Do not delegate non-simple work: implementation, diagnosis, review, release flow, history rewrite, merge conflict resolution, or PRs with unsafe unknown base/remote/title/body stay in the main session until the git execution scope is fixed.
 - Do not invent a git execution delegate for providers that do not configure one.
 - Hook-provided routing context may prefer delegation, but if no callable spawn route exists after provider tool discovery, continue in the main session using the same Git Context Pack and safety rules.
+- If delegation starts successfully, the main session must not run mutating git commands; parent-side context collection is only for handoff, fallback, or final reporting.
 - When the provider runtime supports explicit delegate cleanup, close the completed git execution delegate after its final result is no longer needed.
 
 ## Output
@@ -122,6 +123,7 @@ Return:
 - v0.1.16 (2026-06-23): Rebalance simple git delegation so the git execution role decides workflow details from a compact context handoff.
 - v0.1.17 (2026-06-24): Simplify provider boundary rules and keep provider-specific git routing outside the shared workflow.
 - v0.1.18 (2026-06-25): Add fixed Git Context Pack and main-session fallback when no callable git delegate route exists.
+- v0.1.19 (2026-06-25): Allow concurrent delegate launch and read-only Git Context Pack collection for simple git actions.
 
 ## References
 

@@ -12,9 +12,9 @@ Permissions:
 - If `.git/index.lock` cannot be created, report the effective permission blocker or request escalation for the exact same command. Do not change workflow details.
 
 Context handoff:
-- Expect the parent handoff to include repo path, original user request, requested actions, explicit user constraints, git context pack results, known session context, and safety constraints.
+- Expect the parent handoff to include repo path, original user request, requested actions, explicit user constraints, known session context, and safety constraints. Git Context Pack results may be included when already available.
 - Treat explicit user-provided files, exclusions, branch, commit message, remote/base/head, PR title, and PR body as constraints. Do not treat parent-inferred values as final decisions unless the handoff says the user explicitly provided them.
-- Use the parent's Git Context Pack results before choosing intended files, branch name, commit message, PR title, and PR body. If those results are missing or stale, rerun only the fixed pack from `conventional-git-flow` or narrow intended-file diffs.
+- Use fresh parent Git Context Pack results before choosing intended files, branch name, commit message, PR title, and PR body. If results are missing or stale, immediately run only the fixed pack from `conventional-git-flow` or narrow intended-file diffs yourself; do not wait for the parent to finish preflight.
 - Do not send pre-execution commentary unless the handoff is incomplete or blocked.
 - For commit-only handoffs, choose and stage only the safe intended files, then run the chosen or explicit commit message. Do not run branch, push, or PR checks.
 - For branch, push, and PR handoffs, check only the hard conflicts needed for that action: local branch existence, remote/upstream push rejection, GitHub CLI auth, and PR creation failure.
