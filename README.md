@@ -352,19 +352,15 @@ Why this mix:
 - `gpt-5.3-codex-spark` stays on narrow deterministic validation and simple git workflow execution where speed matters, with strict prompts to preserve commit quality.
 
 For simple git actions, direct requests to create a branch, commit, push, or open a PR for
-already-existing changes are independent explicit standing authorization to delegate execution to the
-Spark-backed `git-commit` role. The main session should inspect enough context to produce a compact
-context handoff packet: repo path, original user request, requested actions, explicit user-provided
-constraints, known session context, and no amend/rebase/force/no-verify/code-edit constraints.
-`conventional-git-flow` owns the reusable git workflow policy; `git-commit.toml` is the Codex
-execution role that inspects the git diff, chooses safe intended files, and generates branch, commit,
-and PR text unless the user explicitly provided those values. If runtime policy blocks delegation or
-the handoff is missing required context, the role fails closed and reports the blocker instead of
-guessing. On success, the delegate's final status confirmation is authoritative enough to relay; the
-main session should close the completed agent and avoid a second confirmation loop unless the
-delegate output is incomplete or
-contradictory. Hook layers still protect the shell commands that role runs and may add reminders, but
-hooks do not select models or delegate workflow.
+already-existing changes are independent explicit standing authorization for that requested action.
+The main session first runs the fixed read-only Git Context Pack from `conventional-git-flow`, then
+prefers the Spark-backed `git-commit` role when a callable spawn route exists. The compact handoff
+packet includes repo path, original user request, requested actions, explicit user constraints, Git
+Context Pack results, known session context, and no amend/rebase/force/no-verify/code-edit
+constraints. If no spawn route is callable after tool discovery, the main session continues with the
+same Git Context Pack and safety rules instead of blocking on delegation. If a delegate starts and
+then reports incomplete context, unsafe scope, permission, auth, or network failures, follow the
+normal failure/escalation rules without changing the approved workflow.
 
 The parent Codex session stays on the official workspace profile with approval review. The Go
 installer keeps `default_permissions = ":workspace"`, `approval_policy = "on-request"`, and
@@ -538,8 +534,8 @@ Current plugins:
   global agent configuration such as
   `~/.codex/config.toml`, `~/.codex/hooks.json`, and `~/.claude/settings.json`.
 - `ai-agent-git-routing`: Go-backed `UserPromptSubmit` context injection for direct simple git
-  action prompts so Codex receives a reminder to route branch creation, commit, push, or PR creation
-  through the `git-commit` role.
+  action prompts so Codex runs the fixed Git Context Pack, prefers the `git-commit` role when
+  callable, and falls back to main-session execution when no spawn route exists.
 
 Codex uses repo-local plugins instead of owning `~/.codex/hooks.json`. The configured events include
 Bash and file-tool `PreToolUse` guardrails plus lightweight `UserPromptSubmit` context injection.
@@ -547,10 +543,11 @@ Open `/hooks` in Codex after installation to review and trust the plugin hooks. 
 plugin-bundled Go binaries through the Codex plugin runtime root (`${PLUGIN_ROOT}`) and do not require a
 `~/.codex/hooks` symlink.
 
-Static context belongs in `AGENTS.md`, `CLAUDE.md`, or skills. The prompt hook is reinforcement only:
-it injects `hookSpecificOutput.additionalContext` for matching git action prompts so the main agent
-gets a Codex-specific routing reminder; `systemMessage` is only a warning/event-stream surface and is
-not used for this routing context. `conventional-git-flow` owns the handoff schema and shared git
+Static context belongs in `AGENTS.md`, `CLAUDE.md`, or skills. The prompt hook injects
+`hookSpecificOutput.additionalContext` for matching git action prompts so Codex gets the fixed Git
+Context Pack, preferred `git-commit` route, and main-session fallback policy; `systemMessage` is only
+a warning/event-stream surface and is not used for this routing context. The hook does not directly
+spawn agents or run git commands. `conventional-git-flow` owns the handoff schema and shared git
 workflow rules. This repo does not register a
 `SessionStart` hook unless future dynamic session context is worth the startup/resume cost.
 
@@ -626,8 +623,9 @@ JSON
 The first command should print a JSON object with `updatedInput.command` rewritten through RTK. The
 second and third commands should print nothing and exit `0`. The fourth should print a deny JSON
 object for the `.env*` file-tool write. The next four git-routing commands should each print
-`hookSpecificOutput.additionalContext` for the Codex `git-commit` routing reminder; this verifies
-hook emission, not runtime delegation. The final text-only command should print nothing.
+`hookSpecificOutput.additionalContext` with the fixed Git Context Pack, preferred `git-commit` route,
+spawn discovery, and main-session fallback. This verifies hook emission, not runtime delegation. The
+final text-only command should print nothing.
 
 ## Update Workflow
 

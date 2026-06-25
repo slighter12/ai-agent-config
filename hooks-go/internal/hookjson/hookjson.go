@@ -12,7 +12,7 @@ const (
 	Deny  = "deny"
 )
 
-const GitWorkflowReminder = "This user prompt matched a direct simple branch, commit, push, or PR action. This is a Codex-specific routing reminder: build the compact context handoff defined by `conventional-git-flow` and use the `git-commit` role when available before mutating git state. Trust the delegate's final confirmation on success and close the agent after its result is no longer needed. If delegation is unavailable or blocked, stop and report that blocker instead of completing the git action in the main session."
+const GitWorkflowReminder = "This user prompt matched a direct simple branch, commit, push, or PR action. Before any mutating git command, run the `conventional-git-flow` Git Context Pack: `git status --short --branch`, `git diff --name-status`, `git diff --stat`, `git diff --cached --name-status`, `git diff --cached --stat`, and `git log -5 --oneline`; then inspect intended files with narrow `git diff -- <paths...>` commands. Prefer spawning the `git-commit` role with the compact handoff and context pack results. If no spawn_agent/start-agent tool is visible, search/discover the multi-agent spawn tool first. If no callable spawn route exists after discovery, continue in the main session using the same context pack and safety rules, and report that fallback. Do not use broad staging, amend, rebase, force push, `--no-verify`, or push/PR unless the user requested that action."
 
 var globalConfigPaths = []string{
 	".codex/config.toml",

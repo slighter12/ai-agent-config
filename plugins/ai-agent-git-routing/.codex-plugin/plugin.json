@@ -1,20 +1,20 @@
 {
   "name": "ai-agent-git-routing",
   "version": "0.1.0+codex.20260604110917",
-  "description": "Prompt routing reminders for fast handoff-backed simple git workflows.",
+  "description": "Codex routing context for fast handoff-backed simple git workflows.",
   "author": {
     "name": "Local developer"
   },
   "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "AI Agent Git Routing",
-    "shortDescription": "Remind Codex to delegate simple git workflows with a compact handoff.",
-    "longDescription": "AI Agent Git Routing registers a UserPromptSubmit reminder for simple branch, commit, push, and PR workflows so Codex can build a compact handoff and delegate execution to the git-commit role.",
+    "shortDescription": "Give Codex a fixed git context pack and preferred git-commit route.",
+    "longDescription": "AI Agent Git Routing registers UserPromptSubmit context for simple branch, commit, push, and PR workflows so Codex first runs a fixed read-only Git Context Pack, prefers the git-commit role when callable, and falls back to main-session execution when no spawn route exists.",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": [],
     "defaultPrompt": [
-      "Route simple git workflows through the fast git-commit handoff."
+      "Run the fixed Git Context Pack, then prefer the fast git-commit handoff for simple git workflows."
     ]
   }
 }
