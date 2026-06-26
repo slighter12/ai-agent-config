@@ -42,11 +42,46 @@ func TestRunBashSkipsAlreadyRTKCommand(t *testing.T) {
 	}
 }
 
+func TestRunBashRoutesRGFilesToRTKRG(t *testing.T) {
+	tempDir := t.TempDir()
+	writeFakeRTK(t, tempDir)
+	output := runBashHook(t, tempDir, `{"tool_name":"Bash","tool_input":{"command":"rg --files"}}`)
+
+	if command := rewrittenCommand(t, output); command != "rtk rg --files" {
+		t.Fatalf("expected rtk rg rewrite, got %q", command)
+	}
+}
+
+func TestRunBashRoutesRGSearchToRTKRG(t *testing.T) {
+	tempDir := t.TempDir()
+	writeFakeRTK(t, tempDir)
+	output := runBashHook(t, tempDir, `{"tool_name":"Bash","tool_input":{"command":"rg -n \"foo\" README.md"}}`)
+
+	if command := rewrittenCommand(t, output); command != `rtk rg -n "foo" README.md` {
+		t.Fatalf("expected rtk rg rewrite, got %q", command)
+	}
+}
+
 func TestRunBashDoesNothingWhenRTKMissing(t *testing.T) {
 	output := runBashHookWithPath(t, t.TempDir(), `{"tool_name":"Bash","tool_input":{"command":"git status"}}`)
 	if strings.TrimSpace(output) != "" {
 		t.Fatalf("expected no rewrite output, got: %s", output)
 	}
+}
+
+func rewrittenCommand(t *testing.T, output string) string {
+	t.Helper()
+	var got struct {
+		HookSpecificOutput struct {
+			UpdatedInput struct {
+				Command string `json:"command"`
+			} `json:"updatedInput"`
+		} `json:"hookSpecificOutput"`
+	}
+	if err := json.Unmarshal([]byte(output), &got); err != nil {
+		t.Fatalf("output is not JSON: %v\n%s", err, output)
+	}
+	return got.HookSpecificOutput.UpdatedInput.Command
 }
 
 func writeFakeRTK(t *testing.T, dir string) {

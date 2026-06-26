@@ -35,11 +35,16 @@ func runBash(event hookjson.Event) {
 		return
 	}
 	commandText := hookjson.CommandText(event)
-	if strings.TrimSpace(commandText) == "" || strings.HasPrefix(commandText, "rtk ") {
+	trimmedCommand := strings.TrimSpace(commandText)
+	if trimmedCommand == "" || strings.HasPrefix(trimmedCommand, "rtk ") {
 		return
 	}
 	rtkPath, err := exec.LookPath("rtk")
 	if err != nil {
+		return
+	}
+	if trimmedCommand == "rg" || strings.HasPrefix(trimmedCommand, "rg ") {
+		writeBashRewrite("rtk " + trimmedCommand)
 		return
 	}
 	cmd := exec.Command(rtkPath, "rewrite", commandText)
@@ -53,12 +58,16 @@ func runBash(event hookjson.Event) {
 	if rewritten == "" || rewritten == commandText {
 		return
 	}
+	writeBashRewrite(rewritten)
+}
+
+func writeBashRewrite(command string) {
 	write(map[string]any{
 		"hookSpecificOutput": map[string]any{
 			"hookEventName":      "PreToolUse",
 			"permissionDecision": "allow",
 			"updatedInput": map[string]any{
-				"command": rewritten,
+				"command": command,
 			},
 		},
 	})
