@@ -1,10 +1,10 @@
 ---
 name: conventional-git-flow
-description: Prepare Conventional Commit git workflows for branches, commits, pushes, and pull requests. Use when the user asks to commit current changes, create or review a branch name, commit message, PR title, PR body, or end-to-end git change flow. Avoid when the task is only code review, release notes, changelog writing, or provider-specific slash command setup.
+description: Prepare Conventional Commit git workflows for branches, commits, pushes, and pull requests. Use when the user asks to commit current changes, create or review a branch name, commit message, PR title, PR body, or end-to-end git change flow. Avoid when the task is only code review, release notes, changelog writing, or command-wrapper setup.
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.19"
+  version: "0.1.23"
 ---
 
 # Conventional Git Flow
@@ -12,7 +12,7 @@ metadata:
 ## Purpose
 
 Enable the agent to produce and, with explicit approval, execute a safe git workflow using Conventional Commits-style naming for commits and PRs.
-This skill is the source of truth for reusable git workflow policy; provider-specific git execution roles should stay thin and reference this skill instead of duplicating the full workflow.
+This skill is the source of truth for reusable git workflow policy; execution wrappers should stay thin and reference this skill instead of duplicating the full workflow.
 
 ## Use When
 
@@ -26,21 +26,21 @@ This skill is the source of truth for reusable git workflow policy; provider-spe
 
 - The request is only code review or implementation with no git workflow output.
 - The user needs release notes or changelog content rather than commit or PR text.
-- A provider-specific slash command wrapper is being authored instead of the shared workflow.
+- A command wrapper is being authored instead of the shared workflow.
 
 ## Workflow
 
-1. For direct simple git actions, start provider route discovery/launch and the read-only Git Context Pack without waiting for one to finish before starting the other.
+1. For direct git actions, collect the read-only Git Context Pack before any side effect.
 2. Preserve user-provided branch, file scope, commit message, PR title/body, remote, base, or head as explicit constraints.
-3. If a callable git execution route starts, provide a compact context handoff and delegate before mutating git state.
+3. If the current task is already a delegated git execution handoff, use the handoff context and execute only the requested git actions.
 4. Keep commit and PR title format as `<type>: <description>` without a scope in the header.
 5. Put the affected area in the branch name and PR body instead of the commit header.
 6. When applying reviewer feedback on an already published PR, default to a new follow-up commit and normal push.
-7. If no callable route exists after provider tool discovery, use the non-delegated workflow with the Git Context Pack results and present proposed branch names, staged files, commit messages, PR text, and exact commands before any side effect.
-8. If a delegated route starts but fails because of incomplete context, unsafe scope, permission, auth, or network issues, follow the failure and escalation rules below instead of changing the approved workflow.
+7. For non-delegated execution, use the Git Context Pack results and present proposed branch names, staged files, commit messages, PR text, and exact commands before any side effect unless the direct request already approved that exact action and intended scope.
+8. If delegated execution fails because of incomplete context, unsafe scope, permission, auth, or network issues, follow the failure and escalation rules below instead of changing the approved workflow.
 9. Treat a direct request such as "commit this" as approval for only the requested simple git action and intended files after inspection; ask if file set, message, or scope is ambiguous.
-10. Once a simple git action has been delegated with a context handoff, do not add an extra main-session confirmation loop and do not pre-decide branch names, staged files, commit messages, or PR text unless the user explicitly provided them.
-11. After execution, report the delegate's final confirmation, including commit or PR result, final status, and any follow-up verification.
+10. Do not run duplicate mutating git commands in both caller and delegate for the same requested action.
+11. After execution, report the action result, final status, and any follow-up verification.
 
 ## Git Context Pack
 
@@ -83,11 +83,9 @@ If the handoff is complete, the delegate should use any fresh Git Context Pack r
 - Never change explicit user constraints or chosen Conventional Commit type, headline, staged files, branch name, branch `<type>/` prefix, remote, PR title, or PR body because of a sandbox or permission failure.
 - Do not replace slash-prefixed branch names such as `feat/<slug>`, `fix/<slug>`, `docs/<slug>`, or `ci/<slug>` unless read-only checks prove a real ref conflict; permission failures are not ref conflicts.
 - If GitHub CLI is unavailable or unauthenticated, return the PR title/body and the exact command the user can run later.
-- Do not delegate non-simple work: implementation, diagnosis, review, release flow, history rewrite, merge conflict resolution, or PRs with unsafe unknown base/remote/title/body stay in the main session until the git execution scope is fixed.
-- Do not invent a git execution delegate for providers that do not configure one.
-- Hook-provided routing context may prefer delegation, but if no callable spawn route exists after provider tool discovery, continue in the main session using the same Git Context Pack and safety rules.
-- If delegation starts successfully, the main session must not run mutating git commands; parent-side context collection is only for handoff, fallback, or final reporting.
-- When the provider runtime supports explicit delegate cleanup, close the completed git execution delegate after its final result is no longer needed.
+- Do not treat implementation, diagnosis, review, release flow, history rewrite, merge conflict resolution, or PRs with unsafe unknown base/remote/title/body as simple git execution until the git scope is fixed.
+- Do not invent a git execution delegate when the caller did not provide a delegated handoff.
+- This shared skill owns git workflow rules and handoff shape, not caller orchestration.
 
 ## Output
 
@@ -97,7 +95,7 @@ Return:
 - `branch`: proposed or created branch name.
 - `commit_message`: Conventional Commit message.
 - `pr_title`: PR title.
-- `pr_body`: PR body with summary, validation, and risks.
+- `pr_body`: PR body resolved after checking repository template/checklist sources; it preserves discovered requirements or uses fallback summary, validation, and risks sections only when no template/checklist exists.
 - `commands`: exact commands proposed or executed.
 - `approval_needed`: side effects waiting for user approval.
 - `manual_verification`: checklist for confirming branch, commit, push, or PR state.
@@ -105,25 +103,29 @@ Return:
 ## Version History
 
 - v0.1.0 (2026-05-04): Initial portable Conventional Commit git flow skill.
-- v0.1.1 (2026-05-04): Expand commit request routing triggers.
+- v0.1.1 (2026-05-04): Expand commit request phrase handling.
 - v0.1.2 (2026-05-05): Prefer concise commit bodies for multi-change commits.
 - v0.1.3 (2026-05-08): Prefer follow-up commits for published PR review feedback.
 - v0.1.4 (2026-05-08): Distinguish sandbox permission failures from branch naming conflicts before changing approved git commands.
 - v0.1.5 (2026-05-13): Add dependency and version metadata closure rules for commit readiness.
 - v0.1.6 (2026-05-22): Preserve approved git workflow details across sandbox retries and allow upfront escalation for known `.git` write restrictions.
-- v0.1.7 (2026-06-01): Clarify configured git execution delegation as fixed commit execution, not branch or PR ownership.
+- v0.1.7 (2026-06-01): Clarify delegated git execution as scoped to assigned actions.
 - v0.1.8 (2026-06-03): Add explicit commit trigger phrases and clarify that plain git requests do not implicitly delegate.
-- v0.1.9 (2026-06-03): Treat simple git workflow requests as standing authorization for configured git execution delegation.
-- v0.1.10 (2026-06-03): Fail closed when simple git workflow delegation is blocked instead of falling back to main-session git mutation.
-- v0.1.11 (2026-06-03): Treat branch creation, commit, push, and PR creation as independent simple git action delegation triggers, with hook reminders as non-authoritative reinforcement only.
-- v0.1.12 (2026-06-03): Keep the shared skill provider-neutral, remove extra confirmation loops for unambiguous simple git action delegation, and require delegate cleanup when supported.
+- v0.1.9 (2026-06-03): Add delegated simple-git approval wording; superseded by current caller/handoff constraints.
+- v0.1.10 (2026-06-03): Add blocked-delegation failure wording; superseded by current caller/handoff constraints.
+- v0.1.11 (2026-06-03): Treat branch creation, commit, push, and PR creation as independent simple git actions.
+- v0.1.12 (2026-06-03): Keep the shared skill portable and remove extra confirmation loops for unambiguous simple git action delegation.
 - v0.1.13 (2026-06-03): Clarify shared skill ownership over git workflow policy, keep provider role prompts thin, and define commit message precedence over recent commit style.
 - v0.1.14 (2026-06-04): Add compact git execution handoff packets for simple delegated actions.
 - v0.1.15 (2026-06-23): Require PR creation to use body files so multiline Markdown stays intact.
 - v0.1.16 (2026-06-23): Rebalance simple git delegation so the git execution role decides workflow details from a compact context handoff.
-- v0.1.17 (2026-06-24): Simplify provider boundary rules and keep provider-specific git routing outside the shared workflow.
-- v0.1.18 (2026-06-25): Add fixed Git Context Pack and main-session fallback when no callable git delegate route exists.
-- v0.1.19 (2026-06-25): Allow concurrent delegate launch and read-only Git Context Pack collection for simple git actions.
+- v0.1.17 (2026-06-24): Simplify runtime boundary rules and keep caller orchestration outside the shared workflow.
+- v0.1.18 (2026-06-25): Add fixed Git Context Pack.
+- v0.1.19 (2026-06-25): Clarify read-only Git Context Pack collection for simple git actions.
+- v0.1.20 (2026-06-26): Move caller orchestration out of the shared skill.
+- v0.1.21 (2026-06-26): Remove caller-orchestration noise from the shared workflow.
+- v0.1.22 (2026-06-26): Require PR bodies to preserve repository templates and required checklists.
+- v0.1.23 (2026-06-26): Make PR template/checklist discovery an explicit gate before fallback bodies.
 
 ## References
 

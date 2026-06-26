@@ -11,7 +11,8 @@ Confirm:
 - Staged and unstaged changes are distinguished.
 - Proposed branch name matches the change type and area.
 - Commit headline uses `<type>: <description>` with no scope.
-- PR body includes Summary, Validation, and Risks.
+- PR body source has been actively checked: repository pull request templates and available description-check/checklist requirements are used when present; fallback Summary, Validation, and Risks sections are used only when neither source is available.
+- PR body preserves any repository-required template sections and checklist items.
 - Non-delegated side effects have exact commands shown to the user; delegated simple git actions have a complete context handoff.
 
 ## Before Commit
@@ -35,7 +36,8 @@ Confirm:
 - Branch is pushed or the exact push command is ready.
 - Push is not a force push unless the user explicitly requested history rewriting.
 - Base branch is known or `gh pr create` will prompt safely.
-- PR title and body match explicit user text or delegate-resolved text.
+- PR title and body match explicit user text or delegate-resolved text, including any repository template/checklist discovered before fallback.
+- Required checklist items, including database-specific items such as PostgreSQL function or `search_path` checks when present, are checked or marked `N/A`.
 - PR creation uses `--body-file` for the explicit or resolved body, not inline multiline `--body`.
 - GitHub CLI is installed and authenticated, or the workflow stops with text output.
 

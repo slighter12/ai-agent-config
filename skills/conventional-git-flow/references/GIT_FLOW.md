@@ -38,7 +38,12 @@ Do not include scope by default.
 
 ## PR Body
 
-Use:
+Before choosing a fallback body, actively check for repository pull request templates and available
+automated description-check requirements. Use the repository template as the baseline when it exists,
+then add any required checklist items from available automated checks that the template does not
+already cover. Preserve required checklist items and mark each one as checked or `N/A`; do not replace
+the template with a shorter generic body. Only when no repository template or required checklist is
+available after that check, use this minimum fallback body:
 
 ```md
 ## Summary
@@ -56,6 +61,8 @@ Use:
 ```
 
 Keep the body factual. Do not invent tests, issue numbers, approvals, or deployment status.
+For repository-specific checklist items such as PostgreSQL functions or `search_path` behavior,
+explicitly mark each required item as checked or `N/A` based on the current diff.
 
 ## Command Sequence
 
@@ -86,7 +93,7 @@ If the commit does not need a body, use only `git commit -m "<commit headline>"`
 
 Write the explicit or resolved PR body exactly to a temporary body file outside tracked paths before running `gh pr create`; do not pass multiline Markdown through inline `--body`.
 
-For non-delegated execution, never run the sequence until the user has approved the exact branch, files, commit message, PR title, PR body, and commands. For delegated simple git actions, the direct user request authorizes the git execution role to resolve these details from the diff and handoff context.
+For non-delegated execution, never run the sequence until the user has approved the requested git action and intended scope; ask before side effects when branch, files, commit message, PR title, PR body, or commands are ambiguous. For delegated simple git actions, the handoff authorizes the git execution role to resolve these details from the diff and handoff context.
 
 ## Sandbox And Permission Failures
 

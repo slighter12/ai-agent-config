@@ -13,4 +13,4 @@ These rules apply to all tasks in this repo unless a more specific policy or ski
 - Rules: apply baseline behavior, language, safety, and output constraints.
 - Skills: use reusable policies and workflows when the request matches a skill description or explicitly names a `$skill`.
 - Agents: suggest sub-agents only when the split is concrete, useful, and worth the coordination/token cost; keep high-cost roles such as `oracle` explicit. After a spawned agent completes and its result is no longer needed, close it.
-- Hooks: treat hooks as deterministic guardrails only; they do not replace rules, skills, agents, sandboxing, or permission prompts.
+- Hooks: treat hooks as deterministic guardrails or provider-specific routing context; they do not replace rules, skills, agents, sandboxing, or permission prompts.

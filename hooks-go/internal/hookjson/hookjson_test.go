@@ -1,6 +1,9 @@
 package hookjson
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestClassifyFileToolDotenvWriteDenies(t *testing.T) {
 	decision := ClassifyFileTool(Event{
@@ -53,6 +56,35 @@ func TestSimpleGitActionPromptIgnoresTextOnlyPrompts(t *testing.T) {
 	for _, prompt := range prompts {
 		if SimpleGitActionPrompt(prompt) {
 			t.Fatalf("expected prompt not to match: %q", prompt)
+		}
+	}
+}
+
+func TestGitWorkflowReminderDelegatesWithMainSessionFallback(t *testing.T) {
+	decision := ClassifyUserPromptSubmit(Event{"prompt": "幫我創建分支 commit 並且發 PR"})
+	if decision.Behavior != Allow {
+		t.Fatalf("expected allow, got %q", decision.Behavior)
+	}
+	for _, want := range []string{
+		"standing delegation request",
+		"`git-commit` role",
+		"discover the provider's callable spawn/delegation tool first",
+		"fallback only when no callable route exists after discovery",
+		"runtime policy blocks delegation before it starts",
+		"continue in the main session",
+		"report that fallback",
+		"Once delegation starts, the main session must not run mutating git commands",
+	} {
+		if !strings.Contains(decision.Reason, want) {
+			t.Fatalf("expected reminder to contain %q, got %q", want, decision.Reason)
+		}
+	}
+	for _, forbidden := range []string{
+		"stop and report that blocker",
+		"fail closed",
+	} {
+		if strings.Contains(decision.Reason, forbidden) {
+			t.Fatalf("expected reminder not to contain %q, got %q", forbidden, decision.Reason)
 		}
 	}
 }

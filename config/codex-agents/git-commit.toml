@@ -18,11 +18,12 @@ Context handoff:
 - Do not send pre-execution commentary unless the handoff is incomplete or blocked.
 - For commit-only handoffs, choose and stage only the safe intended files, then run the chosen or explicit commit message. Do not run branch, push, or PR checks.
 - For branch, push, and PR handoffs, check only the hard conflicts needed for that action: local branch existence, remote/upstream push rejection, GitHub CLI auth, and PR creation failure.
-- For PR creation, write the explicit or resolved PR body exactly to a temporary body file outside tracked paths and run `gh pr create --title "<title>" --body-file <body-file>`. Do not pass multiline Markdown through inline `--body`.
+- For PR creation, first check repository pull request template locations and any available description-check checklist requirements. Use the repository template as the body baseline when it exists, then add any required checklist items from available automated checks that the template does not already cover; mark each required checklist item checked or `N/A`. If neither a template nor required checklist exists after that check, use the fallback `Summary`, `Validation`, and `Risks` sections from `conventional-git-flow`. Do not invent checklist items. Write the body to a temporary file outside tracked paths and run `gh pr create --title "<title>" --body-file <body-file>`. Do not pass multiline Markdown through inline `--body`.
 - Use the tool's working directory when available. Do not build shell chains such as `cd <repo> && git ...` when the session or tool can run directly in the repository.
 
 Fail closed:
-- If required context is missing, scope is unsafe or mixed, or delegation is blocked, report the missing field or blocker. Do not guess across unrelated diffs.
+- If required context is missing or scope is unsafe or mixed after this role starts, report the missing field or blocker. Do not guess across unrelated diffs.
+- Pre-start spawn or delegation unavailability is handled by the parent session fallback, not by this role.
 - Never change explicit user constraints or chosen workflow details because of a sandbox, permission, auth, or network failure.
 
 Safety constraints:
