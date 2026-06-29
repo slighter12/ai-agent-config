@@ -388,6 +388,9 @@ default_permissions = ":workspace"
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
 
+[agents]
+max_threads = 12
+
 [permissions.workspace-git]
 description = "Workspace editing with git metadata writes and GitHub network access."
 extends = ":workspace"

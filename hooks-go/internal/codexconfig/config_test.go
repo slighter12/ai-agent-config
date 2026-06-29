@@ -16,6 +16,8 @@ func TestEnsureWorkspaceGitProfileCreatesProfile(t *testing.T) {
 	mustContain(t, got, `default_permissions = ":workspace"`)
 	mustContain(t, got, `approval_policy = "on-request"`)
 	mustContain(t, got, `approvals_reviewer = "auto_review"`)
+	mustContain(t, got, `[agents]`)
+	mustContain(t, got, `max_threads = 12`)
 	mustNotContain(t, got, `exec_permission_approvals`)
 	mustNotContain(t, got, `request_permissions_tool`)
 	mustContain(t, got, `[permissions.workspace-git]`)
@@ -106,6 +108,40 @@ trust_level = "trusted"
 	mustContain(t, got, `terminal_resize_reflow = true`)
 	mustContain(t, got, `[projects."/tmp/demo"]`)
 	mustNotContain(t, got, `request_permissions_tool`)
+}
+
+func TestEnsureWorkspaceGitProfileUpdatesAgentMaxThreads(t *testing.T) {
+	got, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+
+[agents]
+max_threads = 4
+max_depth = 2
+
+[projects."/tmp/demo"]
+trust_level = "trusted"
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	mustContain(t, got, `[agents]`)
+	mustContain(t, got, `max_threads = 12`)
+	mustContain(t, got, `max_depth = 2`)
+	mustContain(t, got, `[projects."/tmp/demo"]`)
+	mustNotContain(t, got, `max_threads = 4`)
+}
+
+func TestEnsureWorkspaceGitProfileAddsAgentMaxThreads(t *testing.T) {
+	got, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+
+[agents]
+max_depth = 2
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	mustContain(t, got, `[agents]`)
+	mustContain(t, got, `max_threads = 12`)
+	mustContain(t, got, `max_depth = 2`)
 }
 
 func TestEnsureWorkspaceGitProfilePreservesUserDefaultPermissions(t *testing.T) {

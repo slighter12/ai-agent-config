@@ -13,6 +13,7 @@ import (
 const (
 	ProfileName        = "workspace-git"
 	BasePermissionName = ":workspace"
+	AgentMaxThreads    = 12
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 	topLevelApprovalsReviewerRE  = regexp.MustCompile(`^\s*approvals_reviewer\s*=`)
 	topLevelSandboxModeRE        = regexp.MustCompile(`^\s*sandbox_mode\s*=`)
 	execPermissionApprovalsRE    = regexp.MustCompile(`^\s*exec_permission_approvals\s*=`)
+	agentMaxThreadsRE            = regexp.MustCompile(`^\s*max_threads\s*=`)
 )
 
 type Result struct {
@@ -96,6 +98,7 @@ func EnsureWorkspaceGitProfile(input string) (string, error) {
 	text = upsertBaseDefaultPermissions(text)
 	text = upsertApprovalPolicy(text)
 	text = upsertApprovalsReviewer(text)
+	text = upsertAgentMaxThreads(text)
 	text = removePermissionFeatureFlags(text)
 	text = insertWorkspaceGitBlock(text)
 	return normalizeNewline(text), nil
@@ -209,6 +212,61 @@ func upsertApprovalsReviewer(text string) string {
 func repoManagedApprovalsReviewer(line string) bool {
 	value, ok := topLevelStringValue(line)
 	return ok && (value == "user" || value == "auto_review" || value == "")
+}
+
+func upsertAgentMaxThreads(text string) string {
+	block := fmt.Sprintf("[agents]\nmax_threads = %d", AgentMaxThreads)
+	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
+	if len(lines) == 1 && lines[0] == "" {
+		return block + "\n"
+	}
+
+	agentsStart := -1
+	agentsEnd := len(lines)
+	for index, line := range lines {
+		if table, ok := tableName(strings.TrimSpace(line)); ok {
+			if agentsStart != -1 {
+				agentsEnd = index
+				break
+			}
+			if table == "agents" {
+				agentsStart = index
+			}
+		}
+	}
+
+	if agentsStart != -1 {
+		for index := agentsStart + 1; index < agentsEnd; index++ {
+			if agentMaxThreadsRE.MatchString(strings.TrimSpace(lines[index])) {
+				lines[index] = fmt.Sprintf("max_threads = %d", AgentMaxThreads)
+				return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
+			}
+		}
+		updated := append([]string{}, lines[:agentsStart+1]...)
+		updated = append(updated, fmt.Sprintf("max_threads = %d", AgentMaxThreads))
+		updated = append(updated, lines[agentsStart+1:]...)
+		return strings.TrimRight(strings.Join(updated, "\n"), "\n") + "\n"
+	}
+
+	insertIndex := len(lines)
+	for index, line := range lines {
+		if _, ok := tableName(strings.TrimSpace(line)); ok {
+			insertIndex = beforeTopLevelSeparator(lines, index)
+			break
+		}
+	}
+	before := strings.TrimRight(strings.Join(lines[:insertIndex], "\n"), "\n")
+	after := strings.TrimLeft(strings.Join(lines[insertIndex:], "\n"), "\n")
+	switch {
+	case before == "" && after == "":
+		return block + "\n"
+	case before == "":
+		return block + "\n\n" + after + "\n"
+	case after == "":
+		return before + "\n\n" + block + "\n"
+	default:
+		return before + "\n\n" + block + "\n\n" + after + "\n"
+	}
 }
 
 func upsertTopLevelString(text string, lineRE *regexp.Regexp, key, value string, shouldReplace func(string) bool) string {
