@@ -152,6 +152,10 @@ func (c Config) Install() error {
 		if err := c.SetupCodexShell(); err != nil {
 			return err
 		}
+		c.println("")
+		if err := c.SetupCodexHooks(); err != nil {
+			return err
+		}
 	}
 	if dirExists(c.ClaudeHome) {
 		c.println("")
@@ -163,7 +167,7 @@ func (c Config) Install() error {
 	c.println("")
 	c.println("Next steps:")
 	c.println("   1. Read README.md for usage.")
-	c.println("   2. Update skills, config/codex-agents, and repo-local plugins as needed.")
+	c.println("   2. Update skills and config/codex-agents as needed.")
 	c.println("   3. Run this script again after pulling updates.")
 	return nil
 }
@@ -274,6 +278,31 @@ func (c Config) BuildHooks() error {
 	c.println("Built:")
 	c.println("  plugins/ai-agent-config-guardrails/hooks/bin/agent-config-guardrails")
 	c.println("  plugins/ai-agent-git-routing/hooks/bin/agent-git-routing")
+	return nil
+}
+
+func (c Config) SetupCodexHooks() error {
+	c.println("Applying Codex hook plugin setup...")
+	if err := c.BuildHooks(); err != nil {
+		return err
+	}
+	c.println("")
+	c.println("Installing Codex hook plugins...")
+	if c.codexMarketplaceConfigured() {
+		c.println("   = Codex marketplace already configured: ai-agent-config")
+	} else if err := c.runCodex("plugin", "marketplace", "add", c.RepoRoot); err != nil {
+		return err
+	}
+	for _, plugin := range []string{
+		"ai-agent-config-guardrails@ai-agent-config",
+		"ai-agent-git-routing@ai-agent-config",
+	} {
+		if err := c.runCodex("plugin", "add", plugin); err != nil {
+			return err
+		}
+	}
+	c.println("")
+	c.println("Codex hook plugin setup complete.")
 	return nil
 }
 
@@ -773,6 +802,44 @@ func (c Config) runGo(args ...string) error {
 	cmd.Stdout = c.Out
 	cmd.Stderr = c.Out
 	return cmd.Run()
+}
+
+func (c Config) runCodex(args ...string) error {
+	if !c.commandAvailable("codex") {
+		return errors.New("codex CLI is required to install Codex hook plugins")
+	}
+	cmd := exec.Command("codex", args...)
+	cmd.Dir = c.RepoRoot
+	cmd.Stdout = c.Out
+	cmd.Stderr = c.Out
+	return cmd.Run()
+}
+
+func (c Config) codexMarketplaceConfigured() bool {
+	raw, err := os.ReadFile(filepath.Join(c.CodexHome, "config.toml"))
+	if err != nil {
+		return false
+	}
+	inMarketplace := false
+	for _, line := range strings.Split(string(raw), "\n") {
+		line := strings.TrimSpace(line)
+		if table, ok := tomlTableName(line); ok {
+			inMarketplace = table == "marketplaces.ai-agent-config"
+			continue
+		}
+		if !inMarketplace {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok || strings.TrimSpace(key) != "source" {
+			continue
+		}
+		source := strings.Trim(strings.TrimSpace(value), `"`)
+		if filepath.Clean(source) == filepath.Clean(c.RepoRoot) {
+			return true
+		}
+	}
+	return false
 }
 
 func (c Config) printf(format string, args ...any) {

@@ -121,6 +121,10 @@ The installer creates symlinks (without overwriting existing files):
   - Also runs the Go-backed `setup-codex-shell` flow to:
     - link `shell/codex-profile-auto.zsh -> ~/.codex/shell/codex-profile-auto.zsh`
     - add a guarded source line to `~/.zshrc`
+  - Also builds and installs repo-local Codex hook plugins:
+    - registers this repo as the `ai-agent-config` marketplace when needed
+    - installs `ai-agent-config-guardrails@ai-agent-config`
+    - installs `ai-agent-git-routing@ai-agent-config`
 - Claude (`$CLAUDE_HOME` or `~/.claude`, if present):
   - `skills/* -> ~/git/ai-config/skills/*`
   - `CLAUDE.md -> ~/git/ai-config/CLAUDE.md`
@@ -173,11 +177,11 @@ RTK does not currently provide an official `rtk hook codex` entrypoint. Codex Ba
 handled by this repo's `ai-agent-config-guardrails` plugin, which calls `rtk rewrite` from a
 `PreToolUse` Bash hook. Claude uses its live `rtk hook claude` configuration when enabled.
 
-Codex hooks are distributed as repo-local plugins. Register the repo marketplace once, then install
-or reinstall affected plugins when hook metadata changes:
+Codex hooks are distributed as repo-local plugins. `./install.sh` builds the hook binaries,
+registers this repo as the `ai-agent-config` marketplace when needed, and installs both hook
+plugins. To reinstall hooks manually after hook metadata changes:
 
 ```bash
-codex plugin marketplace add "$(pwd)"
 codex plugin add ai-agent-config-guardrails@ai-agent-config
 codex plugin add ai-agent-git-routing@ai-agent-config
 ```
@@ -557,7 +561,7 @@ trigger. This repo does not register a
 Claude hook behavior is owned by the active `rtk hook claude` entry in `~/.claude/settings.json`.
 This repo no longer installs Claude hook script symlinks.
 
-Build hook binaries before installing or reinstalling the plugins:
+`./install.sh` builds and installs these plugins automatically. To reinstall only the hook plugins:
 
 ```bash
 scripts/build_go_hooks.sh

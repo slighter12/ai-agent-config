@@ -75,6 +75,41 @@ func TestCreateSkillSymlinksSkipsEntriesWithoutSkillManifest(t *testing.T) {
 	mustContain(t, out.String(), "Skipping non-skill entry")
 }
 
+func TestCodexMarketplaceConfiguredDetectsRepoMarketplace(t *testing.T) {
+	dir := t.TempDir()
+	codexHome := filepath.Join(dir, ".codex")
+	if err := os.MkdirAll(codexHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	config := Config{CodexHome: codexHome, RepoRoot: filepath.Join(dir, "repo")}
+	if config.codexMarketplaceConfigured() {
+		t.Fatal("expected missing config to be unconfigured")
+	}
+	if err := os.WriteFile(filepath.Join(codexHome, "config.toml"), []byte(`
+[marketplaces.other]
+source = "/tmp/other"
+
+[marketplaces.ai-agent-config]
+source_type = "local"
+source = "`+filepath.ToSlash(filepath.Join(dir, "other-repo"))+`"
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if config.codexMarketplaceConfigured() {
+		t.Fatal("expected marketplace with different source to be unconfigured")
+	}
+	if err := os.WriteFile(filepath.Join(codexHome, "config.toml"), []byte(`
+[marketplaces.ai-agent-config]
+source_type = "local"
+source = "`+filepath.ToSlash(config.RepoRoot)+`"
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if !config.codexMarketplaceConfigured() {
+		t.Fatal("expected ai-agent-config marketplace to be configured")
+	}
+}
+
 func TestGenerateCodexRoleFilesRendersTemplatesAndProtectsUserFiles(t *testing.T) {
 	repo := t.TempDir()
 	sourceDir := filepath.Join(repo, "config", "codex-agents")
