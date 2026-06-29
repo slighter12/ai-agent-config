@@ -48,6 +48,14 @@ Duplicate guardrails, not policy.
 - Define output shape only as strictly as the task requires.
 - Use `MUST`, `CRITICAL`, `always`, and `never` only for security, data protection, destructive actions, or hard compatibility rules.
 
+## Predictability And Pruning
+
+- Prefer a model-invoked skill only when the agent must reach it automatically or another skill must route to it; otherwise keep the workflow behind explicit invocation or an existing owner to avoid context load.
+- Split a workflow only when it has a distinct trigger, a distinct owner, or later steps cause premature completion of earlier legwork.
+- Give important steps checkable completion criteria. A vague "review thoroughly" is weaker than a concrete stop condition.
+- Use a stable leading word for repeated concepts when it makes routing or execution sharper.
+- Keep one source of truth for each rule. Delete duplicate wording, no-op prose, stale sediment, and sprawl before adding new references.
+
 ## Provider Notes
 
 - Codex and Gemini rely on portable `name` and `description` for skill routing; keep optional standard fields small and spec-aligned.
@@ -83,6 +91,8 @@ Use this section order unless the skill has a strong reason to differ:
 - Frontmatter has `name`, `description`, and optional standard fields only.
 - Description has capability, trigger cases, and avoid cases.
 - `SKILL.md` is under 500 lines.
+- Workflow steps have checkable completion criteria where correctness depends on stopping at the right point.
+- No-op prose, duplicate rules, and provider-specific frontmatter have been pruned from shared skill files.
 - Version history is present for shared or team-maintained skills.
 - Detailed docs are linked from `references/` instead of duplicated.
 - Scripts and assets are present only when they materially improve reliability.

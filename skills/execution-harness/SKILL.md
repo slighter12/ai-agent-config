@@ -4,7 +4,7 @@ description: Coordinate optional orchestration across phases, agents, git/worksp
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.8"
+  version: "0.1.9"
 ---
 
 # Execution Harness
@@ -147,6 +147,7 @@ For each delegated agent in `agent_selection`, include:
 
 ## Version History
 
+- v0.1.9 (2026-06-29): Add suggested skill, redaction, and brief fields to bounded handoff reference guidance.
 - v0.1.8 (2026-06-21): Clarify sibling skill routing ownership versus loaded availability, so
   harness does not describe `goal-context` as unavailable when it is only not loaded.
 - v0.1.7 (2026-06-21): Adopt phase-level loop contract fields for long-running and repeated work

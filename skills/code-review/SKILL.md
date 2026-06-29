@@ -4,7 +4,7 @@ description: "Review code or current git changes through sanity, project-profile
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.5"
+  version: "0.2.6"
 ---
 
 # Code Review
@@ -67,7 +67,7 @@ Use focus text to guide inspection, but do not treat it as proof. If the focus c
 ## Mode Guidance
 
 - For `sanity`, use `references/REVIEW_FRAME.md` and keep inspection diff-centered.
-- For `full`, use project-profile guidance from `references/REVIEW_FRAME.md` before deciding breadth.
+- For `full`, use project-profile guidance from `references/REVIEW_FRAME.md` before deciding breadth. When an originating spec, issue, or documented standard is in scope, review both axes: whether the code follows repo standards and whether it satisfies the stated spec.
 - For `security`, load `policy-security` as the disclosure and trust-boundary authority; load API, frontend, infra, language, or testing policy when that surface is materially in scope.
   At minimum, inspect auth/authz boundary changes, secrets/tokens/PII in code/logs/tests/responses, unsafe user-facing error disclosure, custom crypto, and validation of attacker-controlled input.
 - For `architecture-diff-risk`, review only architecture risk visible in the current diff or targeted code path. Whole-codebase architecture discovery belongs to `planning-grill`.
@@ -120,6 +120,7 @@ Return:
 - v0.2.4 (2026-06-11): Route capture-worthy handoff notes to project lifecycle while keeping
   ordinary handoff packaging out of code review.
 - v0.2.5 (2026-06-18): Add hard policy gate before review verdicts for material API, security, testing, infra, and language/framework risks.
+- v0.2.6 (2026-06-29): Add standards/spec axis guidance for full reviews without default subagent escalation.
 
 ## References
 

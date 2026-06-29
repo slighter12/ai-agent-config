@@ -4,7 +4,7 @@ description: Diagnose bugs, failing behavior, flaky tests, and performance regre
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # Diagnose
@@ -29,7 +29,7 @@ Keep debugging work anchored to observable evidence. The skill prevents drift by
 ## Workflow
 
 1. Define the reported symptom and the expected behavior in concrete terms.
-2. Build or identify the fastest credible feedback loop: failing test, command, script, HTTP request, browser flow, fixture replay, profile, or measurement. Do not guess at a fix when no credible loop or missing artifact can confirm the symptom.
+2. Build or identify the fastest credible feedback loop: failing test, command, script, HTTP request, browser flow, fixture replay, profile, or measurement. A credible loop is red-capable for the user's actual symptom, repeatable or high-reproduction, fast enough to iterate, and agent-runnable. Do not guess at a fix when no credible loop or missing artifact can confirm the symptom.
 3. Reproduce the failure or raise the reproduction rate enough to investigate. If this is impossible, state what artifact or access is missing.
 4. For flaky or nondeterministic failures, improve reproduction rate and isolate time, concurrency, filesystem, network, random seed, or environment variables.
 5. Generate 3-5 falsifiable hypotheses and test one variable at a time.
@@ -49,6 +49,7 @@ Keep debugging work anchored to observable evidence. The skill prevents drift by
 - Do not invent business logic or expected behavior when the symptom or requirement is unclear; ask for the missing constraint or artifact.
 - If a correct regression-test seam does not exist, state that as a finding instead of adding a weak or misleading test.
 - Load `policy-testing` when the diagnosis depends on verification depth, regression evidence, risk level, or validation gate selection.
+- If no red-capable loop can be built, ask for the missing artifact, access, logs, HAR, trace, fixture, or permission for targeted instrumentation instead of continuing with a speculative fix.
 
 ## Output
 
@@ -70,3 +71,4 @@ Return:
 - v0.1.3 (2026-05-21): Route code review requests to renamed `code-review`.
 - v0.1.4 (2026-05-29): Add security-sensitive diagnosis guardrail for exposure and trust-boundary hypotheses.
 - v0.1.5 (2026-06-18): Add hard policy gate for material API, security, testing, infra, and language/framework diagnosis risks.
+- v0.1.6 (2026-06-29): Define red-capable feedback loop criteria and stop condition for missing diagnostic evidence.

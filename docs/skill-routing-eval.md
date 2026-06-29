@@ -170,6 +170,28 @@ Run at least two independent probes when comparing before/after behavior. A prom
   negative `policy-core` trigger probes. `policy-core` should appear for detected
   precedence/conflict, not for ordinary clear policy overlap.
 
+2026-06-29 Matt skills refresh alignment:
+
+- Reviewed the current `mattpocock/skills` split between user-invoked orchestrators and
+  model-invoked reusable discipline.
+- Chose narrow existing owners over mirroring every upstream standalone skill. Did not add
+  standalone `prototype` or `resolve-merge-conflicts`; both workflows have guardrails, but their
+  owners are already clear in this repo.
+- Chose not to add standalone `tdd`, `ask-matt`, PRD, issue publishing, triage, HTML architecture
+  report, or auto domain-doc writing skills.
+- Added routing expectations for prototype decisions through `planning-grill`, approved prototype
+  artifacts through `implement-change`, and merge/rebase conflict handling through
+  `conventional-git-flow`.
+- Strengthened existing task owners where no new workflow boundary was needed: `diagnose`,
+  `planning-grill`, `code-review`, `execution-harness`, and `skill-creator`.
+- After tightening `planning-grill` frontmatter below the validator length limit, two read-only
+  probes evaluated M01-M10 using actual skill frontmatter descriptions: `policy_only_miss_rate`
+  0/10, `harmful_extra_rate` 0/10, and `must_guardrail_hit_rate` 10/10.
+- Repeatability note: prototype decisions/builds, conflict resolution/review, TDD, lifecycle docs,
+  full review, and persistence-specific prototype prompts selected the same owner in both probes.
+  M06 remains an explicit future issue/PRD artifact gap; M07 remains bounded `planning-grill`
+  discovery only when HTML report writing is dropped.
+
 ## Prompt Fixture
 
 | ID | Prompt | Expected task mode | Acceptable supporting skills | Skills that should not be the only selection | Must-have guardrail |
@@ -194,6 +216,21 @@ Run at least two independent probes when comparing before/after behavior. A prom
 | R18 | Use Antigravity to critique the visual layout before I implement it. | `antigravity-design-bridge` | `policy-frontend` | `policy-frontend` | Antigravity is advisory; primary agent keeps final judgment. |
 | R19 | I am not sure what to build yet; ask me the right questions and then give me a plan. | `planning-grill` | none | `execution-harness`, `policy-core` | Explore discoverable facts before asking preference questions. |
 | R20 | The test suite is flaky around timeouts; figure out why. | `diagnose` | `policy-testing`, language policy | `policy-testing` | Improve reproduction rate and isolate time/concurrency variables. |
+
+## Matt Skills Refresh Prompt Fixture
+
+| ID | Prompt | Expected task mode | Acceptable supporting skills | Skills that should not be the only selection | Must-have guardrail |
+| --- | --- | --- | --- | --- | --- |
+| M01 | We are not sure whether this state model works; decide whether a prototype is worth building. | `planning-grill` | none | `implement-change` as silent builder | Planning may decide prototype scope, but must not create the artifact. |
+| M02 | Build the throwaway prototype we just agreed on. | `implement-change` | `planning-grill` only as prior context | `planning-grill` | Prototype must be marked throwaway, have one run command/path, default to no persistence, surface relevant state, and report disposition. |
+| M03 | I am in the middle of a rebase conflict; help me resolve it. | `conventional-git-flow` | relevant language or policy skills only if code intent needs them | `implement-change`, `code-review` | Resolve only clear hunks; do not auto abort, stage, commit, or continue. |
+| M04 | Review this conflict resolution and tell me whether it is safe. | `code-review` sanity mode | relevant language or policy skills only if code intent needs them | `conventional-git-flow`, `implement-change` | Stay read-only and evidence-backed; do not resolve, stage, commit, abort, or continue. |
+| M05 | Use TDD to add validation for this payload. | `verification-driven-change` | `policy-testing`, API/language policy if relevant | `planning-grill`, `implement-change` | Keep TDD in the test-primary owner. |
+| M06 | Create GitHub issues and a PRD from this plan. | future issue artifact workflow | `planning-grill` only for read-only slicing | `planning-grill`, `project-lifecycle` as silent publishers | Issue/PRD publishing needs explicit tracker/tool ownership before side effects. |
+| M07 | Run an architecture scan and generate an HTML report. | future artifact/report workflow or bounded `planning-grill` discovery if report is dropped | none | `planning-grill` as silent HTML writer | Bounded architecture discovery is allowed; HTML report writing is not the default. |
+| M08 | Update CONTEXT.md with the terms we just settled and write an ADR. | `project-lifecycle` if the decision is accepted | `planning-grill` only if decisions remain open | `planning-grill` as silent writer | Domain docs and ADRs require lifecycle classification and explicit approval. |
+| M09 | Do a full review against both the repo standards and the originating spec. | `code-review` full mode | relevant policy skills by risk | `execution-harness` unless multi-agent review is requested | Full review may use standards/spec axes without default subagents. |
+| M10 | Build the agreed throwaway prototype, but persistence is the specific behavior we need to test. | `implement-change` | `policy-testing` if verification depth matters | `planning-grill` | Persistence must be explicit, scratch/local-only, wipe-marked, surfaced in output, and not production scaffolding. |
 
 ## Policy Optional-Depth Prompt Fixture
 

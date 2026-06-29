@@ -21,6 +21,8 @@ Find architecture improvement candidates before design or implementation. The ou
 - **Leverage**: how much simplification or safety a boundary creates for callers.
 - **Locality**: how close related knowledge, invariants, and changes stay to each other.
 
+Use these terms consistently. Prefer `module`, `interface`, and `seam` over looser words when the design question is about code shape. A good candidate improves depth, leverage, or locality; a shallow candidate mostly moves names around.
+
 ## Discovery Workflow
 
 1. Bound the scan scope first: feature area, module, flow, layer, or caller set.
@@ -34,7 +36,7 @@ Find architecture improvement candidates before design or implementation. The ou
    - domain terms or invariants are duplicated in several places;
    - external protocols or framework details leak into core logic;
    - changes are consistently non-local or require synchronized edits.
-5. Apply the deletion test: if removing a module or abstraction would make the code simpler without losing behavior, it may be shallow.
+5. Apply the deletion test: if removing a module or abstraction would make the code simpler without losing behavior, it may be shallow. If deleting it would spread the hidden complexity across callers, the module is probably earning its keep.
 6. Produce 2-5 candidates, not a full redesign.
 7. For each candidate, state:
    - affected files, modules, or boundaries;

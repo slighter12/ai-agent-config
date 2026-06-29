@@ -2,7 +2,7 @@
 name: skill-creator
 description: Create or update portable CLI skills, including source placement, provider surfaces, validation, packaging, and install/discovery status. Use when the user asks to create, revise, validate, package, modernize, or decide placement for a SKILL.md-based skill for Codex, Claude, Gemini, project-local, or shared multi-provider use, or when `project-lifecycle` has an approved shared skill capture candidate. Avoid when the task is only application code changes, ordinary documentation edits, lifecycle capture triage, or third-party skill installation without authoring changes.
 metadata:
-  version: "0.2.5"
+  version: "0.2.6"
 ---
 
 # skill-creator
@@ -93,6 +93,7 @@ Return:
 - v0.2.3 (2026-05-18): Add guardrail duplication guidance for self-contained task skills.
 - v0.2.4 (2026-05-21): Add placement, provider surface, and install/discovery lifecycle guidance.
 - v0.2.5 (2026-05-29): Restore self-contained skill evolution gate guidance without sibling skill reference dependencies.
+- v0.2.6 (2026-06-29): Add predictability and pruning guidance to authoring standards.
 
 ## References
 

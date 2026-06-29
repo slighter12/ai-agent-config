@@ -11,6 +11,9 @@ Include:
 - `inputs`: paths, diffs, links, commands, or constraints needed.
 - `acceptance`: evidence that proves the step is done.
 - `blockers`: unresolved blockers only.
+- `suggested_skills`: narrow skills the next owner should consider, or `none`.
+- `redaction_notes`: sensitive data removed or still requiring care.
+- `brief`: concise context the next owner needs before acting.
 - `return`: expected output shape.
 
 ## Agent Selection Fields

@@ -1,10 +1,10 @@
 ---
 name: conventional-git-flow
-description: Prepare Conventional Commit git workflows for branches, commits, pushes, and pull requests. Use when the user asks to commit current changes, create or review a branch name, commit message, PR title, PR body, or end-to-end git change flow. Avoid when the task is only code review, release notes, changelog writing, or command-wrapper setup.
+description: Prepare Conventional Commit git workflows for branches, commits, pushes, pull requests, and active merge or rebase conflict resolution. Use when the user asks to commit current changes, create or review a branch name, commit message, PR title, PR body, resolve an in-progress merge/rebase conflict, or handle end-to-end git change flow. Avoid when the task is only code review, reviewing whether a conflict resolution is safe, release notes, changelog writing, implementation unrelated to git state, or command-wrapper setup.
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.23"
+  version: "0.1.24"
 ---
 
 # Conventional Git Flow
@@ -20,11 +20,13 @@ This skill is the source of truth for reusable git workflow policy; execution wr
 - The user asks to commit current work using Conventional Commits.
 - The user asks to commit, stage and commit, or create a commit for current changes.
 - The user asks to create a branch and prepare or open a pull request.
+- The user asks to resolve an active or in-progress merge or rebase conflict.
 - The task requires translating a diff or change summary into git workflow text.
 
 ## Avoid When
 
 - The request is only code review or implementation with no git workflow output.
+- The request is only to review whether a conflict resolution is safe; use `code-review`.
 - The user needs release notes or changelog content rather than commit or PR text.
 - A command wrapper is being authored instead of the shared workflow.
 
@@ -33,14 +35,15 @@ This skill is the source of truth for reusable git workflow policy; execution wr
 1. For direct git actions, collect the read-only Git Context Pack before any side effect.
 2. Preserve user-provided branch, file scope, commit message, PR title/body, remote, base, or head as explicit constraints.
 3. If the current task is already a delegated git execution handoff, use the handoff context and execute only the requested git actions.
-4. Keep commit and PR title format as `<type>: <description>` without a scope in the header.
-5. Put the affected area in the branch name and PR body instead of the commit header.
-6. When applying reviewer feedback on an already published PR, default to a new follow-up commit and normal push.
-7. For non-delegated execution, use the Git Context Pack results and present proposed branch names, staged files, commit messages, PR text, and exact commands before any side effect unless the direct request already approved that exact action and intended scope.
-8. If delegated execution fails because of incomplete context, unsafe scope, permission, auth, or network issues, follow the failure and escalation rules below instead of changing the approved workflow.
-9. Treat a direct request such as "commit this" as approval for only the requested simple git action and intended files after inspection; ask if file set, message, or scope is ambiguous.
-10. Do not run duplicate mutating git commands in both caller and delegate for the same requested action.
-11. After execution, report the action result, final status, and any follow-up verification.
+4. For conflict resolution, inspect conflict state, conflict markers, relevant branch/rebase context, and each side's intent from nearby code, diffs, docs, tests, or commit messages when available. Resolve only clear hunks, preserve both sides where compatible, and stop for product judgment, incompatible intent, data-loss risk, security-sensitive behavior, unclear ownership, or missing context.
+5. Keep commit and PR title format as `<type>: <description>` without a scope in the header.
+6. Put the affected area in the branch name and PR body instead of the commit header.
+7. When applying reviewer feedback on an already published PR, default to a new follow-up commit and normal push.
+8. For non-delegated execution, use the Git Context Pack results and present proposed branch names, staged files, commit messages, PR text, and exact commands before any side effect unless the direct request already approved that exact action and intended scope.
+9. If delegated execution fails because of incomplete context, unsafe scope, permission, auth, or network issues, follow the failure and escalation rules below instead of changing the approved workflow.
+10. Treat a direct request such as "commit this" as approval for only the requested simple git action and intended files after inspection; ask if file set, message, or scope is ambiguous.
+11. Do not run duplicate mutating git commands in both caller and delegate for the same requested action.
+12. After execution, report the action result, final status, and any follow-up verification.
 
 ## Git Context Pack
 
@@ -79,11 +82,13 @@ If the handoff is complete, the delegate should use any fresh Git Context Pack r
 - Do not push or run `gh pr create` unless the action is explicitly requested or approved and the delegate has resolved the target branch, remote, title, and body.
 - When running `gh pr create`, pass the explicit or resolved PR body through `--body-file` from a temporary file outside tracked paths. Do not inline multiline Markdown in `--body`.
 - Do not use `git commit --amend`, history-rewriting rebase, or force push for an already published PR unless the user explicitly asks to rewrite history.
+- Do not treat "resolve conflict" as approval to run `git add`, `git commit`, `git merge --abort`, `git rebase --abort`, `git rebase --continue`, push, or rewrite history.
+- Do not erase one side's intent just to remove conflict markers, and do not choose between incompatible product behaviors without user input.
 - If an approved side-effect command fails with `.git` lock, `Operation not permitted`, permission, DNS, or network errors, treat it as a likely sandbox or environment failure and request escalated execution for the same command before changing the approved workflow.
 - Never change explicit user constraints or chosen Conventional Commit type, headline, staged files, branch name, branch `<type>/` prefix, remote, PR title, or PR body because of a sandbox or permission failure.
 - Do not replace slash-prefixed branch names such as `feat/<slug>`, `fix/<slug>`, `docs/<slug>`, or `ci/<slug>` unless read-only checks prove a real ref conflict; permission failures are not ref conflicts.
 - If GitHub CLI is unavailable or unauthenticated, return the PR title/body and the exact command the user can run later.
-- Do not treat implementation, diagnosis, review, release flow, history rewrite, merge conflict resolution, or PRs with unsafe unknown base/remote/title/body as simple git execution until the git scope is fixed.
+- Do not treat implementation, diagnosis, review, release flow, history rewrite, conflict resolution, or PRs with unsafe unknown base/remote/title/body as simple git execution until the git scope is fixed.
 - Do not invent a git execution delegate when the caller did not provide a delegated handoff.
 - This shared skill owns git workflow rules and handoff shape, not caller orchestration.
 
@@ -98,6 +103,7 @@ Return:
 - `pr_body`: PR body resolved after checking repository template/checklist sources; it preserves discovered requirements or uses fallback summary, validation, and risks sections only when no template/checklist exists.
 - `commands`: exact commands proposed or executed.
 - `approval_needed`: side effects waiting for user approval.
+- `conflict_resolution`: conflict state, files inspected or resolved, remaining blockers, and next git step when conflict handling was requested.
 - `manual_verification`: checklist for confirming branch, commit, push, or PR state.
 
 ## Version History
@@ -126,6 +132,7 @@ Return:
 - v0.1.21 (2026-06-26): Remove caller-orchestration noise from the shared workflow.
 - v0.1.22 (2026-06-26): Require PR bodies to preserve repository templates and required checklists.
 - v0.1.23 (2026-06-26): Make PR template/checklist discovery an explicit gate before fallback bodies.
+- v0.1.24 (2026-06-29): Add guarded merge/rebase conflict resolution without creating a standalone conflict skill.
 
 ## References
 
