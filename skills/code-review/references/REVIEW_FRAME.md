@@ -10,8 +10,11 @@ Ambiguous requests such as "review current changes" default to `sanity` mode. Am
 - `full`: broader code review for correctness, contracts, regressions, maintainability, and validation risk.
 - `security`: security-first review for trust boundaries, authn/authz, secrets, tokens, PII, crypto, logging leaks, and attacker-controlled input.
 - `architecture-diff-risk`: architecture risk visible in the current diff or targeted code path only.
+- `release-readiness`: release risk visible in an explicit PR, branch, commit range, or tag-to-HEAD range.
 
 Do not use this skill for whole-codebase architecture discovery; use `planning-grill` for architecture shape, module depth, coupling, seams, and refactoring candidates before implementation.
+
+For release audits, use `RELEASE_READINESS.md`; do not deploy, tag, run migrations, or mutate remote infrastructure.
 
 ## Project Profile
 
@@ -88,6 +91,7 @@ If the diff does not match the stated focus, report the mismatch.
 - Do docs, templates, scripts, and validation rules agree with each other?
 - Is the validation story sufficient for the risk level?
 - Are there obvious behavior regressions or broken contracts?
+- Does the selected range introduce release blockers, deploy ordering, rollback, migration, config, or runtime confirmation work?
 - Does the selected project profile imply broader risks than the user initially named?
 - Should this review be escalated to harness or multi-agent review before continuing?
 - If a challenge pass was requested, what would break if the inferred intent is incomplete or wrong?
@@ -108,5 +112,6 @@ Stop when the review can make one of these calls:
 - The change set is reasonable.
 - The change set needs specific fixes.
 - The intent is unclear and cannot be safely inferred from the diff.
+- The release is blocked, needs confirmation, or has no blocker found from available evidence.
 
 Run a second challenge pass when requested, when `full` mode requires it, or when the project profile/risk justifies it.

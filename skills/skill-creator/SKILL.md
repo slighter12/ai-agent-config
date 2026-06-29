@@ -1,21 +1,23 @@
 ---
 name: skill-creator
-description: Create or update portable CLI skills, including source placement, provider surfaces, validation, packaging, and install/discovery status. Use when the user asks to create, revise, validate, package, modernize, or decide placement for a SKILL.md-based skill for Codex, Claude, Gemini, project-local, or shared multi-provider use, or when `project-lifecycle` has an approved shared skill capture candidate. Avoid when the task is only application code changes, ordinary documentation edits, lifecycle capture triage, or third-party skill installation without authoring changes.
+description: Create, update, evaluate, or safely integrate portable CLI skills, including third-party skill intake, source placement, provider surfaces, validation, packaging, and install/discovery status. Use when the user asks to create, revise, validate, package, modernize, evaluate skill changes, decide placement for a SKILL.md-based skill, or adapt external skill guidance for Codex, Claude, Gemini, project-local, or shared multi-provider use, or when `project-lifecycle` has an approved shared skill capture candidate. Avoid when the task is only application code changes, ordinary documentation edits, lifecycle capture triage, or third-party skill installation without authoring changes.
 metadata:
-  version: "0.2.6"
+  version: "0.2.8"
 ---
 
 # skill-creator
 
 ## Purpose
 
-Create high-signal, portable skills that work well across Codex, Claude, and Gemini by default. Treat skill creation as a lifecycle: choose the source of truth, create or update the portable `SKILL.md`, sync provider discovery surfaces when appropriate, validate, and report install/discovery status.
+Create high-signal, portable skills that work well across Codex, Claude, and Gemini by default. Treat skill creation as a lifecycle: evaluate whether the workflow belongs in a skill, choose the source of truth, create or update the portable `SKILL.md`, sync provider discovery surfaces when appropriate, validate, and report install/discovery status.
 
 ## Use When
 
 - The user wants to create a new reusable skill.
 - The user wants to update an existing skill for cross-provider routing.
 - The task involves `SKILL.md`, skill descriptions, bundled references, scripts, assets, packaging, or validation.
+- The user asks whether an external or third-party skill should be installed, adapted, vendored, rejected, or merged into an existing skill.
+- The user asks whether skill changes improved routing, guardrails, provider portability, or documentation quality as part of an authoring or adaptation decision.
 - The user asks where a skill should live, how to make it project-local or shared, or why a provider did not discover a skill.
 - The user asks whether a workflow belongs in a skill, an agent prompt, or a provider-specific overlay.
 - `project-lifecycle` has classified a workflow or skill lesson as an approved `shared_skill_update` or `new_shared_skill`.
@@ -25,7 +27,8 @@ Create high-signal, portable skills that work well across Codex, Claude, and Gem
 - The request is only a normal code change in an application repo.
 - A more specific domain skill should guide the work after the skill structure is already clear.
 - The request is to decide whether a session lesson, project decision, handoff, or workflow observation is worth capturing; use `project-lifecycle`.
-- The user is asking to install third-party skills rather than author or modify them.
+- The user is asking to install an already selected third-party skill with no evaluation, adaptation, or authoring work; use `skill-installer`.
+- The user is asking for a read-only review of current skill changes, a current diff, or routing logic without authoring decisions; use `code-review`.
 
 ## Cross-Provider Defaults
 
@@ -56,20 +59,21 @@ If a user asks for one file that must run everywhere, keep provider-specific con
 ## Workflow
 
 1. Identify the intended outcome, target users, provider targets, trigger examples, avoid examples, side effects, and output contract.
-2. For approved skill evolution requests, use `references/SKILL_EVOLUTION_GATE.md` to inventory visible skills and prefer the narrowest existing owner before proposing a new skill.
-3. Decide placement using `references/PLACEMENT_AND_INSTALLATION.md`: shared/global, project-local, or provider-specific exception.
-4. Choose the shared portable template by default. Use provider-specific variants only when a provider feature is necessary for correctness or safety.
-5. Decide what minimum guardrails must live in the task skill itself so it remains safe when supporting policy skills are not loaded.
-6. Draft or update `SKILL.md` with `Purpose`, `Use When`, `Avoid When`, `Workflow`, `Tool And Side-Effect Boundaries`, `Output`, and `References`.
-7. Move long explanations, detailed policy, API notes, examples, and troubleshooting into focused files under `references/`.
-8. Add scripts only when they improve deterministic reliability or prevent repeated code generation.
-9. Create or report provider discovery surfaces:
+2. For external skill intake or skill-change evaluation that may lead to authoring, use `references/SKILL_INTAKE_AND_EVALUATION.md` to classify risk, fit, routing impact, handoff owner, and whether AGENTS.md or CLAUDE.md guidance is already adequate.
+3. For approved skill evolution requests, use `references/SKILL_EVOLUTION_GATE.md` to inventory visible skills and prefer the narrowest existing owner before proposing a new skill.
+4. Decide placement using `references/PLACEMENT_AND_INSTALLATION.md`: shared/global, project-local, or provider-specific exception.
+5. Choose the shared portable template by default. Use provider-specific variants only when a provider feature is necessary for correctness or safety.
+6. Decide what minimum guardrails must live in the task skill itself so it remains safe when supporting policy skills are not loaded.
+7. Draft or update `SKILL.md` with `Purpose`, `Use When`, `Avoid When`, `Workflow`, `Tool And Side-Effect Boundaries`, `Output`, and `References`.
+8. Move long explanations, detailed policy, API notes, examples, and troubleshooting into focused files under `references/`.
+9. Add scripts only when they improve deterministic reliability or prevent repeated code generation.
+10. Create or report provider discovery surfaces:
    - shared repo skills use this repo's installer to link supported global surfaces;
    - project-local skills use one canonical project source plus provider surfaces; `.agents/skills/<name>` is the preferred portable source convention, not proof of Codex project discovery;
    - link `.claude/skills/<name>` when Claude project discovery is needed, and report Codex project discovery as verified, unverified, not configured, or provider-specific;
    - `.codex/skills` is not the default shared or project-local mirror for this repo; create it only when a project/provider explicitly requires or verifies that surface.
-10. Run or recommend `agent-config validate-skill` when validation is requested or required by the packaging workflow.
-11. Return a concise summary of changed skill behavior, placement, provider-specific notes, validation, and manual verification checklist.
+11. Run or recommend `agent-config validate-skill` when validation is requested or required by the packaging workflow.
+12. Return a concise summary of changed skill behavior, placement, provider-specific notes, validation, and manual verification checklist.
 
 ## Output Contract
 
@@ -94,6 +98,8 @@ Return:
 - v0.2.4 (2026-05-21): Add placement, provider surface, and install/discovery lifecycle guidance.
 - v0.2.5 (2026-05-29): Restore self-contained skill evolution gate guidance without sibling skill reference dependencies.
 - v0.2.6 (2026-06-29): Add predictability and pruning guidance to authoring standards.
+- v0.2.7 (2026-06-29): Add external skill intake and skill-change evaluation routing.
+- v0.2.8 (2026-06-29): Clarify handoff boundaries for install-only and read-only review cases.
 
 ## References
 
@@ -101,6 +107,7 @@ Return:
 - `references/SKILL_TEMPLATE.md` - Shared template for new skills.
 - `references/workflows.md` - Workflow structuring patterns.
 - `references/output-patterns.md` - Output contract patterns.
+- `references/SKILL_INTAKE_AND_EVALUATION.md` - Third-party skill intake, skill-change probes, and AGENTS/CLAUDE guidance checks.
 - `references/SKILL_EVOLUTION_GATE.md` - Self-contained gate for approved skill evolution and new skill admission.
 - `references/CLI_BACKED_SKILLS.md` - When deterministic helpers, scripts, or CLIs belong behind a skill.
 - `references/PLACEMENT_AND_INSTALLATION.md` - Source-of-truth, provider surface, install, and discovery rules.
