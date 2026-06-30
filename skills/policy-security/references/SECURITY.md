@@ -17,6 +17,7 @@ Violating these rules is incorrect output.
 - 1) Secrets Management (hard rules)
 - 1) Logging Safety (hard rules)
 - 1) Error Message Safety (hard rules)
+- 1) Privacy By Design (high-level rules)
 - 1) Frontend Security (hard rules)
 - 1) Authentication and Authorization (hard rules)
 - 1) Cryptography (hard rules)
@@ -104,7 +105,16 @@ This example only shows the safe error payload content. Use the project's existi
 
 ---
 
-## 4) Frontend Security (hard rules)
+## 4) Privacy By Design (high-level rules)
+
+- Minimize sensitive data collected, stored, logged, copied into prompts, or sent to third-party tools.
+- Prefer synthetic or redacted examples over real PII, tokens, private files, or full request/response bodies.
+- When analytics, tracking, external processors, or retention behavior are in scope, surface the privacy risk and ask for project-specific requirements instead of inventing compliance policy.
+- Keep privacy guidance high-level unless the project has explicit legal, regulatory, retention, or consent requirements.
+
+---
+
+## 5) Frontend Security (hard rules)
 
 - The frontend must never receive or store secrets.
 - Frontend authorization checks are UX only; the backend is the source of truth.
@@ -114,7 +124,7 @@ This example only shows the safe error payload content. Use the project's existi
 
 ---
 
-## 5) Authentication and Authorization (hard rules)
+## 6) Authentication and Authorization (hard rules)
 
 - All API endpoints require auth by default (unless explicitly public).
 - Use existing auth mechanisms (do not roll your own).
@@ -123,7 +133,7 @@ This example only shows the safe error payload content. Use the project's existi
 
 ---
 
-## 6) Cryptography (hard rules)
+## 7) Cryptography (hard rules)
 
 - Do not implement your own crypto algorithms.
 - Use well-reviewed libraries.
@@ -138,7 +148,7 @@ Do not:
 
 ---
 
-## 7) Input Validation (hard rules)
+## 8) Input Validation (hard rules)
 
 - Never trust user input.
 - Validate all inputs (type, format, range, length).
@@ -148,7 +158,7 @@ Do not:
 
 ---
 
-## 8) Dependency Security
+## 9) Dependency Security
 
 - Regularly update dependencies to patch vulnerabilities.
 - Avoid using packages with known vulnerabilities.
@@ -156,7 +166,7 @@ Do not:
 
 ---
 
-## 9) When Uncertain (mandatory)
+## 10) When Uncertain (mandatory)
 
 If any of the following are unclear, stop and ask:
 

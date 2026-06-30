@@ -97,6 +97,11 @@ Every change must be classified by risk level:
 - Test complete user flows
 - Usually slowest but highest confidence
 - Prioritize critical paths
+- Cover critical user journeys rather than implementation details.
+- Use stable selectors or user-facing roles/labels; avoid brittle CSS or DOM-depth selectors when better anchors exist.
+- Isolate test data and accounts so reruns, retries, and parallel runs do not share mutable state accidentally.
+- Capture useful artifacts on failure, such as screenshots, traces, videos, console logs, or network summaries when the tool supports them.
+- Do not run E2E tests against production unless the project explicitly defines a safe production smoke-test path.
 
 ---
 

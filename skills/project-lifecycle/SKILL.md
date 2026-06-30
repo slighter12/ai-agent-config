@@ -4,7 +4,7 @@ description: "Coordinate lifecycle capture for project decisions, implementation
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 # Project Lifecycle
@@ -95,6 +95,15 @@ Goal Briefs, handoff references, result docs, or explicit active-state checkpoin
   rubric, lifecycle capture should preserve the review packet and the human decision needed instead
   of recording the agent's self-certification as accepted.
 
+## Decision Capture Rules
+
+- Use ADR-style capture only for accepted decisions that are hard to reverse, carry a real tradeoff,
+  set an architecture or product direction, or would surprise future work without rationale.
+- Keep ADR-style capture minimal: decision, context, options considered, tradeoff, status, date, and
+  follow-up owner when known.
+- Do not turn active debate, temporary experiments, or stylistic preferences into long-lived
+  decisions until the user accepts them.
+
 ## Tool And Side-Effect Boundaries
 
 - Do not silently modify long-lived docs, shared skills, agent config, git state, or external
@@ -133,6 +142,7 @@ Return:
 
 ## Version History
 
+- v0.1.3 (2026-06-30): Add minimal ADR-style capture thresholds without introducing a template system.
 - v0.1.2 (2026-06-21): Clarify loop state layers, active-state evidence pointers, human-review
   capture, and no default reliance on provider memory or raw transcripts.
 - v0.1.1 (2026-06-11): Add loop memory, discussion record, and manual capture packet guidance.

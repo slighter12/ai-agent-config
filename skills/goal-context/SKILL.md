@@ -4,7 +4,7 @@ description: Audit, create, or repair a stable GOAL.md-style Goal Brief, then re
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.13"
+  version: "0.2.14"
 ---
 
 # Goal Context
@@ -102,6 +102,18 @@ contract parts:
 - `Stop Or Escalate`: retry, turn, blocker, tool-failure, budget, and human-review stop rules.
 - `Completion Audit`: the final check must return to authoritative current state, not a progress
   ledger, transcript memory, or model confidence.
+
+## Memory Hygiene
+
+- Treat memory as evidence to inspect, not context to trust. Repo state, current user instructions,
+  and checked artifacts override remembered summaries.
+- Keep run records and decision records traceable, but do not auto-inject them into launch context
+  unless they are needed for the current goal's completion contract.
+- Persistent memory candidates must name provenance, creation date, scope, revocation path, and why
+  they are stable across sessions. One-off preferences, failed hypotheses, stale diagnoses, and
+  temporary implementation details do not qualify.
+- When memory could bias repeated judgment, preserve a review packet or evidence pointer instead of
+  turning the memory into default context.
 
 If a deterministic validator or frozen metric exists, make it the primary completion evidence. If no
 quantified, replayable, or calibrated standard exists, the goal must stop at a human-review packet
@@ -318,6 +330,8 @@ unless the user explicitly accepts LLM-as-judge.
 - Do not assume provider memory, goal evaluators, context isolation, or tool access unless the
   runtime explicitly provides it. Use repo artifacts, Goal Briefs, handoff references, and surfaced
   evidence for cross-session continuity.
+- Do not auto-promote logs, transcripts, active-state notes, or memories into launch context. Include
+  only the smallest sourced state needed to evaluate the current goal.
 - Do not let the launch context become a background essay or duplicate brief; keep background, full
   acceptance criteria, source lists, and detailed verification plans in the Goal Brief.
 - Do not copy durable validation lineage, full protocol commands, downstream commands, acceptance
@@ -385,6 +399,7 @@ non-goals, open questions, and done condition.
 
 ## Version History
 
+- v0.2.14 (2026-06-30): Add memory hygiene rules that separate records from automatically injected context.
 - v0.2.13 (2026-06-21): Adopt provider-neutral loop contract rules with Goal Readiness Gate,
   mandatory claim boundaries, metric type classification, evaluator contracts, authoritative
   completion audits, and human-review stops when no objective or calibrated standard exists.

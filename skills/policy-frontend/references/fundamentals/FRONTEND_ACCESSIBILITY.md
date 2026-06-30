@@ -27,6 +27,14 @@ Use these tools during development:
 - Keyboard navigation - manual testing (unplug the mouse)
 - Screen reader - VoiceOver (macOS/iOS), NVDA (Windows)
 
+## Audit And Fix Baseline
+
+- Scope accessibility checks to the changed workflow, then expand only when shared components are affected.
+- Prioritize issues by user impact: blocked task completion, keyboard trap, missing name/role/value, focus loss, unreadable contrast, then polish.
+- Verify keyboard navigation, focus order, screen reader announcements, landmarks/headings, labels, error messages, color contrast, and responsive text fit.
+- Treat automated tools as a first pass. Manual keyboard and screen reader checks are still required for meaningful interaction changes.
+- Keep fixes aligned with existing framework components and design-system conventions.
+
 ---
 
 ## Framework-Specific Guidance

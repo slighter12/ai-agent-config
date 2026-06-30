@@ -2,7 +2,7 @@
 name: policy-frontend
 description: "Apply frontend framework and product UI rules across React, Svelte, and Solid: components, state, routing, i18n, accessibility, interaction controls, responsive layout, and framework-specific patterns. Use when React/Svelte/Solid implementation guidance or UI behavior decisions are needed. Avoid when pure visual art direction, backend/API contracts, infrastructure, security, or testing strategy are the primary concern, and do not treat Vue as first-class scope in this skill."
 metadata:
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # Policy Guide
@@ -29,12 +29,19 @@ Use optional related policy detail only when frontend work crosses boundaries an
 - Ensure all visible text fits on mobile and desktop, especially buttons, compact panels, cards, sidebars, and dashboard surfaces.
 - Keep loading, empty, error, and disabled states consistent with the data and API semantics owned by `policy-api`.
 
+## Accessibility Baseline
+
+- Treat accessibility fixes by user impact and affected workflow, not by tool count alone.
+- Cover keyboard navigation, focus order, screen reader semantics, contrast, and responsive text fit for changed UI.
+- Use WCAG scope as a baseline when auditing, but keep implementation guidance tied to the project's framework and existing components.
+
 ## Version History
 
 - v0.1.0 (2026-05-08): Initial portable policy release defining frontend first-class scope for React/Svelte/Solid and cross-policy boundary guidance.
 - v0.1.1 (2026-05-29): Align routing wording with optional-depth policy handoffs.
 - v0.2.0 (2026-05-31): Add product UI baseline and route pure visual art direction to `design-art-direction`.
 - v0.2.1 (2026-06-29): Tighten product UI defaults against generic cards and decorative gradients.
+- v0.2.2 (2026-06-30): Add concise accessibility audit and fix baseline.
 
 ## References
 

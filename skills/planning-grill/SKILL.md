@@ -4,7 +4,7 @@ description: "Clarify ambiguous requirements, product goals, design intent, arch
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.9"
+  version: "0.1.10"
 ---
 
 # Planning Grill
@@ -18,6 +18,7 @@ Turn unclear requests, product ideas, design questions, architecture-shape conce
 - The user asks to discuss direction, confirm a plan, compare options, challenge assumptions, or ask planning questions before coding.
 - The user asks for product goals, requirements, environment concepts, design intent, or architecture tradeoffs before implementation.
 - The user asks to inspect architecture shape, scan callers/callees, assess module boundaries, seams, coupling, locality, or refactoring opportunities before coding.
+- The user needs to compare architecture styles or domain modeling approaches before choosing implementation shape.
 - The request contains fuzzy intent, competing approaches, unresolved tradeoffs, or missing non-goals.
 - The user wants fuzzy product or feature intent organized into goals, constraints, success criteria, non-goals, and open questions.
 - The user wants a roadmap, tier, phase, milestone, implementation order, or text-only implementation slice breakdown.
@@ -46,13 +47,14 @@ Turn unclear requests, product ideas, design questions, architecture-shape conce
 1. Inspect discoverable facts before asking: relevant files, config, schemas, existing patterns, and any existing context docs, ADRs, or domain notes. If those docs do not exist, continue without creating them.
 2. State the current understanding as goal, success criteria, constraints, and likely non-goals.
 3. If the request is architecture discovery, bound the scan scope and use `references/ARCHITECTURE_DISCOVERY.md` to inspect modules, callers, seams, coupling, tests, and locality. List candidates before proposing a design.
-4. Identify unresolved decisions and their dependencies. Walk the decision tree one branch at a time instead of asking unrelated questions in bulk.
-5. Clarify overloaded or conflicting domain terms against inspected docs and code. When terminology or decisions stabilize, emit a `project-lifecycle` capture candidate instead of writing context docs or ADRs from planning.
-6. Ask the smallest useful number of questions, preferably one at a time, with a recommended default.
-7. If a question needs runnable evidence rather than more discussion, define the smallest throwaway prototype question, expected learning, and scope. Keep the prototype decision in planning; route approved prototype implementation to `implement-change` instead of creating the artifact here.
-8. Convert answers into a compact decision recommendation, planning summary, architecture candidate list, roadmap/tier/phase breakdown, implementation-ready plan, text-only slices, or handoff when requested.
-9. When planning reaches an accepted project-level decision, deferred scope, status change, or handoff-worthy outcome, emit a `project-lifecycle` capture candidate instead of silently relying on the user to remember docs sync.
-10. Route follow-up work to narrower skills or agents when they clearly own the next step. If a decision is complete and should be captured, route to `project-lifecycle` instead of writing docs from planning.
+4. Treat DDD, Clean Architecture, modular monolith, feature-based layout, layered CRUD, and similar patterns as context-dependent style choices, not defaults. Compare them against project size, domain complexity, existing code shape, team conventions, and expected change pressure before recommending one.
+5. Identify unresolved decisions and their dependencies. Walk the decision tree one branch at a time instead of asking unrelated questions in bulk.
+6. Clarify overloaded or conflicting domain terms against inspected docs and code. When terminology or decisions stabilize, emit a `project-lifecycle` capture candidate instead of writing context docs or ADRs from planning.
+7. Ask the smallest useful number of questions, preferably one at a time, with a recommended default.
+8. If a question needs runnable evidence rather than more discussion, define the smallest throwaway prototype question, expected learning, and scope. Keep the prototype decision in planning; route approved prototype implementation to `implement-change` instead of creating the artifact here.
+9. Convert answers into a compact decision recommendation, planning summary, architecture candidate list, roadmap/tier/phase breakdown, implementation-ready plan, text-only slices, or handoff when requested.
+10. When planning reaches an accepted project-level decision, deferred scope, status change, or handoff-worthy outcome, emit a `project-lifecycle` capture candidate instead of silently relying on the user to remember docs sync.
+11. Route follow-up work to narrower skills or agents when they clearly own the next step. If a decision is complete and should be captured, route to `project-lifecycle` instead of writing docs from planning.
 
 ## Tool And Side-Effect Boundaries
 
@@ -89,6 +91,7 @@ Return:
 - v0.1.7 (2026-05-22): Route accepted decision-document synchronization to `sync-decision-docs`.
 - v0.1.8 (2026-05-28): Emit project lifecycle capture candidates for accepted decisions and planning outcomes.
 - v0.1.9 (2026-06-29): Add decision-tree, domain-term sharpening, and prototype-decision guidance while keeping approved prototype artifacts in `implement-change`.
+- v0.1.10 (2026-06-30): Add context-dependent architecture style selection guidance without defaulting to DDD or Clean Architecture.
 
 ## References
 
