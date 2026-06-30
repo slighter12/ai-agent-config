@@ -4,7 +4,7 @@ description: Implement scoped code, config, ordinary documentation changes, and 
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.9"
+  version: "0.1.10"
 ---
 
 # Implement Change
@@ -88,9 +88,10 @@ Return:
 - v0.1.1 (2026-05-18): Add audited minimal API, security, testing, and infra guardrails.
 - v0.1.2 (2026-05-19): Route test-primary and executable-evidence changes to `verification-driven-change`.
 - v0.1.3 (2026-05-21): Route code review requests to renamed `code-review`.
-- v0.1.4 (2026-05-22): Route long-lived decision/status document synchronization to `sync-decision-docs`.
+- v0.1.4 (2026-05-22): Route long-lived decision/status document synchronization to the then-separate decision-doc sync workflow.
 - v0.1.5 (2026-05-28): Emit lifecycle capture candidates for implementation pivots and project-level decisions.
 - v0.1.6 (2026-05-29): Add minimal auth, input-validation, and crypto implementation guardrails.
 - v0.1.7 (2026-06-11): Add signal-driven lifecycle candidate checks at ordinary task completion.
 - v0.1.8 (2026-06-18): Add hard policy gate for material API, security, testing, infra, and language/framework risks.
 - v0.1.9 (2026-06-29): Add approved throwaway prototype handling without creating a standalone prototype skill.
+- v0.1.10 (2026-06-30): Remove retired lifecycle skill id from history wording.

@@ -72,7 +72,7 @@ for correctness, while enabled policy skills add deeper domain detail.
 - Do not turn `planning-grill` into `grill-with-docs`; it may read existing context docs, but artifact writing stays explicit-only.
 - Do not turn `planning-grill` architecture discovery into direct refactoring, formal audit reports, issue creation, or repo-wide inventory artifacts.
 - Do not let `project-lifecycle` silently mutate docs, shared skills, agent config, or git state; it should classify candidates, propose updates, and route approved work to the narrowest owner.
-- Keep `phase-closeout`, `sync-decision-docs`, and `session-retrospective` removed as standalone skills; use their names only in dated history or negative routing examples.
+- Keep retired lifecycle split entrypoints removed as standalone skills; refer to them descriptively instead of by old skill id.
 - Do not make `policy-core` a general policy hub. It may auto-trigger only for the routing
   hypothesis `same decision point + unresolved owner/precedence + meaningful risk`; ordinary clear
   policy overlap should stay with the local policy owner and optional handoff wording.

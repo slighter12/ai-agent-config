@@ -4,7 +4,7 @@ description: "Clarify ambiguous requirements, product goals, design intent, arch
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.10"
+  version: "0.1.11"
 ---
 
 # Planning Grill
@@ -88,10 +88,11 @@ Return:
 - v0.1.4 (2026-05-21): Add bounded architecture discovery mode and reference routing for architecture-shape prompts.
 - v0.1.5 (2026-05-21): Route current-change review boundaries to renamed `code-review`.
 - v0.1.6 (2026-05-21): Add roadmap, tier, phase, and text-only implementation slice routing while preserving issue artifact boundaries.
-- v0.1.7 (2026-05-22): Route accepted decision-document synchronization to `sync-decision-docs`.
+- v0.1.7 (2026-05-22): Route accepted decision-document synchronization to the then-separate decision-doc sync workflow.
 - v0.1.8 (2026-05-28): Emit project lifecycle capture candidates for accepted decisions and planning outcomes.
 - v0.1.9 (2026-06-29): Add decision-tree, domain-term sharpening, and prototype-decision guidance while keeping approved prototype artifacts in `implement-change`.
 - v0.1.10 (2026-06-30): Add context-dependent architecture style selection guidance without defaulting to DDD or Clean Architecture.
+- v0.1.11 (2026-06-30): Remove retired lifecycle skill id from history wording.
 
 ## References
 

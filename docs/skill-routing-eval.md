@@ -96,7 +96,7 @@ Run at least two independent probes when comparing before/after behavior. A prom
 - Renamed the former diff-sanity review workflow to `code-review` and absorbed current-diff sanity, full code review, security review, and current-diff architecture-risk review into one read-only code review workflow.
 - Two independent read-only probes evaluated C01-C12 plus selected regression prompts using actual skill frontmatter and the routing fixture.
 - Security review prompts selected `code-review` security mode with `policy-security` as supporting detail, not `policy-security` alone.
-- False-positive checks stayed clean: whole-codebase architecture discovery selected `planning-grill`, git metadata review selected `conventional-git-flow`, session learning selected `session-retrospective`, fixing findings selected `implement-change`, test-primary work selected `verification-driven-change`, and multi-agent review selected `execution-harness`.
+- False-positive checks stayed clean: whole-codebase architecture discovery selected `planning-grill`, git metadata review selected `conventional-git-flow`, session learning selected the then-current workflow-learning owner, fixing findings selected `implement-change`, test-primary work selected `verification-driven-change`, and multi-agent review selected `execution-harness`.
 - Residual guardrails were strengthened in frontmatter: project-profile-aware full review and ambiguous "review this" prompts now have visible routing cues.
 
 2026-05-21 after planning cleanup:
@@ -109,18 +109,18 @@ Run at least two independent probes when comparing before/after behavior. A prom
 
 2026-05-22 after phase closeout and decision-doc sync split:
 
-- Added the then-current `phase-closeout` classifier for phase-end follow-up routing; later
+- Added the then-current phase-end follow-up classifier; later
   lifecycle fixtures should keep capture signals separate from review, verification, and commit
   readiness gates.
-- Added `sync-decision-docs` as the owner for accepted project decision, product status, roadmap, priority-note, ADR, and context-doc synchronization.
-- Kept `planning-grill` read-only for active decision work, `session-retrospective` focused on reusable workflow lessons, and `implement-change` responsible for ordinary docs edits.
+- Added a then-separate owner for accepted project decision, product status, roadmap, priority-note, ADR, and context-doc synchronization.
+- Kept `planning-grill` read-only for active decision work, kept workflow lessons separate, and kept `implement-change` responsible for ordinary docs edits.
 - New fixture prompts D01-D10 should be used in before/after probes to check whether phase-end routing improves without over-triggering planning, implementation, or retrospective skills.
 
 2026-05-28 after lifecycle capture consolidation:
 
 - Added `project-lifecycle` as the single lifecycle/capture gate for decision points, implementation
   pivots, phase boundaries, status/doc sync, handoff, and workflow learning.
-- Removed `phase-closeout`, `sync-decision-docs`, and `session-retrospective` as standalone skill
+- Removed the former lifecycle split workflows as standalone skill
   entrypoints after merging their responsibilities into `project-lifecycle`.
 - Kept `planning-grill` and `implement-change` as active task owners that emit lifecycle capture
   candidates when decisions or pivots emerge.
@@ -130,7 +130,7 @@ Run at least two independent probes when comparing before/after behavior. A prom
 2026-05-28 hard-delete lifecycle routing probe:
 
 - Re-ran a 20-scenario lifecycle routing probe after deleting the old lifecycle skill entrypoints.
-- Result: 20/20 pass; removed names such as `sync-decision-docs` no longer appeared as selected
+- Result: 20/20 pass; removed lifecycle split workflows no longer appeared as selected
   skills.
 - Active planning, ordinary implementation, current-diff review, test-primary work, diagnosis,
   orchestration, and git workflows stayed with their task owners.
@@ -374,10 +374,10 @@ ordinary clear overlap.
 | ID | Prompt | Expected task mode | Acceptable supporting skills | Skills that should not be the only selection | Must-have guardrail |
 | --- | --- | --- | --- | --- | --- |
 | D01 | Record this decision in the repo docs. | `project-lifecycle` | `planning-grill` only if the decision is not settled | `planning-grill`, `implement-change` | Confirm accepted/open/deferred content and ask before mutating long-lived docs. |
-| D02 | Sync the product priority notes and implementation status after this phase. | `project-lifecycle` | none | `session-retrospective`, `implement-change` | Treat status and priority notes as long-lived decision/status capture. |
-| D03 | This phase is done; run closeout. | `project-lifecycle` | `execution-harness` only if broader orchestration is requested | `session-retrospective`, `conventional-git-flow` | Classify lifecycle signals; route review, verification, and commit readiness as phase gates, not capture targets. |
+| D02 | Sync the product priority notes and implementation status after this phase. | `project-lifecycle` | none | `implement-change` | Treat status and priority notes as long-lived decision/status capture. |
+| D03 | This phase is done; run closeout. | `project-lifecycle` | `execution-harness` only if broader orchestration is requested | `conventional-git-flow` | Classify lifecycle signals; route review, verification, and commit readiness as phase gates, not capture targets. |
 | D04 | Before commit, check if docs/status/review/capture-worthy handoff notes are missing. | `project-lifecycle` | `code-review` for review gate, `conventional-git-flow` only after commit action is requested | `conventional-git-flow` as the only selection | Classify docs/status/capture-worthy handoff as lifecycle signals; route review as a separate gate before git side effects. |
-| D05 | Wrap up and capture workflow lessons. | `project-lifecycle` | `skill-creator` if shared skill changes are approved | `phase-closeout`, `skill-creator` as initial owner | Workflow lessons are lifecycle capture, not immediate skill authoring. |
+| D05 | Wrap up and capture workflow lessons. | `project-lifecycle` | `skill-creator` if shared skill changes are approved | `skill-creator` as initial owner | Workflow lessons are lifecycle capture, not immediate skill authoring. |
 | D06 | Help decide product direction. | `planning-grill` | none | `project-lifecycle` | Active decision work stays in planning until accepted. |
 | D07 | Update README installation instructions. | `implement-change` | none | `project-lifecycle` | Ordinary docs edits do not need lifecycle capture unless they record decisions/status. |
 | D08 | Commit current docs changes. | `conventional-git-flow` | none | `project-lifecycle` | Git workflow owns commit actions after status inspection. |
@@ -388,15 +388,15 @@ ordinary clear overlap.
 
 | ID | Prompt | Expected task mode | Acceptable supporting skills | Skills that should not be the only selection | Must-have guardrail |
 | --- | --- | --- | --- | --- | --- |
-| A13 | Checkpoint progress before we move on. | `project-lifecycle` if this is a phase/progress gate or context/workflow capture point | none | `session-retrospective` as silent default | Checkpoints belong to lifecycle capture unless active planning/implementation is still primary. |
-| A14 | Wrap up this phase. | `project-lifecycle` | none | `session-retrospective` as primary owner | Phase/stage wording maps to lifecycle capture. |
+| A13 | Checkpoint progress before we move on. | `project-lifecycle` if this is a phase/progress gate or context/workflow capture point | none | `implement-change` as silent default | Checkpoints belong to lifecycle capture unless active planning/implementation is still primary. |
+| A14 | Wrap up this phase. | `project-lifecycle` | none | `conventional-git-flow` as primary owner | Phase/stage wording maps to lifecycle capture. |
 | A15 | Update docs after implementation. | `implement-change` unless docs are decision/status sources of truth | `project-lifecycle` only for accepted decision/status docs | `project-lifecycle` as generic docs owner | Ordinary docs edits stay out of lifecycle capture. |
-| A16 | Record what we decided. | `project-lifecycle` | `planning-grill` only if the decision is not settled | `session-retrospective`, `implement-change` | Accepted decisions are project lifecycle capture, not workflow lessons. |
+| A16 | Record what we decided. | `project-lifecycle` | `planning-grill` only if the decision is not settled | `implement-change` | Accepted decisions are project lifecycle capture, not workflow lessons. |
 | A17 | Before commit, review docs. | `code-review` or active docs owner depending on target | `project-lifecycle` only if docs/status capture is explicit, `conventional-git-flow` only after commit action is requested | `project-lifecycle` as silent review owner | Review is a review gate, not lifecycle capture. |
 | A18 | Planning is done, close this stage. | `project-lifecycle` | none | `planning-grill` | Completed planning plus close-stage wording is lifecycle capture, not active planning. |
-| A19 | After finishing Phase 2, update status docs and capture-worthy handoff notes. | `project-lifecycle` | none | `sync-decision-docs` as the only selection | Mixed phase-end status docs and capture-worthy handoff notes are lifecycle signals. |
+| A19 | After finishing Phase 2, update status docs and capture-worthy handoff notes. | `project-lifecycle` | none | `implement-change` as the only selection | Mixed phase-end status docs and capture-worthy handoff notes are lifecycle signals. |
 | A20 | Prepare a handoff after this milestone. | `execution-harness` or active phase owner depending on scope | `project-lifecycle` only if the handoff needs long-lived capture | `project-lifecycle` as silent handoff-packaging owner | Handoff packaging is a bounded handoff gate; only capture-worthy handoff notes route to lifecycle. |
-| A21 | Capture what we learned from this work. | `project-lifecycle` | `skill-creator` if shared skill updates are approved | `phase-closeout`, `sync-decision-docs` | Workflow learning is lifecycle capture, not immediate skill authoring. |
+| A21 | Capture what we learned from this work. | `project-lifecycle` | `skill-creator` if shared skill updates are approved | `skill-creator` as initial owner | Workflow learning is lifecycle capture, not immediate skill authoring. |
 | A22 | Add the accepted ADR to docs. | `project-lifecycle` | none | `implement-change` as generic docs owner | Accepted ADRs are long-lived lifecycle capture. |
 | A23 | Update API docs for the new endpoint. | `implement-change` | `policy-api` only if API contract details are primary | `project-lifecycle` | API docs are ordinary docs unless decision/status sync is explicit. |
 | A24 | Close out and commit the docs. | `project-lifecycle` first | `conventional-git-flow` as routed follow-up after lifecycle classification | `conventional-git-flow` as the only selection | Lifecycle classification precedes git side effects in mixed prompts. |

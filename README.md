@@ -256,8 +256,8 @@ Call skills by name in prompts, for example:
 - `$design-art-direction`
 - `$skill-creator`
 
-The former lifecycle skills `phase-closeout`, `sync-decision-docs`, and `session-retrospective`
-were merged into `project-lifecycle` and removed as standalone skill entrypoints.
+Earlier lifecycle split responsibilities were merged into `project-lifecycle`; do not reintroduce
+separate lifecycle entrypoints.
 
 This repo uses `~/.agents/skills` as the canonical shared Codex skill root. `~/.codex/skills`
 may still contain system, plugin, legacy, or personal skills. If shared repo skills appear in both
@@ -531,8 +531,8 @@ Hermes-style workflow learning review. It may proactively surface capture candid
 long-lived docs, shared skills, agent files, shared config, git state, or external systems.
 Shared skill changes still require explicit approval and `skill-creator`.
 
-The former standalone `phase-closeout`, `sync-decision-docs`, and `session-retrospective` skills
-were removed after their lifecycle/capture responsibilities were merged into `project-lifecycle`.
+Earlier standalone lifecycle responsibilities were merged into `project-lifecycle`; keep lifecycle
+capture, phase boundaries, status/doc sync, and workflow learning on that owner.
 
 ### 6) Hook plugins
 

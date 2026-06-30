@@ -4,7 +4,7 @@ description: Coordinate optional orchestration across phases, agents, git/worksp
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.9"
+  version: "0.1.10"
 ---
 
 # Execution Harness
@@ -147,20 +147,21 @@ For each delegated agent in `agent_selection`, include:
 
 ## Version History
 
-- v0.1.9 (2026-06-29): Add suggested skill, redaction, and brief fields to bounded handoff reference guidance.
-- v0.1.8 (2026-06-21): Clarify sibling skill routing ownership versus loaded availability, so
-  harness does not describe `goal-context` as unavailable when it is only not loaded.
-- v0.1.7 (2026-06-21): Adopt phase-level loop contract fields for long-running and repeated work
-  while keeping `/goal` authoring with `goal-context` and lifecycle capture with
-  `project-lifecycle`.
 - v0.1.0 (2026-05-13): Initial optional execution envelope for orchestrator-suggested structured workflow.
 - v0.1.1 (2026-05-18): Reposition harness as orchestration only and route ordinary task work to task skills.
 - v0.1.2 (2026-05-21): Route ordinary code review to `code-review` while preserving harness ownership of multi-agent gates.
-- v0.1.3 (2026-05-22): Add phase closeout gate routing to `phase-closeout` while keeping learning capture separate.
+- v0.1.3 (2026-05-22): Add then-separate phase closeout gate routing while keeping learning capture separate.
 - v0.1.4 (2026-05-23): Add runtime agent selection disclosure and activated orchestrator behavior.
 - v0.1.5 (2026-05-28): Route lifecycle gates and capture candidates to `project-lifecycle`.
 - v0.1.6 (2026-06-11): Align harness lifecycle signals and targets with signal-driven lifecycle
   capture.
+- v0.1.7 (2026-06-21): Adopt phase-level loop contract fields for long-running and repeated work
+  while keeping `/goal` authoring with `goal-context` and lifecycle capture with
+  `project-lifecycle`.
+- v0.1.8 (2026-06-21): Clarify sibling skill routing ownership versus loaded availability, so
+  harness does not describe `goal-context` as unavailable when it is only not loaded.
+- v0.1.9 (2026-06-29): Add suggested skill, redaction, and brief fields to bounded handoff reference guidance.
+- v0.1.10 (2026-06-30): Remove retired lifecycle skill id from history wording.
 
 ## References
 
