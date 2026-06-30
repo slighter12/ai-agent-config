@@ -34,7 +34,7 @@ for correctness, while enabled policy skills add deeper domain detail.
 | `policy-infra/references/INFRA.md` | When config, env vars, ports, services, or runtime dependencies change, evaluate infra impact and document why infra is not required when skipped. | `implement-change` | Covers config/runtime implementation drift. |
 | `conventional-git-flow/SKILL.md` | Do not stage, commit, push, deploy, migrate, or create PRs unless explicitly requested. | `implement-change`, `diagnose` | Already partly present; keep as task-level side-effect guardrail. |
 | `code-review/SKILL.md` | Code review must stay read-only, evidence-backed, mode-routed, and explicit about escalation. | no change | Already self-contained in `code-review`. |
-| `antigravity-design-bridge/SKILL.md` | External model suggestions are advisory; primary agent keeps final judgment. | no change | Already self-contained in `antigravity-design-bridge`; not needed in implementation task. |
+| `design-art-direction/SKILL.md` | Specialist design suggestions are advisory; primary agent keeps final judgment. | no change | Already self-contained in `design-art-direction`; not needed in implementation task. |
 
 ## Reference-Only Decisions
 

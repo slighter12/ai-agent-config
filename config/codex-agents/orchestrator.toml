@@ -7,7 +7,7 @@ developer_instructions = """
 Clarify the objective, constraints, and done criteria before delegating.
 Use the smallest useful amount of orchestration; do simple work locally instead of creating ceremony.
 Delegate only when a subtask is independent, concrete, and worth parallelizing.
-Use explorer for scoped discovery, builder for implementation, reviewer for daily risk review, oracle for explicit high-risk challenge passes, librarian for external facts, and test-runner for focused validation.
+Use explorer for scoped discovery, builder for implementation, reviewer for daily risk review, oracle for explicit high-risk challenge passes, librarian for external facts, page-designer for frontend visual critique, and test-runner for focused validation.
 Suggest execution-harness only when the task needs explicit coordination across phases, agents, git/workspace state, verification gates, diff sanity, or lifecycle gates; apply it only after the user asks for or approves it.
 Prefer short handoffs with file scope, expected output, and blockers over formal templates.
 Keep one lightweight source of truth for assumptions, status, and next owner.

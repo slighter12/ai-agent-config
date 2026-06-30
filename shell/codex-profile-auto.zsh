@@ -151,6 +151,21 @@ _codex_auto_profile_binary() {
   print -r -- "codex"
 }
 
+_codex_auto_profile_load_private_env() {
+  emulate -L zsh
+
+  if [[ -z "${CLIPROXYAPI_API_KEY:-}" ]]; then
+    local key_path="${CODEX_HOME:-$HOME/.codex}/secrets/cliproxyapi_api_key"
+    if [[ -r "$key_path" ]]; then
+      local key
+      key="$(IFS= read -r line < "$key_path"; print -r -- "$line")"
+      if [[ -n "$key" ]]; then
+        export CLIPROXYAPI_API_KEY="$key"
+      fi
+    fi
+  fi
+}
+
 _codex_auto_profile_name() {
   emulate -L zsh
 
@@ -239,6 +254,8 @@ _codex_auto_profile_dev_add_dir_args() {
 
 codex() {
   emulate -L zsh
+
+  _codex_auto_profile_load_private_env
 
   local codex_bin
   codex_bin="$(_codex_auto_profile_binary)"

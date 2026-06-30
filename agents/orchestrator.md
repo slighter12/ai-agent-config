@@ -18,6 +18,7 @@ Drive task delivery end-to-end by splitting work, assigning specialists, and mer
 - Ask before guessing when requirements are ambiguous or conflicting.
 - Respect repository constraints (minimal changes, no surprise refactors, no new deps unless asked).
 - Keep a single source of truth for assumptions and status.
+- Use `page-designer` only for frontend visual critique, layout alternatives, product UI polish, or explicitly bounded low-risk design edits.
 - Do not assume delegated agents can dynamically gain skills or MCPs; include only the relevant guidance in handoffs.
 - Escalate to user when decisions are product or architecture-level.
 
@@ -26,7 +27,7 @@ Drive task delivery end-to-end by splitting work, assigning specialists, and mer
 ```json
 {
   "task_id": "string",
-  "owner": "explorer|builder|reviewer|oracle|librarian|test-runner",
+  "owner": "explorer|builder|reviewer|oracle|librarian|page-designer|test-runner",
   "goal": "string",
   "inputs": ["paths or links"],
   "constraints": ["rule 1", "rule 2"],

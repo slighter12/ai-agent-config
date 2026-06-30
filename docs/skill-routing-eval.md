@@ -213,7 +213,7 @@ Run at least two independent probes when comparing before/after behavior. A prom
 | R15 | Add a Docker Compose env var for a new non-sensitive runtime option. | `implement-change` | `policy-infra`, `policy-testing` | `policy-infra` | Keep runtime/config wiring scoped and avoid secret defaults. |
 | R16 | The change introduces token handling; check API payloads and logs for leaks. | `code-review` security mode or `implement-change` if fixes are requested | `policy-security`, `policy-api`, `policy-testing` | `policy-api`, `policy-security` alone | Security redaction constrains API/log output. |
 | R17 | Wrap up this session and capture reusable workflow lessons. | `project-lifecycle` | `skill-creator` if skill update is approved | `execution-harness`, `skill-creator` as initial owner | Capture only reusable, evidence-backed lessons; skill authoring requires approval. |
-| R18 | Use Antigravity to critique the visual layout before I implement it. | `antigravity-design-bridge` | `policy-frontend` | `policy-frontend` | Antigravity is advisory; primary agent keeps final judgment. |
+| R18 | Use a specialist designer to critique the visual layout before I implement it. | `design-art-direction` | `policy-frontend` | `policy-frontend` | Specialist critique is advisory; primary agent keeps final judgment. |
 | R19 | I am not sure what to build yet; ask me the right questions and then give me a plan. | `planning-grill` | none | `execution-harness`, `policy-core` | Explore discoverable facts before asking preference questions. |
 | R20 | The test suite is flaky around timeouts; figure out why. | `diagnose` | `policy-testing`, language policy | `policy-testing` | Improve reproduction rate and isolate time/concurrency variables. |
 

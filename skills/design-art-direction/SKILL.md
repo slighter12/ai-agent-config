@@ -1,17 +1,17 @@
 ---
 name: design-art-direction
-description: "Apply visual art direction for polished product UI, landing pages, and design critique: composition, typography, color, imagery, motion, and `.design/` reference packs. Use when aesthetics, visual hierarchy, brand feel, or rejected UI design quality are primary. Avoid when frontend implementation mechanics, API contracts, security, or testing strategy are primary."
+description: "Apply page design and visual art direction for polished product UI, landing pages, and design critique: composition, typography, color, imagery, motion, and `.design/` reference packs. Use when aesthetics, visual hierarchy, brand feel, page style, or rejected UI design quality are primary. Avoid when frontend implementation mechanics, API contracts, security, or testing strategy are primary."
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.0"
+  version: "0.3.0"
 ---
 
 # Design Art Direction
 
 ## Purpose
 
-Guide visual judgment for UI and web work while keeping implementation decisions owned by frontend, API, security, and testing policies.
+Guide page design, style direction, and visual judgment for UI and web work while keeping implementation decisions owned by frontend, API, security, and testing policies.
 
 Use this skill to improve the look, hierarchy, and interaction feel of an experience, especially when the user says a design looks weak, generic, ugly, too template-like, or not aligned with a product direction.
 
@@ -21,13 +21,14 @@ Use this skill to improve the look, hierarchy, and interaction feel of an experi
 - The user rejects a design or asks for a redesign, visual critique, or better product presentation.
 - A project includes a `.design/` directory that should guide visual direction.
 - Frontend implementation exists, but the main decision is what the UI should look and feel like.
+- A Codex workflow wants optional specialist critique through a configured design agent.
 
 ## Avoid When
 
 - Framework mechanics, state, routing, data loading, accessibility implementation, or component architecture are primary; use `policy-frontend`.
 - API contracts, request/response shape, status codes, validation, or error semantics are primary; use `policy-api`.
 - Security, auth, secrets, PII, or trust boundaries are primary.
-- Antigravity CLI is required for external critique or bounded edits; use `antigravity-design-bridge` with this skill as design policy context.
+- Backend, infrastructure, broad refactors, or model/provider setup are primary.
 
 ## Workflow
 
@@ -40,12 +41,14 @@ Use this skill to improve the look, hierarchy, and interaction feel of an experi
    - Games and playful tools may be more expressive, animated, and illustrative.
 5. Prefer real or generated bitmap imagery when visual assets matter. Do not substitute decorative SVGs, gradients, or atmospheric blobs for the actual product or state the user needs to inspect.
 6. Check composition, hierarchy, contrast, type scale, spacing rhythm, color balance, empty states, loading states, and responsive behavior.
-7. When the user rejects a design or asks for a stronger redesign, consider routing an advisory or bounded direct-edit pass through `antigravity-design-bridge`.
+7. In Codex, when the user rejects a design or asks for a stronger visual pass, the coordinator may route advisory critique or explicitly bounded low-risk edits to `page-designer`. Keep final judgment with the primary agent.
 
 ## Design Rules
 
 - Build the usable experience as the first screen unless the user explicitly asks for a marketing-only landing page.
-- Avoid nested cards, card-heavy layouts, oversized generic hero sections, gradient-orb backgrounds, and one-note color palettes.
+- Avoid generic text-card layouts, card-heavy page sections, nested cards, oversized generic hero sections, decorative gradients, gradient-orb backgrounds, and one-note color palettes.
+- Use cards only for repeated items, modals, tool surfaces, or genuinely framed UI regions; do not turn page sections into floating card walls.
+- Use real product state, functional panels, lists, tables, task flows, or actual/generative imagery instead of abstract gradient backgrounds.
 - Use familiar controls: icons for tools, swatches for color, segmented controls for modes, toggles for binary settings, sliders or inputs for numeric values, menus for option sets, and tabs for views.
 - Keep cards at modest radius, typically 8px or less, unless the existing design system says otherwise.
 - Do not scale font size with viewport width. Keep letter spacing at 0 unless a brand system requires otherwise.
@@ -58,6 +61,7 @@ Use this skill to improve the look, hierarchy, and interaction feel of an experi
 - Do not install design tools, add dependencies, or run browser automation unless the user asks or the active implementation workflow requires visual verification.
 - Do not let visual polish introduce hidden behavior changes, API changes, auth/security changes, unrelated formatting churn, or accessibility regressions.
 - Treat `.design/` references as guidance, not permission to overwrite unrelated project conventions.
+- Do not install, start, stop, or configure external model proxies from this skill.
 
 ## Output
 
@@ -66,9 +70,11 @@ Return:
 - `summary`: visual direction or design changes recommended.
 - `design_context`: `.design/` files, screenshots, URLs, or components inspected.
 - `recommendations`: accepted visual hierarchy, layout, palette, typography, imagery, and motion decisions.
-- `handoff`: whether `policy-frontend`, `policy-api`, or `antigravity-design-bridge` should own follow-up implementation.
+- `handoff`: whether `policy-frontend`, `policy-api`, or a Codex-only `page-designer` advisory pass should own follow-up work.
 - `manual_verification`: responsive and visual checks needed after implementation.
 
 ## Version History
 
 - v0.1.0 (2026-05-31): Initial art-direction policy split from frontend implementation policy, with `.design/` reference-pack guidance.
+- v0.2.0 (2026-06-29): Replace legacy external design handoff wording and tighten anti-card/anti-gradient defaults.
+- v0.3.0 (2026-06-29): Merge design bridge guidance into this provider-neutral page design skill and use a generic Codex design agent handoff.

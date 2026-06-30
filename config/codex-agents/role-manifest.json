@@ -28,6 +28,10 @@
     "figma-design": [
       "{{CODEX_HOME}}/skills/figma-implement-design"
     ],
+    "design-art-direction": [
+      "{{AGENTS_HOME}}/skills/design-art-direction",
+      "{{REPO_ROOT}}/skills/design-art-direction"
+    ],
     "legacy-skill-creator": [
       "{{CODEX_HOME}}/skills/skill-creator"
     ],
@@ -99,6 +103,25 @@
       "disabled_skill_groups": [
         "execution-harness",
         "project-lifecycle"
+      ]
+    },
+    "page-designer": {
+      "allowed_mcp_servers": [],
+      "disabled_skill_groups": [
+        "design-art-direction",
+        "mcp-builder-go",
+        "policy-api",
+        "policy-go",
+        "policy-infra",
+        "policy-rust",
+        "policy-security",
+        "policy-testing",
+        "legacy-skill-creator",
+        "system-skill-creator",
+        "system-skill-installer",
+        "execution-harness",
+        "project-lifecycle",
+        "planning-grill"
       ]
     },
     "librarian": {

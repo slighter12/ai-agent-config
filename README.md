@@ -48,6 +48,7 @@ ai-config/
 │       ├── reviewer.toml
 │       ├── oracle.toml
 │       ├── librarian.toml
+│       ├── page-designer.toml
 │       └── test-runner.toml
 ├── agents/
 │   ├── orchestrator.md
@@ -56,6 +57,7 @@ ai-config/
 │   ├── reviewer.md
 │   ├── oracle.md
 │   ├── librarian.md
+│   ├── page-designer.md
 │   └── test-runner.md
 ├── plugins/
 │   └── ai-agent-config-guardrails/
@@ -72,10 +74,10 @@ ai-config/
 ├── skills/
 │   ├── code-review/
 │   ├── conventional-git-flow/
+│   ├── design-art-direction/
 │   ├── diagnose/
 │   ├── execution-harness/
 │   ├── goal-context/
-│   ├── antigravity-design-bridge/
 │   ├── project-lifecycle/
 │   ├── implement-change/
 │   ├── mcp-builder-go/
@@ -251,7 +253,7 @@ Call skills by name in prompts, for example:
 - `$conventional-git-flow`
 - `$execution-harness`
 - `$project-lifecycle`
-- `$antigravity-design-bridge`
+- `$design-art-direction`
 - `$skill-creator`
 
 The former lifecycle skills `phase-closeout`, `sync-decision-docs`, and `session-retrospective`
@@ -472,6 +474,7 @@ Current role-scoped tool strategy:
 - `reviewer`: local review only, no external MCPs, no creator/installer/design skills, and guarded from self-applying harness or lifecycle workflow
 - `oracle`: manual high-precision read-only challenge pass, no external MCPs, and guarded from self-applying harness or lifecycle workflow
 - `librarian`: web research by default, optional `context7` MCP only when explicitly enabled, with most repo-specific implementation skills disabled
+- `page-designer`: frontend visual design critique through the configured Codex design model, no external MCPs, and guarded from backend/API/infra/security scope
 - `test-runner`: no external MCPs, focused on validation with a reduced skill surface
 
 This mirrors the same general principle used by `oh-my-opencode-slim`: keep coordination tools on the coordinator, external knowledge tools on the research role, and keep the code-heavy roles as narrow as possible. This repo deliberately keeps the heavier council-style path manual through `oracle` instead of adding always-on multi-model consensus.
@@ -483,7 +486,7 @@ and `project-lifecycle` across the standard installed and repo-local skill paths
 still see shared skills from their global skill directories, so their role prompts carry explicit
 guardrails against self-applying harness or lifecycle workflow.
 
-Antigravity CLI is optional. The `antigravity-design-bridge` skill can ask Antigravity CLI for bounded UI or visual design critique, and may allow low-risk direct edits when target files and scope are explicit. The installer does not install Antigravity CLI, and normal workflows do not depend on it.
+CLIProxyAPI is optional and must be started outside this repo. The shared `design-art-direction` skill owns page design and style guidance for all providers; Codex may route bounded UI or visual design critique through the `page-designer` agent when that provider is configured. The shell helper reads the local proxy client key from `~/.codex/secrets/cliproxyapi_api_key` and exposes it as `CLIPROXYAPI_API_KEY` for Codex; upstream provider OAuth remains managed by CLIProxyAPI itself. Normal workflows do not depend on CLIProxyAPI, and this repo does not install or start it.
 
 Context7 is also optional. Codex role MCP definitions are generated from
 `config/codex-agents/role-manifest.json`; a generated MCP is enabled only when the role allows it,
