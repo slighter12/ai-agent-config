@@ -166,7 +166,7 @@ _codex_auto_profile_load_private_env() {
   fi
 }
 
-_codex_auto_profile_name() {
+_codex_auto_profile_project_root() {
   emulate -L zsh
 
   local workspace="$1"
@@ -180,12 +180,54 @@ _codex_auto_profile_name() {
     fi
   fi
 
+  print -r -- "$project_root"
+}
+
+_codex_auto_profile_name() {
+  emulate -L zsh
+
+  local project_root
+  project_root="$(_codex_auto_profile_project_root "$1")"
+
   local project_name="${project_root:t}"
   local profile_name="${project_name:l}"
   profile_name="${profile_name// /-}"
   profile_name="${profile_name//_/-}"
 
   print -r -- "$profile_name"
+}
+
+_codex_auto_profile_work_mcp_args() {
+  emulate -L zsh
+
+  local home="${HOME:-}"
+  local work_root="${CODEX_CLICKUP_MCP_ROOT:-}"
+  if [[ -z "$work_root" && -n "$home" ]]; then
+    work_root="$home/git/work"
+  fi
+  [[ -n "$work_root" ]] || return 1
+  [[ -n "$home" && "$work_root" == "~/"* ]] && work_root="$home/${work_root#~/}"
+  [[ "$work_root" == /* ]] || return 1
+  while [[ "$work_root" != "/" && "$work_root" == */ ]]; do
+    work_root="${work_root%/}"
+  done
+
+  local project_root
+  project_root="$(_codex_auto_profile_project_root "$1")"
+
+  case "$project_root" in
+    "$work_root"|"$work_root"/*)
+      print -r -- "-c"
+      print -r -- 'mcp_servers.clickup.command="bunx"'
+      print -r -- "-c"
+      print -r -- 'mcp_servers.clickup.args=["-y","mcp-remote","https://mcp.clickup.com/mcp"]'
+      print -r -- "-c"
+      print -r -- "mcp_servers.clickup.enabled=true"
+      return 0
+      ;;
+  esac
+
+  return 1
 }
 
 _codex_auto_profile_dev_add_dir_args() {
@@ -262,25 +304,26 @@ codex() {
 
   if _codex_auto_profile_should_apply "$@"; then
     local workspace profile_name profile_path
-    local -a dev_add_dir_args
+    local -a dev_add_dir_args work_mcp_args
     workspace="$(_codex_auto_profile_workspace "$@")"
     profile_name="$(_codex_auto_profile_name "$workspace")"
     profile_path="${CODEX_HOME:-$HOME/.codex}/${profile_name}.config.toml"
     dev_add_dir_args=("${(@f)$(_codex_auto_profile_dev_add_dir_args)}")
+    work_mcp_args=("${(@f)$(_codex_auto_profile_work_mcp_args "$workspace")}")
 
     if [[ -r "$profile_path" ]]; then
       if [[ "$codex_bin" == /* ]]; then
-        "$codex_bin" --profile "$profile_name" "${dev_add_dir_args[@]}" "$@"
+        "$codex_bin" --profile "$profile_name" "${dev_add_dir_args[@]}" "${work_mcp_args[@]}" "$@"
       else
-        command "$codex_bin" --profile "$profile_name" "${dev_add_dir_args[@]}" "$@"
+        command "$codex_bin" --profile "$profile_name" "${dev_add_dir_args[@]}" "${work_mcp_args[@]}" "$@"
       fi
       return $?
     fi
 
     if [[ "$codex_bin" == /* ]]; then
-      "$codex_bin" "${dev_add_dir_args[@]}" "$@"
+      "$codex_bin" "${dev_add_dir_args[@]}" "${work_mcp_args[@]}" "$@"
     else
-      command "$codex_bin" "${dev_add_dir_args[@]}" "$@"
+      command "$codex_bin" "${dev_add_dir_args[@]}" "${work_mcp_args[@]}" "$@"
     fi
     return $?
   fi
