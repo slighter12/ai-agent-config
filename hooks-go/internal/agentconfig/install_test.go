@@ -286,7 +286,8 @@ func TestGenerateCodexRoleFilesRendersMCPServersWithAvailability(t *testing.T) {
     {
       "name": "clickup",
       "command": "bunx",
-      "args": ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"]
+      "args": ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"],
+      "enabled_tools": ["clickup_search", "clickup_update_task"]
     }
   ],
   "skill_groups": {"demo": ["{{REPO_ROOT}}/skills/demo"]},
@@ -320,6 +321,7 @@ func TestGenerateCodexRoleFilesRendersMCPServersWithAvailability(t *testing.T) {
 	mustContain(t, got, `DEFAULT_MINIMUM_TOKENS = "40000"`)
 	mustContain(t, got, "[mcp_servers.sequential-thinking]")
 	mustContain(t, got, "enabled = true\n\n[mcp_servers.clickup]")
+	mustContain(t, got, `enabled_tools = ["clickup_search", "clickup_update_task"]`)
 	mustContain(t, got, `path = "`+filepath.ToSlash(filepath.Join(repo, "skills", "demo"))+`"`)
 }
 

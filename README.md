@@ -468,7 +468,7 @@ role-local `workspace-git` permission profile, not by legacy sandbox overrides.
 
 Current role-scoped tool strategy:
 
-- `orchestrator`: coordination MCPs only (`sequential-thinking`, `clickup`), broad skill surface
+- `orchestrator`: coordination MCPs only (`sequential-thinking`, `clickup`), broad skill surface; ClickUp is tool-allowlisted to read/search plus task status updates and task comments
 - `explorer`: local code discovery only, no external MCPs, no creator/installer/design skills, and guarded from self-applying harness or lifecycle workflow
 - `builder`: local implementation only, no external MCPs, no system installer skills, and guarded from self-applying harness or lifecycle workflow
 - `reviewer`: local review only, no external MCPs, no creator/installer/design skills, and guarded from self-applying harness or lifecycle workflow
@@ -476,6 +476,8 @@ Current role-scoped tool strategy:
 - `librarian`: web research by default, optional `context7` MCP only when explicitly enabled, with most repo-specific implementation skills disabled
 - `page-designer`: frontend visual design critique through the configured Codex design model, no external MCPs, and guarded from backend/API/infra/security scope
 - `test-runner`: no external MCPs, focused on validation with a reduced skill surface
+
+ClickUp MCP is constrained in two places: generated role config from `config/codex-agents/role-manifest.json`, and the work-path auto-enable override in `shell/codex-profile-auto.zsh`. The allowlist keeps read/search tools plus `clickup_update_task` and `clickup_create_comment`; the orchestrator prompt limits `clickup_update_task` to status changes because the MCP tool is broader than status-only edits.
 
 This mirrors the same general principle used by `oh-my-opencode-slim`: keep coordination tools on the coordinator, external knowledge tools on the research role, and keep the code-heavy roles as narrow as possible. This repo deliberately keeps the heavier council-style path manual through `oracle` instead of adding always-on multi-model consensus.
 

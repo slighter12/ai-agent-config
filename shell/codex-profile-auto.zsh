@@ -222,6 +222,8 @@ _codex_auto_profile_work_mcp_args() {
       print -r -- "-c"
       print -r -- 'mcp_servers.clickup.args=["-y","mcp-remote","https://mcp.clickup.com/mcp"]'
       print -r -- "-c"
+      print -r -- 'mcp_servers.clickup.enabled_tools=["clickup_search","clickup_filter_tasks","clickup_get_task","clickup_get_task_comments","clickup_get_threaded_comments","clickup_get_task_time_in_status","clickup_get_bulk_tasks_time_in_status","clickup_get_workspace_hierarchy","clickup_get_list","clickup_get_folder","clickup_find_member_by_name","clickup_resolve_assignees","clickup_update_task","clickup_create_comment"]'
+      print -r -- "-c"
       print -r -- "mcp_servers.clickup.enabled=true"
       return 0
       ;;

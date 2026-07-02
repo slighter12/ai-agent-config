@@ -25,10 +25,12 @@ type codexRoleManifest struct {
 }
 
 type codexMCPServer struct {
-	Name    string            `json:"name"`
-	Command string            `json:"command"`
-	Args    []string          `json:"args"`
-	Env     map[string]string `json:"env"`
+	Name          string            `json:"name"`
+	Command       string            `json:"command"`
+	Args          []string          `json:"args"`
+	EnabledTools  []string          `json:"enabled_tools"`
+	DisabledTools []string          `json:"disabled_tools"`
+	Env           map[string]string `json:"env"`
 }
 
 type codexRoleConfig struct {
@@ -617,6 +619,12 @@ func (c Config) renderRoleMCPServers(roleName string, manifest codexRoleManifest
 		out.WriteString(fmt.Sprintf("args = [%s]\n", quoteTOMLStrings(server.Args)))
 		out.WriteString(fmt.Sprintf("command = %q\n", server.Command))
 		out.WriteString(fmt.Sprintf("enabled = %v", allowed[server.Name] && c.commandAvailable(server.Command) && c.mcpConfigured(server.Name)))
+		if len(server.EnabledTools) > 0 {
+			out.WriteString(fmt.Sprintf("\nenabled_tools = [%s]", quoteTOMLStrings(server.EnabledTools)))
+		}
+		if len(server.DisabledTools) > 0 {
+			out.WriteString(fmt.Sprintf("\ndisabled_tools = [%s]", quoteTOMLStrings(server.DisabledTools)))
+		}
 		if len(server.Env) > 0 {
 			out.WriteString("\n\n")
 			out.WriteString(fmt.Sprintf("[mcp_servers.%s.env]\n", server.Name))
