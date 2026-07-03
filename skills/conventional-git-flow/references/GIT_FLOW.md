@@ -61,7 +61,7 @@ available after that check, use this minimum fallback body:
 ```
 
 Keep the body factual. Do not invent tests, issue numbers, approvals, or deployment status.
-For repository-specific checklist items such as PostgreSQL functions or `search_path` behavior,
+For repository-specific checklist items such as database, migration, deployment, or project-policy checks,
 explicitly mark each required item as checked or `N/A` based on the current diff.
 
 ## Command Sequence
@@ -69,13 +69,16 @@ explicitly mark each required item as checked or `N/A` based on the current diff
 For read-only preparation, inspect:
 
 ```bash
-git branch --show-current
-git status --short
+git status --short --branch
+git diff --name-status
 git diff --stat
-git diff
-git diff --staged
-git log --oneline -5
+git diff --cached --name-status
+git diff --cached --stat
+git log -5 --oneline
 ```
+
+After choosing intended files, inspect only those files with `git diff -- <paths...>` and, when
+staged content exists, `git diff --cached -- <paths...>`.
 
 For approved execution, use the smallest necessary sequence:
 

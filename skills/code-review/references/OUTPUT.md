@@ -1,6 +1,6 @@
 # Output
 
-Start with the standard review header.
+Start with the fields in the Format structure, in order.
 
 Keep output compact for the default sanity pass. Do not include tables, long command logs, or copied diff snippets unless they are needed to explain a material finding.
 

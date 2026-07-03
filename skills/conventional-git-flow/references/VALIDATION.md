@@ -37,7 +37,7 @@ Confirm:
 - Push is not a force push unless the user explicitly requested history rewriting.
 - Base branch is known or `gh pr create` will prompt safely.
 - PR title and body match explicit user text or delegate-resolved text, including any repository template/checklist discovered before fallback.
-- Required checklist items, including database-specific items such as PostgreSQL function or `search_path` checks when present, are checked or marked `N/A`.
+- Required checklist items, including database, migration, deployment, or project-policy checks when present, are checked or marked `N/A`.
 - PR creation uses `--body-file` for the explicit or resolved body, not inline multiline `--body`.
 - GitHub CLI is installed and authenticated, or the workflow stops with text output.
 

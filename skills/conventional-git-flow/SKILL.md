@@ -4,7 +4,7 @@ description: Prepare Conventional Commit git workflows for branches, commits, pu
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.24"
+  version: "0.1.25"
 ---
 
 # Conventional Git Flow
@@ -133,6 +133,7 @@ Return:
 - v0.1.22 (2026-06-26): Require PR bodies to preserve repository templates and required checklists.
 - v0.1.23 (2026-06-26): Make PR template/checklist discovery an explicit gate before fallback bodies.
 - v0.1.24 (2026-06-29): Add guarded merge/rebase conflict resolution without creating a standalone conflict skill.
+- v0.1.25 (2026-07-03): Keep repository checklist wording portable and align git flow references with the fixed Git Context Pack.
 
 ## References
 

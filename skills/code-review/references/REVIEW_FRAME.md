@@ -36,7 +36,7 @@ Use:
 - Current git status.
 - Staged and unstaged diffs.
 - Nearby files needed to understand the changed behavior.
-- Repo instructions such as repo-root `../../../AGENTS.md`, repo-root `../../../CLAUDE.md`, and active policy skills.
+- Repo instructions such as the target repository's root `AGENTS.md`, root `CLAUDE.md`, and active policy skills.
 - Project profile evidence from manifests, folder names, build files, README, hardware/firmware indicators, infra files, or security-sensitive terms.
 
 Do not use:
@@ -50,12 +50,15 @@ Do not use:
 Default `sanity` commands:
 
 ```bash
-git status --short
+git status --short --branch
+git diff --name-status
 git diff --stat
-git diff --name-only
+git diff --cached --name-status
+git diff --cached --stat
 ```
 
 Then inspect only the highest-risk diffs or the files needed for the user's focus.
+For branch, commit, push, or PR requests, use `conventional-git-flow` and any active provider git-routing hook instead.
 
 Avoid by default:
 

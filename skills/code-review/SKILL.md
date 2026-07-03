@@ -4,7 +4,7 @@ description: "Review code or current git changes through sanity, project-profile
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.8"
+  version: "0.2.9"
 ---
 
 # Code Review
@@ -123,7 +123,7 @@ Return:
 - v0.1.2 (2026-05-04): Route ambiguous current-change review requests to bounded sanity review.
 - v0.1.3 (2026-05-13): Add harness diff gate reference while preserving bounded read-only behavior.
 - v0.2.0 (2026-05-21): Rename to code-review and add sanity, full, security, architecture-diff-risk, project-profile, and escalation routing.
-- v0.2.1 (2026-05-21): Align output reference with the standard review header order.
+- v0.2.1 (2026-05-21): Align output reference with the review field order.
 - v0.2.2 (2026-05-29): Add self-contained minimum checklist for security review mode.
 - v0.2.3 (2026-05-29): Align security review routing wording with optional-depth policy handoffs.
 - v0.2.4 (2026-06-11): Route capture-worthy handoff notes to project lifecycle while keeping
@@ -132,6 +132,7 @@ Return:
 - v0.2.6 (2026-06-29): Add standards/spec axis guidance for full reviews without default subagent escalation.
 - v0.2.7 (2026-06-29): Add read-only release-readiness review mode.
 - v0.2.8 (2026-06-29): Align release-readiness output contract across references.
+- v0.2.9 (2026-07-03): Fix portable review evidence paths, staged diff inspection, output reference wording, and git-flow boundary guidance.
 
 ## References
 
