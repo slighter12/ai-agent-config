@@ -82,6 +82,8 @@ Before treating a tool as agent-ready, verify:
 - `doctor` or equivalent catches missing auth/config when available.
 - Secrets are redacted in normal and error output.
 
+For verification-gate checklist detail, see `policy-testing/references/TOOL_SHIPCHECK.md`.
+
 ## Source Inspiration
 
 Inspired by agent-native CLI/MCP design patterns in Printing Press: <https://printingpress.dev/>.

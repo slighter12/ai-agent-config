@@ -4,14 +4,14 @@ description: "Apply page design and visual art direction for polished product UI
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Design Art Direction
 
 ## Purpose
 
-Guide page design, style direction, and visual judgment for UI and web work while keeping implementation decisions owned by frontend, API, security, and testing policies.
+Guide page design, style direction, and visual judgment for UI and web work while keeping implementation decisions owned by frontend, API, security, and testing policies. This skill owns detailed visual/product UI rules.
 
 Use this skill to improve the look, hierarchy, and interaction feel of an experience, especially when the user says a design looks weak, generic, ugly, too template-like, or not aligned with a product direction.
 
@@ -78,3 +78,4 @@ Return:
 - v0.1.0 (2026-05-31): Initial art-direction policy split from frontend implementation policy, with `.design/` reference-pack guidance.
 - v0.2.0 (2026-06-29): Replace legacy external design handoff wording and tighten anti-card/anti-gradient defaults.
 - v0.3.0 (2026-06-29): Merge design bridge guidance into this provider-neutral page design skill and use a generic Codex design agent handoff.
+- v0.3.1 (2026-07-03): Clarify ownership of detailed visual/product UI rules shared with frontend work.

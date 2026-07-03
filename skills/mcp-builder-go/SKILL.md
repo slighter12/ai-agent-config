@@ -2,7 +2,7 @@
 name: mcp-builder-go
 description: Guide for creating high-quality MCP (Model Context Protocol) servers in Go. Use when building or extending MCP servers that integrate external APIs/services with well-designed tools, resources, and prompts. Avoid when the task is not an MCP server, is not Go-specific, or only needs ordinary API/client implementation guidance.
 metadata:
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 # MCP Server Development Guide (Go)
@@ -248,6 +248,7 @@ Before finishing, confirm:
 - v0.1.0 (2026-05-11): Initial portable MCP builder skill with explicit routing boundaries.
 - v0.1.1 (2026-05-13): Add agent-native tool surface guidance for CLI/MCP design.
 - v0.1.2 (2026-07-03): Prefer workflow-first tool surfaces over comprehensive endpoint coverage.
+- v0.1.3 (2026-07-03): Cross-link agent-native shipcheck guidance to the testing policy checklist.
 
 ## References
 

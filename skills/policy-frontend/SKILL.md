@@ -2,7 +2,7 @@
 name: policy-frontend
 description: "Apply frontend framework and product UI rules across React, Svelte, and Solid: components, state, routing, i18n, accessibility, interaction controls, responsive layout, and framework-specific patterns. Use when React/Svelte/Solid implementation guidance or UI behavior decisions are needed. Avoid when pure visual art direction, backend/API contracts, infrastructure, security, or testing strategy are the primary concern, and do not treat Vue as first-class scope in this skill."
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Policy Guide
@@ -20,14 +20,9 @@ Use optional related policy detail only when frontend work crosses boundaries an
 ## Product UI Baseline
 
 - Build the actual usable workflow as the first screen for apps, tools, dashboards, and games; do not default to a marketing landing page.
-- Match UI density to the domain. Operational tools should be quiet, scannable, and efficient; expressive games or brand pages can carry more illustration and motion.
-- Use familiar controls: icons for tool actions, swatches for color, segmented controls for modes, toggles for binary settings, sliders or inputs for numeric values, menus for option sets, and tabs for views.
-- Prefer existing design-system components and icon libraries. Use `lucide` icons when the project already has them available.
-- Keep repeated cards modest and functional; avoid nested cards, generic text-card layouts, card-heavy page sections, and page sections styled as floating cards.
-- Do not default to decorative gradients, gradient orbs, or abstract atmospheric backgrounds; use real content, functional panels, actual product state, or imagery when visual substance is needed.
-- Give fixed-format UI elements stable dimensions with responsive constraints so hover states, labels, counters, loading text, and dynamic content do not shift the layout.
-- Ensure all visible text fits on mobile and desktop, especially buttons, compact panels, cards, sidebars, and dashboard surfaces.
+- Prefer existing design-system components, interaction primitives, and icon libraries. Use `lucide` icons when the project already has them available.
 - Keep loading, empty, error, and disabled states consistent with the data and API semantics owned by `policy-api`.
+- Visual detail, composition, imagery, motion, cards, gradients, text-fit, and stable-dimension rules are owned by `design-art-direction`.
 
 ## Accessibility Baseline
 
@@ -43,6 +38,7 @@ Use optional related policy detail only when frontend work crosses boundaries an
 - v0.2.1 (2026-06-29): Tighten product UI defaults against generic cards and decorative gradients.
 - v0.2.2 (2026-06-30): Add concise accessibility audit and fix baseline.
 - v0.3.0 (2026-07-03): Update Svelte framework references to Svelte 5 runes-mode defaults.
+- v0.3.1 (2026-07-03): Make `design-art-direction` the owner for detailed visual/product UI rules.
 
 ## References
 
