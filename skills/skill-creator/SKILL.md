@@ -2,7 +2,7 @@
 name: skill-creator
 description: Create, update, evaluate, or safely integrate portable CLI skills, including third-party skill intake, source placement, provider surfaces, validation, packaging, and install/discovery status. Use when the user asks to create, revise, validate, package, modernize, evaluate skill changes, decide placement for a SKILL.md-based skill, or adapt external skill guidance for Codex, Claude, Gemini, project-local, or shared multi-provider use, or when `project-lifecycle` has an approved shared skill capture candidate. Avoid when the task is only application code changes, ordinary documentation edits, lifecycle capture triage, or third-party skill installation without authoring changes.
 metadata:
-  version: "0.2.8"
+  version: "0.2.9"
 ---
 
 # skill-creator
@@ -27,7 +27,7 @@ Create high-signal, portable skills that work well across Codex, Claude, and Gem
 - The request is only a normal code change in an application repo.
 - A more specific domain skill should guide the work after the skill structure is already clear.
 - The request is to decide whether a session lesson, project decision, handoff, or workflow observation is worth capturing; use `project-lifecycle`.
-- The user is asking to install an already selected third-party skill with no evaluation, adaptation, or authoring work; use `skill-installer`.
+- The user is asking to install an already selected third-party skill with no evaluation, adaptation, or authoring work; use the provider's installer flow, such as Codex `skill-installer` when available.
 - The user is asking for a read-only review of current skill changes, a current diff, or routing logic without authoring decisions; use `code-review`.
 
 ## Cross-Provider Defaults
@@ -41,6 +41,7 @@ Use the portable core format unless the user explicitly asks for a provider-spec
 - `Version History` is the human-readable change log for meaningful behavior changes.
 - Deep guidance lives in `references/`; deterministic helpers live in `scripts/`; reusable output assets live in `assets/`.
 - Task skills carry the minimum guardrails needed to avoid drift, but detailed policy stays in references or narrower policy skills.
+- Output fields are a content checklist, not a required YAML-like response format; prefer user-facing prose unless a strict machine format is needed.
 - Tool, write, deployment, credential, notification, or destructive side effects require explicit boundaries.
 - Creation is not complete until the source path, provider surfaces, validation status, and install/discovery gaps are reported.
 
@@ -100,6 +101,7 @@ Return:
 - v0.2.6 (2026-06-29): Add predictability and pruning guidance to authoring standards.
 - v0.2.7 (2026-06-29): Add external skill intake and skill-change evaluation routing.
 - v0.2.8 (2026-06-29): Clarify handoff boundaries for install-only and read-only review cases.
+- v0.2.9 (2026-07-03): Clarify provider-specific install handoff and prose-first output contracts.
 
 ## References
 

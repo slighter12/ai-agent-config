@@ -4,7 +4,7 @@ description: Implement scoped code, config, ordinary documentation changes, and 
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.10"
+  version: "0.1.11"
 ---
 
 # Implement Change
@@ -50,8 +50,7 @@ Keep implementation work aligned with the existing repo while avoiding broad ref
    scope-changing pivot, status or documentation drift, capture-worthy handoff note, loop active
    state, discussion record, or reusable workflow lesson that future work would need to remember, emit a
    `project-lifecycle` capture candidate before continuing or in the final summary. If none of
-   those signals appear, report `lifecycle_capture_candidate: none` rather than asking for lifecycle
-   capture on every ordinary completion.
+   those signals appear, omit lifecycle capture notes on ordinary completions.
 8. Validate with the narrowest useful evidence allowed by the repo policy: focused tests, type checks, smoke checks, review, or manual checklist.
 9. Summarize changed behavior, files touched, verification, assumptions, lifecycle capture candidates, and residual risk.
 
@@ -77,9 +76,9 @@ Return:
 - `prototype_run_command`: one command or path to run the prototype, why none exists, or not applicable.
 - `prototype_disposition`: delete, absorb, capture candidate, pending user decision, or not applicable.
 - `assumptions`: correctness-relevant assumptions.
-- `lifecycle_capture_candidate`: signal-driven `project-lifecycle` candidate, such as an
+- `lifecycle_capture_candidate`: only when present, a signal-driven `project-lifecycle` candidate, such as an
   implementation pivot, accepted decision, deferred scope, status/doc drift, capture-worthy handoff
-  note, loop active state, discussion record, reusable workflow lesson, or `none`.
+  note, loop active state, discussion record, or reusable workflow lesson.
 - `residual_risks`: remaining risks or follow-up work.
 
 ## Version History
@@ -95,3 +94,4 @@ Return:
 - v0.1.8 (2026-06-18): Add hard policy gate for material API, security, testing, infra, and language/framework risks.
 - v0.1.9 (2026-06-29): Add approved throwaway prototype handling without creating a standalone prototype skill.
 - v0.1.10 (2026-06-30): Remove retired lifecycle skill id from history wording.
+- v0.1.11 (2026-07-03): Omit lifecycle capture output when ordinary implementation has no capture signal.

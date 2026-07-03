@@ -17,7 +17,8 @@ Use this reference when a task involves external skills, upstream skill catalogs
 
 ## Handoff Rules
 
-- `install_only`: hand off to `skill-installer` after reporting any safety notes.
+- `install_only`: hand off to the provider installer after reporting any safety notes. Use Codex
+  `skill-installer` when available; otherwise use this repo's installer or manual placement rules.
 - `update_existing_skill`, `new_skill`, `reference_only`, or `script_or_helper`: stay in `skill-creator` when the user approved authoring, adaptation, or packaging decisions.
 - Read-only review of current skill diffs, routing logic, or whether an existing change is coherent belongs to `code-review`.
 - Deciding whether a lesson, project decision, or workflow observation is worth keeping belongs to `project-lifecycle` before skill authoring starts.

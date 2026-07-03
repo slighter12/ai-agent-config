@@ -4,7 +4,7 @@ description: Diagnose bugs, failing behavior, flaky tests, and performance regre
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 # Diagnose
@@ -42,6 +42,7 @@ Keep debugging work anchored to observable evidence. The skill prevents drift by
 ## Tool And Side-Effect Boundaries
 
 - Prefer read-only inspection until a feedback loop is identified.
+- Targeted reproduction, narrow tests, focused commands, fixture replays, browser flows, and measurements are allowed when they are the smallest credible feedback loop for the reported symptom.
 - Do not run broad test suites or long commands unless the user requested execution or the active repo policy requires it.
 - Do not commit, push, deploy, migrate, or perform destructive actions.
 - Do not hardcode or log secrets, tokens, credentials, PII, or sensitive request/response bodies while instrumenting.
@@ -72,3 +73,4 @@ Return:
 - v0.1.4 (2026-05-29): Add security-sensitive diagnosis guardrail for exposure and trust-boundary hypotheses.
 - v0.1.5 (2026-06-18): Add hard policy gate for material API, security, testing, infra, and language/framework diagnosis risks.
 - v0.1.6 (2026-06-29): Define red-capable feedback loop criteria and stop condition for missing diagnostic evidence.
+- v0.1.7 (2026-07-03): Clarify that targeted reproduction is allowed as the diagnostic feedback loop.

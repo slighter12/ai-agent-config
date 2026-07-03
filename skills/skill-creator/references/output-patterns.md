@@ -2,6 +2,9 @@
 
 Use these patterns when skills need to produce consistent, high-quality output.
 
+Treat output fields as a content checklist unless the artifact must be machine-readable. For normal
+assistant responses, prefer concise user-facing prose over YAML-like field dumps.
+
 ## Template Pattern
 
 Provide templates for output format. Match the level of strictness to your needs.
