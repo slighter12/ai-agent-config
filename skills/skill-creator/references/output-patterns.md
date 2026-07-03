@@ -65,7 +65,7 @@ Generate commit messages following these examples:
 Input: Added user authentication with JWT tokens
 Output:
 ```
-feat(auth): implement JWT-based authentication
+feat: implement JWT-based authentication
 
 Add login endpoint and token validation middleware
 ```
@@ -74,12 +74,12 @@ Add login endpoint and token validation middleware
 Input: Fixed bug where dates displayed incorrectly in reports
 Output:
 ```
-fix(reports): correct date formatting in timezone conversion
+fix: correct date formatting in timezone conversion
 
 Use UTC timestamps consistently across report generation
 ```
 
-Follow this style: type(scope): brief description, then detailed explanation.
+Follow this style: type: brief description, then detailed explanation.
 ```
 
 Examples help agents understand the desired style and level of detail more clearly than descriptions alone.

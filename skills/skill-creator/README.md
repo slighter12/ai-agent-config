@@ -14,6 +14,8 @@ Create and modernize portable `SKILL.md`-based skills for Codex, Claude, Gemini,
 - Provider-specific controls, especially Claude-only invocation controls, stay in overlays or provider-specific copies.
 - Creation includes placement, provider discovery surfaces, validation, and install/discovery status.
 
+This README is a repo tooling guide for the meta-skill CLI workflow; ordinary skills should not add READMEs unless explicitly needed.
+
 ## When To Use
 
 Use this skill when you need to:
@@ -21,6 +23,8 @@ Use this skill when you need to:
 - Create a new reusable skill.
 - Revise an existing skill for better routing.
 - Validate shared skill structure and description quality.
+- Evaluate, adapt, vendor, reject, or merge external and third-party skills.
+- Check whether skill changes improved routing, guardrails, provider portability, or documentation quality.
 - Decide whether a skill should be shared/global, project-local, or provider-specific.
 - Decide whether provider-specific behavior belongs in a shared skill or an overlay.
 - Package a skill after validation.
@@ -121,4 +125,7 @@ Validation does not prove provider discovery. Check or report provider surfaces 
 - `references/SKILL_TEMPLATE.md`
 - `references/workflows.md`
 - `references/output-patterns.md`
+- `references/SKILL_INTAKE_AND_EVALUATION.md`
+- `references/SKILL_EVOLUTION_GATE.md`
+- `references/CLI_BACKED_SKILLS.md`
 - `references/PLACEMENT_AND_INSTALLATION.md`

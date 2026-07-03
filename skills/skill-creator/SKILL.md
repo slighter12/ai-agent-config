@@ -2,7 +2,7 @@
 name: skill-creator
 description: Create, update, evaluate, or safely integrate portable CLI skills, including third-party skill intake, source placement, provider surfaces, validation, packaging, and install/discovery status. Use when the user asks to create, revise, validate, package, modernize, evaluate skill changes, decide placement for a SKILL.md-based skill, or adapt external skill guidance for Codex, Claude, Gemini, project-local, or shared multi-provider use, or when `project-lifecycle` has an approved shared skill capture candidate. Avoid when the task is only application code changes, ordinary documentation edits, lifecycle capture triage, or third-party skill installation without authoring changes.
 metadata:
-  version: "0.2.9"
+  version: "0.2.10"
 ---
 
 # skill-creator
@@ -102,6 +102,7 @@ Return:
 - v0.2.7 (2026-06-29): Add external skill intake and skill-change evaluation routing.
 - v0.2.8 (2026-06-29): Clarify handoff boundaries for install-only and read-only review cases.
 - v0.2.9 (2026-07-03): Clarify provider-specific install handoff and prose-first output contracts.
+- v0.2.10 (2026-07-03): Align output examples with no-scope commit style and refresh README coverage.
 
 ## References
 
