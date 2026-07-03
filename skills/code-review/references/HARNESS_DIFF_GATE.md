@@ -39,6 +39,6 @@ Look for:
 ## Boundaries
 
 - Do not become a full code review when this reference is being used as a bounded harness diff gate.
-- Do not replace reviewer or oracle gates.
+- Do not replace independent review or challenge gates.
 - Do not decide commit strategy; use `conventional-git-flow`.
 - Do not decide verification depth; use `policy-testing`.

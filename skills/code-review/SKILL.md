@@ -4,7 +4,7 @@ description: "Review code or current git changes through sanity, project-profile
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.9"
+  version: "0.2.10"
 ---
 
 # Code Review
@@ -133,6 +133,7 @@ Return:
 - v0.2.7 (2026-06-29): Add read-only release-readiness review mode.
 - v0.2.8 (2026-06-29): Align release-readiness output contract across references.
 - v0.2.9 (2026-07-03): Fix portable review evidence paths, staged diff inspection, output reference wording, and git-flow boundary guidance.
+- v0.2.10 (2026-07-03): Generalize harness diff gate wording away from local runtime role names.
 
 ## References
 

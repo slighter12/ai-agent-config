@@ -25,13 +25,27 @@ Apply the harness only when:
 
 ## Activated Mode
 
-Once applied, the assistant must act as orchestrator for the response:
+Once applied, the assistant must choose who owns orchestration for the response:
 
+- Use `none` for a single-agent fallback.
+- Use `main_agent` for small or medium coordination, including one or two specialist lanes.
+- Use a runtime orchestrator role only when available and coordination itself is the main work.
 - State whether the current response is a harness plan or a single-agent fallback.
 - Keep every selected phase visible, even when the main agent owns it locally.
 - Give each phase one owner, bounded scope, expected evidence, and acceptance gate.
 - Do not perform implementation work in the same response unless the user explicitly requested execution after the harness plan.
 - If delegated agents are proposed or used, include `agent_selection` with runtime-resolved model and cost disclosure.
+
+## Delegated Orchestrator Trigger
+
+Delegate orchestration to a runtime orchestrator role only when at least one applies:
+
+- Three or more independent specialist lanes are needed.
+- The work spans multiple phase gates or long-running handoff/state tracking.
+- Specialist outputs need arbitration before execution can continue.
+- The user explicitly asks for orchestrator, team, harness, or multi-agent planning.
+
+If no runtime orchestrator role is available, keep orchestration with `main_agent` and disclose the fallback.
 
 ## Agent Selection Disclosure
 
@@ -58,6 +72,7 @@ When uncertain, suggest the harness and wait for approval instead of silently ap
 ## Anti-Patterns
 
 - Hidden delegation or multi-agent discussion without `agent_selection`.
+- Treating harness activation as automatic delegation to a runtime orchestrator role.
 - Guessed model, cost, or tool availability.
 - Dropping a phase owner after avoiding a costly or cost-opaque role.
 - Overlapping delegated write scopes without an ordering gate.

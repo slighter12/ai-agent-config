@@ -298,6 +298,13 @@ multi-phase, multi-agent, handoff-heavy, lifecycle-gated, or verification-gated 
 implementation, diagnosis, design clarification, review, testing strategy, git workflow, or lifecycle capture
 skills.
 
+Codex hooks, skills, and agents intentionally overlap but do not replace each other. Hooks provide deterministic
+provider-specific guardrails or routing context, such as git workflow reminders. Skills decide the workflow
+contract. Agents are runtime roles used only when delegation is concrete and worth the cost. For
+`execution-harness`, asking for a harness does not automatically delegate to the runtime `orchestrator` role:
+the main assistant first decides whether the task is direct work, local orchestration, or large enough for
+delegated orchestrator or team-lead scheduling.
+
 ### 5) Multi-agent workflow
 
 Codex runtime roles in this repo use one primary path:

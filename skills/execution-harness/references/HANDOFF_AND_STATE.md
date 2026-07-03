@@ -20,6 +20,13 @@ Include:
 
 When delegation is proposed or used, include `agent_selection`. Resolve concrete agents at runtime from tool metadata, local configuration, or explicit user instruction. Do not maintain a fixed roster in this skill.
 
+Always name the orchestration owner:
+
+- `orchestration_owner`: `none`, `main_agent`, or the selected runtime orchestrator role.
+- `orchestration_reason`: why coordination stays local or is delegated.
+
+When `orchestration_owner` is a runtime role, include it in `delegated_agents` with purpose, scope, model, cost, and spawn timing disclosure.
+
 For each selected delegated agent, include:
 
 - `agent_id_or_role`: selected runtime agent or role name.
@@ -31,20 +38,23 @@ For each selected delegated agent, include:
 - `spawn_timing`: when to delegate, including ordering gates.
 - `selection_reason`: why this role is the lowest-cost capable fit.
 
-If no delegated agents are selected, write `agent_selection: none` with the reason.
+If no delegated agents are selected, still write `agent_selection`; use `orchestration_owner: main_agent` for a local harness plan or `orchestration_owner: none` for a single-agent fallback.
 
 Example:
 
 ```yaml
 agent_selection:
-  - agent_id_or_role: runtime-selected-implementation-role
-    resolved_model_or_inheritance: local-configured-model
-    model_source: local_config
-    cost_note: lower-cost implementation role than parent
-    purpose: implement one bounded code slice
-    scope: src/example/*
-    spawn_timing: after interface contract is fixed
-    selection_reason: narrow write scope and implementation-focused role
+  orchestration_owner: main_agent
+  orchestration_reason: two bounded specialist lanes do not need delegated scheduling
+  delegated_agents:
+    - agent_id_or_role: runtime-selected-implementation-role
+      resolved_model_or_inheritance: local-configured-model
+      model_source: local_config
+      cost_note: lower-cost implementation role than parent
+      purpose: implement one bounded code slice
+      scope: src/example/*
+      spawn_timing: after interface contract is fixed
+      selection_reason: narrow write scope and implementation-focused role
 ```
 
 ## State Tracking
@@ -73,23 +83,8 @@ At completion or a phase boundary, create a `project-lifecycle` handoff when the
 decision, implementation pivot, status or documentation drift, capture-worthy handoff note, loop
 active state, discussion record, or reusable workflow candidate worth classifying.
 
-Valid capture targets:
-
-- `no_capture`.
-- `final_answer_note`.
-- `project_decision_doc` or `project_status_doc`.
-- `handoff_note`.
-- `active_state_checkpoint`.
-- `discussion_record`.
-- `workflow_lesson`.
-- `project_local_docs`.
-- `project_local_skill`.
-- `shared_skill_update`.
-- `new_shared_skill`.
-- `script_or_helper`.
-
-Use `project-lifecycle` to classify the candidate. Shared skill updates require explicit user
-approval and `skill-creator` review.
+Use `project-lifecycle` and its `references/CAPTURE_GATE.md` target list to classify the candidate.
+Shared skill updates require explicit user approval and `skill-creator` review.
 
 ## Phase Boundary Candidates
 

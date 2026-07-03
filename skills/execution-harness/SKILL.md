@@ -4,14 +4,14 @@ description: Coordinate optional orchestration across phases, agents, git/worksp
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.10"
+  version: "0.1.12"
 ---
 
 # Execution Harness
 
 ## Purpose
 
-Provide an optional execution envelope for complex agent work. This skill coordinates phases and owners without replacing task skills that own implementation, diagnosis, design clarification, review, testing strategy, git workflow, or lifecycle capture.
+Provide an optional execution envelope for complex agent work. This skill coordinates phases and owners without replacing task skills that own implementation, diagnosis, design clarification, review, testing strategy, git workflow, or lifecycle capture. When activated, it first decides whether orchestration stays with the main agent or should be delegated to a runtime orchestrator role.
 
 For long-running, repeated, or multi-session work, this skill adopts the provider-neutral loop
 contract vocabulary from `policy-core` at the phase level. It does not write `/goal` launch
@@ -56,7 +56,9 @@ name it as the owner unless the runtime or skill registry explicitly reports it 
 
 ## Mandatory Behavior When Activated
 
-- Switch to orchestrator stance and state whether the response is a harness plan or a single-agent fallback.
+- Choose `orchestration_owner`: `main_agent`, a runtime orchestrator role, or `none` for a single-agent fallback.
+- Keep orchestration local by default; delegate orchestration only when coordination itself is the main work.
+- State whether the response is a harness plan or a single-agent fallback.
 - Do not perform implementation work in the same response unless the user explicitly requests execution after the harness plan.
 - Keep every selected phase visible, including phases owned by the main agent instead of a delegated agent.
 - Every phase must name an owner, scope, expected evidence, and acceptance gate.
@@ -68,28 +70,36 @@ name it as the owner unless the runtime or skill registry explicitly reports it 
 
 1. Frame the objective, constraints, done criteria, and known blockers.
 2. Identify required gates: inspect, plan, git/workspace, execute, verify, review, commit, lifecycle capture, or handoff.
-3. Route each gate to the narrowest owner skill or agent role.
-4. Resolve delegated agent names and model facts at runtime from tool metadata, local configuration, or explicit user instruction.
-5. Keep one lightweight source of truth for assumptions, status, owner, and next action.
-6. For any long-running, repeated, or multi-session phase, define:
+3. Choose the orchestration owner:
+   - `none` when the task can fall back to direct single-agent execution.
+   - `main_agent` for small or medium coordination, including one or two specialist lanes.
+   - Runtime orchestrator role when available and the task needs sustained scheduling across three or
+     more independent specialist lanes, multiple phase gates, long-running handoff/state tracking, or
+     arbitration between specialist outputs.
+4. Route each gate to the narrowest owner skill or agent role; if orchestration was delegated, route the plan through that orchestrator before specialist handoffs.
+5. Resolve delegated agent names and model facts at runtime from tool metadata, local configuration, or explicit user instruction.
+6. Keep one lightweight source of truth for assumptions, status, owner, and next action.
+7. For any long-running, repeated, or multi-session phase, define:
    - `work_unit`: the smallest verifiable unit for that phase.
    - `evaluator_contract`: what evidence proves the phase gate and where it must be surfaced.
    - `verified_progress`: where accepted and rejected progress evidence pointers are tracked.
    - `stop_or_escalate`: retry, turn, blocker, tool-failure, budget, and human-review stops.
    Use deterministic validators or frozen metrics when available. If no objective or calibrated
    standard exists, route the phase to a human-review packet instead of self-certifying completion.
-7. Pass only the relevant guidance into handoffs; do not assume subagents can dynamically gain skills or MCPs.
-8. Verify each phase with the minimum evidence required by risk.
-9. At phase or final completion, route lifecycle classification to `project-lifecycle` when an
+8. Pass only the relevant guidance into handoffs; do not assume subagents can dynamically gain skills or MCPs.
+9. Verify each phase with the minimum evidence required by risk.
+10. At phase or final completion, route lifecycle classification to `project-lifecycle` when an
    accepted decision, implementation pivot, status or documentation drift, capture-worthy handoff
    note, loop active state, discussion record, or reusable workflow lesson is present and needs
    classification.
-10. Keep reusable learning candidates as `project-lifecycle` capture candidates; otherwise set `capture_candidate` to `none`.
+11. Keep reusable learning candidates as `project-lifecycle` capture candidates; otherwise set `capture_candidate` to `none`.
 
 ## Agent Selection Disclosure
 
 - Do not keep a fixed list of agent names in this skill.
 - Resolve available agents at runtime from tool metadata, local configuration, or explicit user instruction.
+- Select a runtime orchestrator role only when the selected runtime exposes one; otherwise keep orchestration with `main_agent`.
+- When `orchestration_owner` is a runtime role, disclose it as a delegated agent with model, cost, purpose, scope, and spawn timing.
 - Prefer the lowest-cost capable delegated role for each phase.
 - Treat inherited-model or unknown-cost agents as cost-opaque and disclose that before selecting them.
 - If model or cost cannot be resolved, write `unknown` or `inherits parent`; do not guess.
@@ -112,6 +122,7 @@ name it as the owner unless the runtime or skill registry explicitly reports it 
 ## Anti-Patterns
 
 - Do not discuss multi-agent execution without listing the actual selected runtime agents in `agent_selection`.
+- Do not treat harness activation as automatic delegation to a runtime orchestrator role.
 - Do not guess model, cost, or tool availability for a delegated agent.
 - Do not drop a phase owner after pruning a costly or cost-opaque agent.
 - Do not assign overlapping write scopes to multiple agents without an ordering gate.
@@ -126,7 +137,7 @@ Return:
 - `phase_plan`: current phases, gates, owners, and expected evidence.
 - For long-running or repeated phases, include `work_unit`, `evaluator_contract`,
   `verified_progress`, and `stop_or_escalate` in the phase entry.
-- `agent_selection`: selected runtime agents and model/cost disclosure, or `none` with the reason.
+- `agent_selection`: orchestration owner plus selected runtime agents and model/cost disclosure, or `orchestration_owner: none` with the reason.
 - `handoffs`: bounded owner assignments, if delegation is needed.
 - `verification`: selected verification gates and owner roles.
 - `git_workspace_notes`: relevant status, checkpoint, or commit-readiness notes.
@@ -134,7 +145,12 @@ Return:
 - `capture_candidate`: lifecycle capture candidate, or `none`.
 - `next_action`: one concrete next step.
 
-For each delegated agent in `agent_selection`, include:
+In `agent_selection`, include:
+
+- `orchestration_owner`: `main_agent`, runtime orchestrator role, or `none`
+- `orchestration_reason`
+
+For each delegated agent, include:
 
 - `agent_id_or_role`
 - `resolved_model_or_inheritance`
@@ -162,6 +178,9 @@ For each delegated agent in `agent_selection`, include:
   harness does not describe `goal-context` as unavailable when it is only not loaded.
 - v0.1.9 (2026-06-29): Add suggested skill, redaction, and brief fields to bounded handoff reference guidance.
 - v0.1.10 (2026-06-30): Remove retired lifecycle skill id from history wording.
+- v0.1.11 (2026-07-03): Replace fixed agent-name references with runtime-resolved role capability
+  wording.
+- v0.1.12 (2026-07-03): Add explicit local-versus-delegated orchestration owner selection.
 
 ## References
 

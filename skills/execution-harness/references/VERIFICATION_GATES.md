@@ -14,14 +14,16 @@ The harness asks what evidence is needed before continuing. `policy-testing` own
 ## Role Routing
 
 - Main agent may perform reasoning and manual checklist drafting.
-- `test-runner` executes selected commands only.
-- `reviewer` handles ordinary risk-first review gates.
-- `oracle` handles explicit high-risk challenge gates.
+- A runtime command-execution role may execute selected commands only, when such a role exists.
+- A runtime independent review role may handle ordinary risk-first review gates, when such a role
+  exists.
+- A runtime high-risk challenge role may handle explicit adversarial gates, when such a role exists.
 - `policy-testing` selects the verification depth.
 
 ## Boundaries
 
 - Do not run tests or programs unless the user or active policy allows execution.
-- Do not let test-runner choose a broader strategy than the requested or selected command set.
+- Do not let a command-execution role choose a broader strategy than the requested or selected
+  command set.
 - Do not let review gates replace command or smoke evidence when runtime behavior is the risk.
 - Do not let command success replace review when the risk is contract, scope, or hidden regression.

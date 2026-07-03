@@ -35,4 +35,5 @@ Ask whether the active task needs:
 - `conventional-git-flow`: commit and PR mechanics.
 - `code-review`: bounded current-diff sanity.
 - `policy-testing`: verification evidence required before commit readiness.
-- `librarian`: external compatibility lookup for major or incompatible dependency updates.
+- A runtime external-lookup role, when available: compatibility lookup for major or incompatible
+  dependency updates.

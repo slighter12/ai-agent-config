@@ -4,7 +4,7 @@ description: "Coordinate lifecycle capture for project decisions, implementation
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 # Project Lifecycle
@@ -66,10 +66,7 @@ Goal Briefs, handoff references, result docs, or explicit active-state checkpoin
 3. For discussion records or loop memory, use `references/MANUAL_CAPTURE_PACKET.md` to separate
    source material, accepted decisions, rejected alternatives, active state, long-lived capture, and
    open questions.
-4. Classify each candidate with `references/CAPTURE_GATE.md` as `no_capture`,
-   `final_answer_note`, `project_decision_doc`, `project_status_doc`, `handoff_note`,
-   `active_state_checkpoint`, `discussion_record`, `workflow_lesson`, `project_local_docs`,
-   `project_local_skill`, `shared_skill_update`, `new_shared_skill`, or `script_or_helper`.
+4. Classify each candidate with the target list in `references/CAPTURE_GATE.md`.
 5. Read only the long-lived docs or skill references needed to validate the proposed capture.
    Prefer existing sources of truth over creating new structures.
 6. Propose concrete updates or the next owner. Route approved skill authoring to `skill-creator`,
@@ -142,6 +139,7 @@ Return:
 
 ## Version History
 
+- v0.1.4 (2026-07-03): Keep capture target values centralized in `references/CAPTURE_GATE.md`.
 - v0.1.3 (2026-06-30): Add minimal ADR-style capture thresholds without introducing a template system.
 - v0.1.2 (2026-06-21): Clarify loop state layers, active-state evidence pointers, human-review
   capture, and no default reliance on provider memory or raw transcripts.
