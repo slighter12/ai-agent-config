@@ -1,5 +1,4 @@
 ---
-globs: ["*.rs", "**/*.rs"]
 description: "Rust concurrency - threads, async/await, channels, safety"
 ---
 
@@ -40,7 +39,7 @@ Violating these rules is incorrect output.
 
 - Prefer channels for inter-thread communication (`std::sync::mpsc` or `crossbeam`)
 - In async, use `tokio::sync::mpsc` or `async-channel`
-- Single producer -> `mpsc`, multiple producers -> `mpmc`
+- Single consumer -> `mpsc`; multiple consumers -> `mpmc` (`crossbeam` or `flume`)
 
 ### 6) Avoid Blocking in Async
 

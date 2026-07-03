@@ -1,5 +1,4 @@
 ---
-globs: ["*.go", "**/*.go"]
 description: "Go database operations - GORM, migrations, transactions, N+1 prevention"
 ---
 

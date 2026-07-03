@@ -1,5 +1,4 @@
 ---
-globs: ["Cargo.toml", "**/Cargo.toml", "*.rs", "**/*.rs"]
 description: "Rust architecture policy for crate/module/workspace boundaries and layering"
 ---
 

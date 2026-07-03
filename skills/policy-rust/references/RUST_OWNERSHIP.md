@@ -1,5 +1,4 @@
 ---
-globs: ["*.rs", "**/*.rs"]
 description: "Rust ownership and borrowing - references, lifetimes, move semantics"
 ---
 

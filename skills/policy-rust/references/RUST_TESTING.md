@@ -1,6 +1,5 @@
 ---
-globs: ["Cargo.toml", "**/Cargo.toml", "*.rs", "**/*.rs"]
-description: "Rust testing and execution policy - default test runs and tooling expectations"
+description: "Rust testing and execution policy - command selection and tooling expectations"
 ---
 
 # RUST_TESTING.md - Rust Testing and Execution
@@ -14,14 +13,13 @@ Violating these rules is incorrect output.
 
 ### 1) Default Test Execution (mandatory)
 
-- For Rust code changes, run tests by default.
-- This Rust-specific default applies unless user, repo, or provider instructions forbid execution.
-- If the user explicitly forbids execution, do not run tests.
+- Do not run tests by default.
+- Run Rust tests only when the user asks, a higher-precedence repo/provider instruction requires execution, or an active testing policy makes execution mandatory for the risk level.
 - Do not run non-test programs unless explicitly requested.
 
 ### 1.1) Relationship to testing policy (mandatory)
 
-- `RUST_TESTING.md` only changes the default execution behavior for Rust code changes (run tests unless forbidden).
+- `RUST_TESTING.md` does not override the global no-execution baseline.
 - When test strategy, quality gates, or coverage depth are the primary concern, follow `policy-testing` as the governing policy and apply this file as Rust-specific execution guidance.
 
 ### 2) When Execution Is Blocked (mandatory)
@@ -32,7 +30,7 @@ Violating these rules is incorrect output.
 ### 3) Test Selection
 
 - Prefer the project's existing test commands.
-- If no guidance exists, use `cargo test` or the closest scoped test.
+- If tests are requested or required and no project guidance exists, use `cargo test` or the closest scoped test.
 
 ### 4) Unsafe Code
 

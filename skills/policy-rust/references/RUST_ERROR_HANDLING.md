@@ -1,5 +1,4 @@
 ---
-globs: ["*.rs", "**/*.rs"]
 description: "Rust error handling - Result, Option, custom errors, error propagation"
 ---
 

@@ -1,5 +1,7 @@
 # SvelteKit - Detailed Guide
 
+This file targets Svelte 5 runes mode.
+
 ## 1) SvelteKit
 
 ### Routing
@@ -39,7 +41,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 <script lang="ts">
   import type { PageData } from './$types';
 
-  export let data: PageData;
+  let { data }: { data: PageData } = $props();
 </script>
 
 <h1>{data.post.title}</h1>

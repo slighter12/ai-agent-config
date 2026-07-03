@@ -1,5 +1,4 @@
 ---
-globs: ["*.rs", "**/*.rs"]
 description: "Rust unsafe code - when to use, safety invariants, documentation"
 ---
 

@@ -1,5 +1,4 @@
 ---
-globs: ["*.tsx", "*.jsx", "*.svelte", "**/*.tsx", "**/*.jsx", "**/*.svelte", "**/routes/**", "**/router/**", "**/app/**"]
 description: "Frontend routing - navigation, data loading, protected routes"
 ---
 

@@ -40,6 +40,7 @@ Use this index to select the reference files you need.
 
 ## Frameworks: Svelte
 
+- Svelte references target Svelte 5 runes mode by default. Follow an existing legacy-mode project only when its local codebase has not adopted runes.
 - `frameworks/svelte/SVELTE_REACTIVITY_COMPONENTS.md` - Reactivity and component patterns.
 - `frameworks/svelte/SVELTE_STORES_CONTROL_LIFECYCLE.md` - Stores, control flow, and lifecycle.
 - `frameworks/svelte/SVELTEKIT.md` - SvelteKit routing and data loading.

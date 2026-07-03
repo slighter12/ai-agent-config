@@ -2,7 +2,7 @@
 name: policy-frontend
 description: "Apply frontend framework and product UI rules across React, Svelte, and Solid: components, state, routing, i18n, accessibility, interaction controls, responsive layout, and framework-specific patterns. Use when React/Svelte/Solid implementation guidance or UI behavior decisions are needed. Avoid when pure visual art direction, backend/API contracts, infrastructure, security, or testing strategy are the primary concern, and do not treat Vue as first-class scope in this skill."
 metadata:
-  version: "0.2.2"
+  version: "0.3.0"
 ---
 
 # Policy Guide
@@ -42,6 +42,7 @@ Use optional related policy detail only when frontend work crosses boundaries an
 - v0.2.0 (2026-05-31): Add product UI baseline and route pure visual art direction to `design-art-direction`.
 - v0.2.1 (2026-06-29): Tighten product UI defaults against generic cards and decorative gradients.
 - v0.2.2 (2026-06-30): Add concise accessibility audit and fix baseline.
+- v0.3.0 (2026-07-03): Update Svelte framework references to Svelte 5 runes-mode defaults.
 
 ## References
 

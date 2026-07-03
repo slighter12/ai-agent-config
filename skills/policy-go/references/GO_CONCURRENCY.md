@@ -1,5 +1,4 @@
 ---
-globs: ["*.go", "**/*.go"]
 description: "Go concurrency and lifecycle management - goroutines, context, shutdown"
 ---
 
@@ -76,12 +75,6 @@ If any of the following are unclear, stop and ask:
 - Whether to use WaitGroup or errgroup
 - Concurrency safety risks
 - Appropriate timeout values
-
----
-
-## Detailed Guidance
-
-Need full examples, patterns, and pitfalls? Use `$policy-go`.
 
 ---
 

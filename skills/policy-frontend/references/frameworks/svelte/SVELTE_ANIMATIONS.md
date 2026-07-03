@@ -1,5 +1,7 @@
 # Svelte Animations and Transitions - Detailed Guide
 
+This file targets Svelte 5 runes mode.
+
 ## 1) Animations and Transitions
 
 ### Transition
@@ -7,7 +9,7 @@
 ```svelte
 <script lang="ts">
   import { fade, fly, slide } from 'svelte/transition';
-  let visible = true;
+  let visible = $state(true);
 </script>
 
 {#if visible}
@@ -24,14 +26,14 @@
   import { flip } from 'svelte/animate';
   import { quintOut } from 'svelte/easing';
 
-  let items = [1, 2, 3, 4, 5];
+  let items = $state([1, 2, 3, 4, 5]);
 
   function shuffle() {
-    items = items.sort(() => Math.random() - 0.5);
+    items = [...items].sort(() => Math.random() - 0.5);
   }
 </script>
 
-<button on:click={shuffle}>Shuffle</button>
+<button onclick={shuffle}>Shuffle</button>
 
 {#each items as item (item)}
   <div animate:flip={{ duration: 500, easing: quintOut }}>

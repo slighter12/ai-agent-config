@@ -1,5 +1,4 @@
 ---
-globs: ["*.go", "**/*.go"]
 description: "Go architecture principles - layering, boundaries, folder responsibilities"
 ---
 

@@ -1,5 +1,7 @@
 # Svelte Performance, Pitfalls, and Testing - Detailed Guide
 
+This file targets Svelte 5 runes mode.
+
 ## Table of Contents
 
 - 1) Performance Optimization
@@ -9,16 +11,27 @@
 
 ## 1) Performance Optimization
 
-### Immutable Data
+### $state vs $state.raw Updates
 
-```ts
-// Correct: create new arrays/objects
-items = [...items, newItem];
-user = { ...user, name: 'New Name' };
+```svelte
+<script lang="ts">
+  type Item = { id: number; name: string };
 
-// Incorrect: mutate in place (Svelte may not detect)
-items.push(newItem);
-user.name = 'New Name';
+  const newItem: Item = { id: 1, name: 'New Item' };
+  let items = $state<Item[]>([]);
+  let user = $state({ name: 'Old Name' });
+
+  // $state proxies: direct mutation is reactive.
+  items.push(newItem);
+  user.name = 'New Name';
+
+  let rawItems = $state.raw<Item[]>([]);
+  let rawUser = $state.raw({ name: 'Old Name' });
+
+  // $state.raw values are not deeply reactive; reassign the whole value.
+  rawItems = [...rawItems, newItem];
+  rawUser = { ...rawUser, name: 'New Name' };
+</script>
 ```
 
 ### Keyed Each Blocks
@@ -39,18 +52,17 @@ user.name = 'New Name';
 
 ## 2) Common Pitfalls
 
-### 1) Reactive Statement Order
+### 1) Derived State Shape
 
 ```svelte
 <script lang="ts">
-  let count = 0;
+  let count = $state(0);
 
-  // May not execute in expected order
-  $: doubled = count * 2;
-  $: quadrupled = doubled * 2;
+  const doubled = $derived(count * 2);
+  const quadrupled = $derived(doubled * 2);
 
-  // Better: express explicit dependency
-  $: quadrupled = (count * 2) * 2;
+  // Prefer one expression when the derived value does not need a name.
+  const directQuadrupled = $derived((count * 2) * 2);
 </script>
 ```
 
@@ -59,29 +71,19 @@ user.name = 'New Name';
 ```svelte
 <script lang="ts">
   import { myStore } from './stores';
-
-  // Use $ prefix (auto unsubscribe)
-  $: value = $myStore;
-
-  // Manual subscription (must unsubscribe)
-  let value;
-  const unsubscribe = myStore.subscribe(v => value = v);
-  onDestroy(unsubscribe); // remember cleanup
 </script>
+
+<p>{$myStore}</p>
 ```
 
 ### 3) Binding and Reactivity
 
 ```svelte
 <script lang="ts">
-  let user = { name: 'John' };
-
-  // Binding directly to object property (may lose reactivity)
-  <input bind:value={user.name} />
-
-  // Manual update or use a store
-  <input value={user.name} on:input={(e) => user = { ...user, name: e.currentTarget.value }} />
+  let user = $state({ name: 'John' });
 </script>
+
+<input bind:value={user.name} />
 ```
 
 ---
@@ -120,9 +122,9 @@ Svelte strengths:
 
 Remember:
 
-- `$:` is Svelte magic - auto dependency tracking
+- Use `$state`, `$derived`, and `$effect` for runes-mode reactivity
 - Stores use `$` prefix for auto subscribe/unsubscribe
-- Update data immutably (new objects/arrays)
+- Use `$state` proxies for reactive mutation; use `$state.raw` only when reassignment-only updates are intentional
 - SvelteKit provides a full-stack solution
 
 References:

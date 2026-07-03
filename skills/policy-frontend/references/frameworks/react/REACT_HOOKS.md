@@ -37,6 +37,7 @@ import { useEffect, useState } from 'react';
 
 function Example() {
   const [data, setData] = useState(null);
+  const [count] = useState(0);
 
   // Basic usage
   useEffect(() => {

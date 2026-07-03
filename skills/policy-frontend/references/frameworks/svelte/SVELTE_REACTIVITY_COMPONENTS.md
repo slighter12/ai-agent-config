@@ -1,5 +1,7 @@
 # Svelte Reactivity and Component Patterns - Detailed Guide
 
+This file targets Svelte 5 runes mode.
+
 ## Table of Contents
 
 - 1) Core Reactivity Concepts
@@ -7,42 +9,36 @@
 
 ## 1) Core Reactivity Concepts
 
-### Reactive Statements ($:)
+### Runes
 
-Svelte reactivity is based on compile-time analysis. No hooks or special APIs are required.
+Use runes for component-local reactive state, derived values, and side effects.
 
 ```svelte
 <script lang="ts">
-  let count = 0;
+  let count = $state(0);
 
-  // Reactive statement - runs when count changes
-  $: doubled = count * 2;
+  const doubled = $derived(count * 2);
 
-  // Reactive block
-  $: {
+  $effect(() => {
     console.log(`Count is now ${count}`);
-    if (count > 10) {
-      alert('Count is high!');
-    }
-  }
-
-  // Reactive function call
-  $: updateTitle(count);
+    updateTitle(count);
+  });
 
   function updateTitle(value: number) {
     document.title = `Count: ${value}`;
   }
 </script>
 
-<button on:click={() => count++}>{count}</button>
+<button onclick={() => count++}>{count}</button>
 <p>Doubled: {doubled}</p>
 ```
 
 Key principles:
 
-- `$:` re-runs automatically when dependencies change
-- Dependencies are analyzed at compile time, not runtime
-- No manual dependency lists (unlike React useEffect)
+- `$state` declares mutable reactive state.
+- `$derived` declares values computed from reactive state.
+- `$effect` runs side effects after reactive dependencies change.
+- No manual dependency lists are needed.
 
 ---
 
@@ -52,15 +48,19 @@ Key principles:
 
 ```svelte
 <script lang="ts">
-  // Basic props
-  export let name: string;
-  export let age: number;
+  type Props = {
+    name: string;
+    age: number;
+    role?: string;
+    email?: string;
+  };
 
-  // Default value
-  export let role: string = 'user';
-
-  // Optional props
-  export let email: string | undefined = undefined;
+  let {
+    name,
+    age,
+    role = 'user',
+    email,
+  }: Props = $props();
 </script>
 
 <div>
@@ -77,12 +77,11 @@ Key principles:
 
 ```svelte
 <script lang="ts">
-  let text = '';
-  let checked = false;
-  let selected = '';
+  let text = $state('');
+  let checked = $state(false);
+  let selected = $state('');
 </script>
 
-<!-- Two-way binding -->
 <input type="text" bind:value={text} />
 <input type="checkbox" bind:checked />
 <select bind:value={selected}>
@@ -90,7 +89,6 @@ Key principles:
   <option value="b">B</option>
 </select>
 
-<!-- Component two-way binding -->
 <ChildComponent bind:value={text} />
 ```
 
@@ -101,27 +99,27 @@ Key principles:
 <script lang="ts">
   import Child from './Child.svelte';
 
-  function handleCustomEvent(event: CustomEvent<{ data: string }>) {
-    console.log(event.detail.data);
+  function handleCustom(data: string) {
+    console.log(data);
   }
 </script>
 
-<Child on:custom={handleCustomEvent} />
+<Child onCustom={handleCustom} />
 
 <!-- Child.svelte -->
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  type Props = {
+    onCustom: (data: string) => void;
+  };
 
-  const dispatch = createEventDispatcher<{
-    custom: { data: string };
-  }>();
+  let { onCustom }: Props = $props();
 
   function handleClick() {
-    dispatch('custom', { data: 'Hello from child' });
+    onCustom('Hello from child');
   }
 </script>
 
-<button on:click={handleClick}>Click me</button>
+<button onclick={handleClick}>Click me</button>
 ```
 
 ---

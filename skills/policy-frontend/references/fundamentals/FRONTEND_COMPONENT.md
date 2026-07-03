@@ -1,5 +1,4 @@
 ---
-globs: ["*.tsx", "*.jsx", "*.svelte", "**/*.tsx", "**/*.jsx", "**/*.svelte"]
 description: "Frontend component design - composition, props, reusability"
 ---
 

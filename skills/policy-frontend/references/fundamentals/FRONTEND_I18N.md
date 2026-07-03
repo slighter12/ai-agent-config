@@ -1,5 +1,4 @@
 ---
-globs: ["*.ts", "*.js", "*.tsx", "*.jsx", "*.svelte", "**/*.ts", "**/*.js", "**/*.tsx", "**/*.jsx", "**/*.svelte"]
 description: "Frontend i18n and copy management - centralized Traditional Chinese with English keys"
 ---
 

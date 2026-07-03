@@ -2,7 +2,7 @@
 name: policy-go
 description: "Apply Go language best practices for concurrency, error handling, database usage, and Clean Architecture or layered architecture boundaries. Use when Go implementation details, handler/service/repository boundaries, delivery/usecase/repository flow, dependency direction, package boundaries, or Go-specific architecture rules are primary. Avoid when the task is not Go-specific or is only API contracts, testing strategy, security, infrastructure, frontend, or repo-domain guidance better handled by another policy or domain skill."
 metadata:
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # Policy Guide
@@ -15,6 +15,7 @@ For Go tasks, use optional `policy-api` detail only when HTTP contracts, status 
 
 - v0.1.0 (2026-05-08): Initial portable policy release with converged Go clean/layered architecture routing and explicit ownership boundaries across API, security, and testing.
 - v0.1.1 (2026-05-29): Align routing wording with optional-depth policy handoffs.
+- v0.1.2 (2026-07-03): Remove stale self-referential detail prompts from Go references.
 
 ## References
 

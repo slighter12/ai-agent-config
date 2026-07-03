@@ -1,5 +1,4 @@
 ---
-globs: ["*.go", "**/*.go"]
 description: "Go error handling - panic rules, error wrapping, logging"
 ---
 
@@ -98,12 +97,6 @@ If any of the following are unclear, stop and ask:
 - How to map project packages to conceptual layers
 - How to map internal errors to user-friendly messages
 - Whether to add `pkg/errors` when stack traces are required but no stack package exists
-
----
-
-## Detailed Guidance
-
-Need full examples, patterns, or pitfalls? Use `$policy-go`.
 
 ---
 

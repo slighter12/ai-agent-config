@@ -1,5 +1,7 @@
 # Svelte Stores, Control Flow, and Lifecycle - Detailed Guide
 
+This file targets Svelte 5 runes mode.
+
 ## Table of Contents
 
 - 1) State Management (Stores)
@@ -28,8 +30,8 @@ export const user = writable<User | null>(null);
 </script>
 
 <p>Count: {$count}</p>
-<button on:click={() => $count++}>Increment</button>
-<button on:click={() => count.set(0)}>Reset</button>
+<button onclick={() => count.update(n => n + 1)}>Increment</button>
+<button onclick={() => count.set(0)}>Reset</button>
 ```
 
 ### Readable Store
@@ -88,9 +90,9 @@ export const counter = createCounter();
 </script>
 
 <p>{$counter}</p>
-<button on:click={counter.increment}>+</button>
-<button on:click={counter.decrement}>-</button>
-<button on:click={counter.reset}>Reset</button>
+<button onclick={counter.increment}>+</button>
+<button onclick={counter.decrement}>-</button>
+<button onclick={counter.reset}>Reset</button>
 ```
 
 ---
@@ -101,7 +103,7 @@ export const counter = createCounter();
 
 ```svelte
 <script lang="ts">
-  let status: 'loading' | 'success' | 'error' = 'loading';
+  let status = $state<'loading' | 'success' | 'error'>('loading');
 </script>
 
 {#if status === 'loading'}
@@ -117,10 +119,10 @@ export const counter = createCounter();
 
 ```svelte
 <script lang="ts">
-  let items = [
+  let items = $state([
     { id: 1, name: 'Apple' },
     { id: 2, name: 'Banana' },
-  ];
+  ]);
 </script>
 
 <!-- Use key (id) -->
@@ -158,7 +160,7 @@ export const counter = createCounter();
 
 ```svelte
 <script lang="ts">
-  import { onMount, onDestroy, beforeUpdate, afterUpdate } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
 
   // onMount - runs once after mount
   onMount(() => {
@@ -175,14 +177,12 @@ export const counter = createCounter();
     console.log('Component destroyed');
   });
 
-  // beforeUpdate - before DOM update
-  beforeUpdate(() => {
-    console.log('Before update');
+  $effect.pre(() => {
+    console.log('Before reactive DOM update');
   });
 
-  // afterUpdate - after DOM update
-  afterUpdate(() => {
-    console.log('After update');
+  $effect(() => {
+    console.log('After reactive DOM update');
   });
 </script>
 ```

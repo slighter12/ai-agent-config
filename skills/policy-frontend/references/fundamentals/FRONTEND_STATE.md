@@ -1,5 +1,4 @@
 ---
-globs: ["*.tsx", "*.jsx", "*.ts", "*.js", "*.svelte"]
 description: "Frontend state management principles - server state vs client state"
 ---
 

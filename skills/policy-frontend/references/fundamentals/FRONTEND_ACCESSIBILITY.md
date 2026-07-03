@@ -1,5 +1,4 @@
 ---
-globs: ["*.tsx", "*.jsx", "*.svelte", "*.html", "**/*.tsx", "**/*.jsx", "**/*.svelte", "**/*.html"]
 description: "Frontend accessibility - WCAG compliance, keyboard navigation, screen readers"
 ---
 
