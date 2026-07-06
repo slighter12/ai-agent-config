@@ -4,7 +4,7 @@ description: Audit, create, or repair a stable GOAL.md-style Goal Brief, then re
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.2.15"
+  version: "0.2.17"
 ---
 
 # Goal Context
@@ -125,16 +125,22 @@ unless the user explicitly accepts LLM-as-judge.
 1. Confirm the manual invocation. If this skill was loaded without an explicit user request to run
    `goal-context`, stop and ask the user to invoke it manually.
 2. Determine the requested behavior:
-   - `audit-only`: use when the user asks to confirm, review, inspect, or check a brief. Do not edit
-     files unless the user also asks to fix or rewrite them.
+   - `audit-only`: use when the user asks to confirm, review, inspect, or check a brief. This means
+     no file edits unless the user also asks to fix or rewrite them; it still returns
+     `goal_launch_context` unless the user explicitly asks for `brief-only`.
    - `brief-and-launch`: default when the user asks to write, repair, rewrite, prepare, or finish the
      handoff. Audit the brief, revise the target Markdown when needed, then return `goal_launch_context`.
    - `launch-only`: use when the Goal Brief is already stable and the user only needs copy-ready
      startup context.
    - `brief-only`: use only when the user explicitly asks for just the stable goal document.
-3. Read the user's rough request, existing draft, or referenced file. Inspect only the sources needed
+3. Resolve the target Goal Brief path before reading or editing:
+   - Use the exact path named by the user.
+   - Otherwise, if a repo root is discoverable and root `GOAL.md` already exists, use that file.
+   - Otherwise, ask for the target path or inline-output format instead of guessing.
+   - Do not create a new root `GOAL.md` by default.
+4. Read the user's rough request, existing draft, or referenced file. Inspect only the sources needed
    to preserve factual context and avoid contradicting existing project state.
-4. Run the Goal Readiness Gate before drafting or repairing launch text:
+5. Run the Goal Readiness Gate before drafting or repairing launch text:
    - If roadmap, product direction, architecture tradeoff, or success criteria are not settled, stop
      and route to `planning-grill` with the smallest set of questions or handoff facts needed to
      converge direction. Do not write a Goal Brief that invents direction.
@@ -144,26 +150,32 @@ unless the user explicitly accepts LLM-as-judge.
    - If no deterministic validator, frozen metric, evidence review criteria, or calibrated rubric
      exists, set `Metric Type` to `human_review_required` and make the done condition produce a
      review packet and stop for human judgment.
-5. Read `references/GOAL_CONTEXT_TEMPLATE.md` before drafting, auditing, revising, or launching. It
+6. Read `references/GOAL_CONTEXT_TEMPLATE.md` before drafting, auditing, revising, or launching. It
    is the single source of truth for section rules, audit checks, acceptance criteria rules, launch
    context shape, response shape, and self-review checks.
-6. Sort every useful fact into `Goal Brief` or `goal_launch_context` using the template's section
+7. Sort every useful fact into `Goal Brief` or `goal_launch_context` using the template's section
    rules. Put stable context and durable validation lineage in the brief; put only transient startup
    state, acceptance gaps, current-stage-first hints, and completion evidence requirements in the
    launcher.
-7. Audit the Goal Brief when the selected behavior includes a brief. Use the template's Goal Brief
+8. Audit the Goal Brief when the selected behavior includes a brief. Use the template's Goal Brief
    Audit Rules as the checklist and do not treat `format: pass` as source-grounded content audit.
-8. Rewrite the Goal Brief using the template when the selected behavior includes edits and audit
+9. Rewrite the Goal Brief using the template when the selected behavior includes edits and audit
    findings require changes. Keep background tight and move future behavior out of `Context`.
-9. If required information is missing, record it under `Open Questions` instead of inventing facts,
+10. If required information is missing, record it under `Open Questions` instead of inventing facts,
    behavior, evidence, or success conditions.
-10. Generate `goal_launch_context` when the selected behavior includes launch output. Use the
+11. Generate `goal_launch_context` for every behavior except explicit `brief-only`. Use the
     template's Goal Launch Context Rules and default structure; do not maintain a second launch shape
-    in this file.
-11. Format the final response with the template's Response Shape Rules. Do not expose
+    in this file. Reference the resolved Goal Brief path in the launcher.
+12. Apply the Launch Output Gate before final response:
+    - If behavior is not explicit `brief-only`, include `## Goal Launch Context`.
+    - If a valid launcher can be created, include exactly one fenced `md` block whose first line
+      starts with `/goal`.
+    - If required facts are missing, include `goal_launch_context: blocked` with the missing facts
+      instead of silently omitting the section.
+13. Format the final response with the template's Response Shape Rules. Do not expose
     `runtime_goal_command` and `next_session_context_prompt` as separate top-level outputs unless the
     user explicitly asks for that lower-level split.
-12. Stop after the goal document or review and launch context are complete. Do not proceed into
+14. Stop after the goal document or review and launch context are complete. Do not proceed into
     implementation.
 
 ## Tool And Side-Effect Boundaries
@@ -205,15 +217,17 @@ unless the user explicitly accepts LLM-as-judge.
 
 ## Output
 
-Return a concise Markdown response. Prefer this shape:
+Return a concise Markdown response. Use this shape unless the user explicitly asks for a different
+format:
 
 - `Summary`: whether the Goal Brief was drafted, revised, reviewed, unchanged, or blocked, with exact
   Markdown paths changed if any.
 - `Brief Audit`: `format`, compact bullet `source_checks`, `brief_audit`, `brief_changes`, and
   `claim_boundary_review`, `metric_type_review`, `acceptance_criteria_review`, and
   `completion_contract_review`.
-- `Goal Launch Context`: one fenced `md` block named `goal_launch_context`, unless the selected
-  behavior excludes launch output.
+- `Goal Launch Context`: required for every non-`brief-only` response. Include one fenced `md` block
+  named `goal_launch_context`, or `goal_launch_context: blocked` with missing facts when a valid
+  launcher cannot be created.
 - `Verification`: checks run, assumptions, open questions, and manual verification checklist.
 
 Do not return a long YAML-like list of every internal field. Do not expose `runtime_goal_command` and
@@ -223,6 +237,10 @@ lower-level split. Use `references/GOAL_CONTEXT_TEMPLATE.md` for the detailed re
 
 ## Version History
 
+- v0.2.17 (2026-07-06): Add deterministic target Goal Brief path resolution so the skill asks
+  instead of guessing when no explicit path or existing root `GOAL.md` is available.
+- v0.2.16 (2026-07-06): Require `goal_launch_context` for all non-brief-only outputs and add a
+  launch output gate so audit-only responses do not omit the launcher.
 - v0.2.15 (2026-07-03): Move duplicated audit, launch, response, and self-review detail to the
   template reference as the single runtime source.
 - v0.2.14 (2026-06-30): Add memory hygiene rules that separate records from automatically injected context.

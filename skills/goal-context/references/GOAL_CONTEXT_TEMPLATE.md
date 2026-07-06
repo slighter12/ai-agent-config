@@ -309,10 +309,12 @@ Example launch line:
 
 ## Goal Launch Context Rules
 
-Return a copy-ready `goal_launch_context` in the assistant response after drafting, revising, or
-reviewing the Goal Brief, unless the user explicitly asks for brief-only output. It should launch the
-next session, not restate the full brief. Do not embed this prompt in the Goal Brief Markdown unless
-the user explicitly asks for that file shape.
+Return a copy-ready `goal_launch_context` in every non-`brief-only` assistant response after
+drafting, revising, auditing, or reviewing the Goal Brief. `audit-only` means no file edits; it does
+not suppress launch output. If required facts are missing, still include `## Goal Launch Context`
+with `goal_launch_context: blocked` and the missing facts instead of omitting the section. It should
+launch the next session, not restate the full brief. Do not embed this prompt in the Goal Brief
+Markdown unless the user explicitly asks for that file shape.
 
 The launch context should include:
 
@@ -321,8 +323,8 @@ The launch context should include:
 - The `/goal` line should use the Goal Brief's `Objective` as the primary objective summary. Copy
   the objective exactly when it is short enough; otherwise tightly summarize it without changing its
   meaning.
-- The same `/goal` line should point to the Goal Brief as the acceptance brief, preferably with
-  `Use <GOAL.md> as the acceptance brief`.
+- The same `/goal` line should point to the resolved Goal Brief path as the acceptance brief,
+  preferably with `Use <resolved Goal Brief path> as the acceptance brief`.
 - The same `/goal` line should name a runtime completion check, require that result evidence to be
   reported in the conversation, and include a brief-defined or default bounded stop condition.
 - Do not use `/goal Read <GOAL.md>` as the default wording. Reading the brief is setup; the goal
@@ -350,10 +352,10 @@ The launch context should include:
 - A clear instruction not to include step-by-step implementation directions unless a specific
   procedure is part of the acceptance criteria.
 
-Use this structure by default:
+Use this structure for valid launch output:
 
 ```md
-/goal <objective copied or tightly summarized from the Goal Brief>. Use `<goal brief path>` as the acceptance brief. Runtime check: <named command, inspection, or evidence condition>. Report that evidence in conversation. Stop and report blocked after <brief-defined ceiling or default bounded attempts>. Stay within the brief's constraints and non-goals.
+/goal <objective copied or tightly summarized from the Goal Brief>. Use `<resolved Goal Brief path>` as the acceptance brief. Runtime check: <named command, inspection, or evidence condition>. Report that evidence in conversation. Stop and report blocked after <brief-defined ceiling or default bounded attempts>. Stay within the brief's constraints and non-goals.
 
 Current context:
 - <transient status or partial acceptance evidence not worth adding to the brief>
@@ -392,12 +394,12 @@ true, what evidence is missing, how to verify completion, and when to stop as bl
 The assistant response should be concise and user-facing. Do not return a long YAML-like dump of
 internal fields.
 
-Use this default response shape:
+Use this response shape unless the user explicitly asks for a different format:
 
 ````md
 ## Summary
 
-`GOAL.md` revised / reviewed / unchanged / blocked.
+`<resolved Goal Brief path>` revised / reviewed / unchanged / blocked.
 Files touched: <paths or none>
 
 ## Brief Audit
@@ -440,16 +442,20 @@ Formatting requirements:
 - Keep `brief_audit` to one outcome plus material findings. Do not restate every brief section when
   the audit passes.
 - Keep `brief_changes: none_needed` to one sentence when no edit was required.
-- Return exactly one fenced `goal_launch_context` block by default.
-- The first line inside the `goal_launch_context` block must start with `/goal`.
-- The first line should use the Goal Brief's `Objective` as the objective summary and point to the
-  brief as the acceptance brief.
-- The first line should name a runtime check, require evidence to be reported in conversation, and
-  include a bounded stop.
-- The first line should avoid both `/goal Read <GOAL.md>` setup wording and `Complete the goal
-  defined in <GOAL.md>` meta wording.
-- The first line must not narrow the goal into an audit, review, or verification task unless that is
-  the actual brief objective.
+- Include `## Goal Launch Context` in every non-`brief-only` response.
+- Return exactly one fenced `goal_launch_context` block when launch output is valid.
+- If launch output is blocked, write `goal_launch_context: blocked` plus the missing facts under
+  `## Goal Launch Context` instead of omitting the section.
+- For valid launch output, the first line inside the `goal_launch_context` block must start with
+  `/goal`.
+- For valid launch output, the first line should use the Goal Brief's `Objective` as the objective
+  summary and point to the brief as the acceptance brief.
+- For valid launch output, the first line should name a runtime check, require evidence to be
+  reported in conversation, and include a bounded stop.
+- For valid launch output, the first line should avoid both `/goal Read <GOAL.md>` setup wording and
+  `Complete the goal defined in <GOAL.md>` meta wording.
+- For valid launch output, the first line must not narrow the goal into an audit, review, or
+  verification task unless that is the actual brief objective.
 - Do not separately expose `runtime_goal_command` and `next_session_context_prompt` unless the user
   explicitly asks for that lower-level split.
 - Include the warning not to paste launch context into the Goal Brief exactly once.
