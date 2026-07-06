@@ -4,7 +4,7 @@ description: "Apply page design and visual art direction for polished product UI
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # Design Art Direction
@@ -34,18 +34,21 @@ Use this skill to improve the look, hierarchy, and interaction feel of an experi
 
 1. Inspect the target screen, component, screenshot, local URL, or design goal before proposing visual changes.
 2. If `.design/` exists, read the smallest relevant files first and treat them as the art-direction reference for palette, typography, spacing, imagery, and component feel.
-3. Classify the experience type: operational app, SaaS dashboard, editor/tool, game, landing page, portfolio, venue, product page, or content site.
-4. Set the visual direction from the experience type:
+3. Run a UX-first pass before visual polish: identify the primary user, primary task, entry point, next step, key states (empty/loading/error/success), recovery path, friction, and information hierarchy.
+4. Classify the experience type: operational app, SaaS dashboard, editor/tool, game, landing page, portfolio, venue, product page, or content site.
+5. Set the visual direction from the experience type:
    - Operational tools should be quiet, dense, scannable, and built for repeated action.
    - Landing/product pages should make the product, place, person, or object visible in the first viewport.
    - Games and playful tools may be more expressive, animated, and illustrative.
-5. Prefer real or generated bitmap imagery when visual assets matter. Do not substitute decorative SVGs, gradients, or atmospheric blobs for the actual product or state the user needs to inspect.
-6. Check composition, hierarchy, contrast, type scale, spacing rhythm, color balance, empty states, loading states, and responsive behavior.
-7. In Codex, when the user rejects a design or asks for a stronger visual pass, the coordinator may route advisory critique or explicitly bounded low-risk edits to `page-designer`. Keep final judgment with the primary agent.
+6. Prefer real or generated bitmap imagery when visual assets matter. Do not substitute decorative SVGs, gradients, or atmospheric blobs for the actual product or state the user needs to inspect.
+7. Check composition, hierarchy, contrast, type scale, spacing rhythm, color balance, empty states, loading states, and responsive behavior.
+8. In Codex, when the user rejects a design or asks for a stronger visual pass, the coordinator may route advisory critique or explicitly bounded low-risk edits to `page-designer`. Keep final judgment with the primary agent.
 
 ## Design Rules
 
 - Build the usable experience as the first screen unless the user explicitly asks for a marketing-only landing page.
+- Do not make a screen prettier before the task flow is understandable, recoverable, and easy to continue.
+- Design recommendations must name concrete UX problems or decisions; avoid generic "make it modern" or "add polish" guidance.
 - Avoid generic text-card layouts, card-heavy page sections, nested cards, oversized generic hero sections, decorative gradients, gradient-orb backgrounds, and one-note color palettes.
 - Use cards only for repeated items, modals, tool surfaces, or genuinely framed UI regions; do not turn page sections into floating card walls.
 - Use real product state, functional panels, lists, tables, task flows, or actual/generative imagery instead of abstract gradient backgrounds.
@@ -79,3 +82,4 @@ Return:
 - v0.2.0 (2026-06-29): Replace legacy external design handoff wording and tighten anti-card/anti-gradient defaults.
 - v0.3.0 (2026-06-29): Merge design bridge guidance into this provider-neutral page design skill and use a generic Codex design agent handoff.
 - v0.3.1 (2026-07-03): Clarify ownership of detailed visual/product UI rules shared with frontend work.
+- v0.3.2 (2026-07-06): Add UX-first flow, state, recovery, and friction checks before visual polish.

@@ -1,10 +1,10 @@
 ---
 name: diagnose
-description: Diagnose bugs, failing behavior, flaky tests, and performance regressions through a feedback-loop-first workflow. Use when the user reports something broken, failing, flaky, slow, throwing, regressing, or asks to debug/diagnose/root-cause it. Avoid when the user only wants implementation of an already-understood change, current-diff review, git workflow, or broad design planning.
+description: Diagnose bugs, failing behavior, flaky tests, performance regressions, and bottlenecks through a feedback-loop-first workflow. Use when the user reports something broken, failing, flaky, slow, throwing, regressing, or asks to debug/diagnose/root-cause/optimize it. Avoid when the user only wants implementation of an already-understood change, current-diff review, git workflow, or broad design planning.
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
-  version: "0.1.7"
+  version: "0.1.8"
 ---
 
 # Diagnose
@@ -16,7 +16,7 @@ Keep debugging work anchored to observable evidence. The skill prevents drift by
 ## Use When
 
 - The user reports broken, failing, flaky, slow, throwing, or regressed behavior.
-- The task asks for diagnosis, debugging, root cause, reproduction, or performance investigation.
+- The task asks for diagnosis, debugging, root cause, reproduction, performance investigation, bottleneck analysis, or optimization.
 - A proposed fix is risky because the failure has not been reproduced or measured.
 
 ## Avoid When
@@ -30,14 +30,15 @@ Keep debugging work anchored to observable evidence. The skill prevents drift by
 
 1. Define the reported symptom and the expected behavior in concrete terms.
 2. Build or identify the fastest credible feedback loop: failing test, command, script, HTTP request, browser flow, fixture replay, profile, or measurement. A credible loop is red-capable for the user's actual symptom, repeatable or high-reproduction, fast enough to iterate, and agent-runnable. Do not guess at a fix when no credible loop or missing artifact can confirm the symptom.
-3. Reproduce the failure or raise the reproduction rate enough to investigate. If this is impossible, state what artifact or access is missing.
-4. For flaky or nondeterministic failures, improve reproduction rate and isolate time, concurrency, filesystem, network, random seed, or environment variables.
-5. Generate 3-5 falsifiable hypotheses and test one variable at a time.
-6. Instrument only where it distinguishes hypotheses; tag temporary debug output with a searchable prefix and remove it before finishing.
-7. Before finalizing the cause, fix direction, or verification plan, load the corresponding `policy-*` skill when that policy area materially affects correctness, safety, or acceptance. This is a hard gate for API contracts, security/auth/secrets/PII, verification strategy, runtime/deploy/config behavior, and language/framework ownership boundaries. Do not load unrelated policy skills for routine diagnosis where the built-in guardrails fully cover the risk.
-8. Fix only after the cause is supported by evidence.
-9. Add or describe regression coverage at the right public interface, then rerun the original feedback loop.
-10. Clean up temporary probes and report the root cause, fix, verification, residual risk, and any architecture follow-up.
+3. For performance work, establish a baseline first: profile, measurement, trace, timing, resource usage, or another observable bottleneck signal. Do not rewrite for speed without evidence of where time, memory, I/O, rendering, or contention is spent.
+4. Reproduce the failure or raise the reproduction rate enough to investigate. If this is impossible, state what artifact or access is missing.
+5. For flaky or nondeterministic failures, improve reproduction rate and isolate time, concurrency, filesystem, network, random seed, or environment variables.
+6. Generate 3-5 falsifiable hypotheses and test one variable at a time.
+7. Instrument only where it distinguishes hypotheses; tag temporary debug output with a searchable prefix and remove it before finishing.
+8. Before finalizing the cause, fix direction, or verification plan, load the corresponding `policy-*` skill when that policy area materially affects correctness, safety, or acceptance. This is a hard gate for API contracts, security/auth/secrets/PII, verification strategy, runtime/deploy/config behavior, and language/framework ownership boundaries. Do not load unrelated policy skills for routine diagnosis where the built-in guardrails fully cover the risk.
+9. Fix only after the cause is supported by evidence.
+10. Add or describe regression coverage at the right public interface, then rerun the original feedback loop.
+11. Clean up temporary probes and report the root cause, fix, verification, residual risk, and any architecture follow-up.
 
 ## Tool And Side-Effect Boundaries
 
@@ -48,6 +49,7 @@ Keep debugging work anchored to observable evidence. The skill prevents drift by
 - Do not hardcode or log secrets, tokens, credentials, PII, or sensitive request/response bodies while instrumenting.
 - For security-sensitive symptoms, include log/response exposure and trust-boundary hypotheses without printing sensitive samples.
 - Do not invent business logic or expected behavior when the symptom or requirement is unclear; ask for the missing constraint or artifact.
+- Do not perform speculative performance rewrites when no measurement, profile, trace, or observable bottleneck supports the change.
 - If a correct regression-test seam does not exist, state that as a finding instead of adding a weak or misleading test.
 - Load `policy-testing` when the diagnosis depends on verification depth, regression evidence, risk level, or validation gate selection.
 - If no red-capable loop can be built, ask for the missing artifact, access, logs, HAR, trace, fixture, or permission for targeted instrumentation instead of continuing with a speculative fix.
@@ -74,3 +76,4 @@ Return:
 - v0.1.5 (2026-06-18): Add hard policy gate for material API, security, testing, infra, and language/framework diagnosis risks.
 - v0.1.6 (2026-06-29): Define red-capable feedback loop criteria and stop condition for missing diagnostic evidence.
 - v0.1.7 (2026-07-03): Clarify that targeted reproduction is allowed as the diagnostic feedback loop.
+- v0.1.8 (2026-07-06): Add performance optimization routing and measurement-before-rewrite guardrails.
