@@ -12,6 +12,7 @@ import (
 
 const (
 	ProfileName        = "workspace-git"
+	ProfileFileName    = ProfileName + ".config.toml"
 	BasePermissionName = ":workspace"
 	AgentMaxThreads    = 12
 )
@@ -30,6 +31,11 @@ type Result struct {
 	BackupPath string
 	Changed    bool
 	Created    bool
+
+	ProfilePath       string
+	ProfileBackupPath string
+	ProfileChanged    bool
+	ProfileCreated    bool
 }
 
 func DefaultCodexHome() (string, error) {
@@ -51,11 +57,32 @@ func Apply(codexHome string, now time.Time) (Result, error) {
 			return Result{}, err
 		}
 	}
-	path := filepath.Join(codexHome, "config.toml")
-	return ApplyFile(path, now)
+	result, err := ApplyFile(filepath.Join(codexHome, "config.toml"), now)
+	if err != nil {
+		return result, err
+	}
+	profileResult, err := ApplyWorkspaceGitProfileFile(filepath.Join(codexHome, ProfileFileName), now)
+	if err != nil {
+		return result, err
+	}
+	result.ProfilePath = profileResult.Path
+	result.ProfileBackupPath = profileResult.BackupPath
+	result.ProfileChanged = profileResult.Changed
+	result.ProfileCreated = profileResult.Created
+	return result, nil
 }
 
 func ApplyFile(path string, now time.Time) (Result, error) {
+	return applyFile(path, now, EnsureBaseConfig)
+}
+
+func ApplyWorkspaceGitProfileFile(path string, now time.Time) (Result, error) {
+	return applyFile(path, now, func(string) (string, error) {
+		return WorkspaceGitProfileConfig(), nil
+	})
+}
+
+func applyFile(path string, now time.Time, update func(string) (string, error)) (Result, error) {
 	result := Result{Path: path}
 	originalBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -65,7 +92,7 @@ func ApplyFile(path string, now time.Time) (Result, error) {
 		result.Created = true
 	}
 	original := string(originalBytes)
-	updated, err := EnsureWorkspaceGitProfile(original)
+	updated, err := update(original)
 	if err != nil {
 		return result, err
 	}
@@ -90,18 +117,28 @@ func ApplyFile(path string, now time.Time) (Result, error) {
 }
 
 func EnsureWorkspaceGitProfile(input string) (string, error) {
+	return EnsureBaseConfig(input)
+}
+
+func EnsureBaseConfig(input string) (string, error) {
 	text := normalizeNewline(input)
 	if err := rejectLegacySandbox(text); err != nil {
 		return "", err
 	}
 	text = removeWorkspaceGitBlocks(text)
+	text = removeGitCommitAgentBlock(text)
 	text = upsertBaseDefaultPermissions(text)
 	text = upsertApprovalPolicy(text)
 	text = upsertApprovalsReviewer(text)
 	text = upsertAgentMaxThreads(text)
 	text = removePermissionFeatureFlags(text)
-	text = insertWorkspaceGitBlock(text)
 	return normalizeNewline(text), nil
+}
+
+func WorkspaceGitProfileConfig() string {
+	return normalizeNewline(`default_permissions = "` + ProfileName + `"
+
+` + workspaceGitBlock())
 }
 
 func rejectLegacySandbox(text string) error {
@@ -126,6 +163,14 @@ func rejectLegacySandbox(text string) error {
 }
 
 func removeWorkspaceGitBlocks(text string) string {
+	return removeTableBlocks(text, "permissions."+ProfileName)
+}
+
+func removeGitCommitAgentBlock(text string) string {
+	return removeTableBlocks(text, "agents.git-commit")
+}
+
+func removeTableBlocks(text, targetTable string) string {
 	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
 	if len(lines) == 1 && lines[0] == "" {
 		return ""
@@ -134,7 +179,7 @@ func removeWorkspaceGitBlocks(text string) string {
 	skipping := false
 	for _, line := range lines {
 		if table, ok := tableName(strings.TrimSpace(line)); ok {
-			if table == "permissions."+ProfileName || strings.HasPrefix(table, "permissions."+ProfileName+".") {
+			if table == targetTable || strings.HasPrefix(table, targetTable+".") {
 				skipping = true
 				continue
 			}
@@ -319,34 +364,6 @@ func topLevelStringValue(line string) (string, bool) {
 		value = strings.TrimSpace(value[:index])
 	}
 	return strings.Trim(value, `"`), true
-}
-
-func insertWorkspaceGitBlock(text string) string {
-	block := workspaceGitBlock()
-	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
-	if len(lines) == 1 && lines[0] == "" {
-		return block
-	}
-	insertIndex := len(lines)
-	for index, line := range lines {
-		table, ok := tableName(strings.TrimSpace(line))
-		if ok && strings.HasPrefix(table, "projects.") {
-			insertIndex = index
-			break
-		}
-	}
-	before := strings.TrimRight(strings.Join(lines[:insertIndex], "\n"), "\n")
-	after := strings.TrimLeft(strings.Join(lines[insertIndex:], "\n"), "\n")
-	switch {
-	case before == "" && after == "":
-		return block
-	case before == "":
-		return block + "\n" + after + "\n"
-	case after == "":
-		return before + "\n\n" + block
-	default:
-		return before + "\n\n" + block + "\n" + after + "\n"
-	}
 }
 
 func removePermissionFeatureFlags(text string) string {

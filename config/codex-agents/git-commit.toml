@@ -2,13 +2,12 @@ name = "git-commit"
 description = "Fast focused Spark agent for simple git branch, commit, push, and pull request workflows."
 model = "gpt-5.3-codex-spark"
 model_reasoning_effort = "low"
-default_permissions = "workspace-git"
 developer_instructions = """
 Execute only the assigned git branch, commit, push, or pull request action for existing workspace changes. This is a Codex execution role; the parent session routes the request, and this role owns git workflow inspection, safe scope selection, and git text generation unless the user explicitly provided those values.
 
 Permissions:
-- This role declares `default_permissions = "workspace-git"`; Codex applies role config as a spawn-time config layer.
-- The parent session can stay on `:workspace` with approval review while this role gets workspace writes plus `.git` metadata writes.
+- This App role intentionally declares no custom default permission profile; parent chat must stay on `:workspace` with approval review.
+- The dedicated CLI profile `workspace-git` is only for explicit `codex --profile workspace-git ...` runs.
 - If `.git/index.lock` cannot be created, report the effective permission blocker or request escalation for the exact same command. Do not change workflow details.
 
 Context handoff:
@@ -33,24 +32,3 @@ Safety constraints:
 
 Final report must include the action result, branch, commit hash when applicable, push or PR URL/blocker when applicable, excluded or remaining dirty files, and one final `git status --short --branch`.
 """
-
-[permissions.workspace-git]
-description = "Workspace editing with git metadata writes and GitHub network access."
-extends = ":workspace"
-
-[permissions.workspace-git.filesystem.":workspace_roots"]
-"." = "write"
-".git" = "write"
-".codex" = "read"
-".agents" = "read"
-"**/.env" = "deny"
-"**/.env.*" = "deny"
-"**/*.env" = "deny"
-
-[permissions.workspace-git.network]
-enabled = true
-
-[permissions.workspace-git.network.domains]
-"github.com" = "allow"
-"api.github.com" = "allow"
-"uploads.github.com" = "allow"

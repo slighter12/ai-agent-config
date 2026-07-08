@@ -109,10 +109,11 @@ The installer creates symlinks (without overwriting existing files):
 - Codex (`$CODEX_HOME` or `~/.codex`, if present):
   - `AGENTS.md -> ~/git/ai-config/AGENTS.md`
   - Also runs the Go-backed `setup-codex-config` flow to:
-    - upsert the `workspace-git` permission profile in `~/.codex/config.toml`
     - set repo-managed top-level permissions to `:workspace` with `on-request` approval and `auto_review`
+    - remove repo-managed `workspace-git` and `git-commit` permission blocks from `~/.codex/config.toml`
+    - write the explicit CLI-only `~/.codex/workspace-git.config.toml` profile
     - remove repo-managed under-development permission feature flags
-    - back up `config.toml` only when the script changes it
+    - back up touched config files only when the script changes them
     - fail that setup step if legacy `sandbox_mode` settings would conflict with permission profiles
     - let `install.sh` continue with agents and shell setup if this config step is skipped or fails
   - Also runs the Go-backed `setup-codex-agents` flow to:
@@ -331,14 +332,17 @@ and invoke it from `~/.claude/agents`.
 For this standalone-file layout, you do not need matching `[agents.<name>]` entries in
 `~/.codex/config.toml`. Keep `[agents]` for global agent runtime settings such as thread or
 depth limits. Use `[agents.<name>]` only as an advanced option when you explicitly want a
-config-declared role that points at a separate `config_file`.
+config-declared role that points at a separate `config_file`; this repo does not use that form for
+`git-commit` because current Codex App builds can leak agent defaults into the parent composer.
 
 Codex role files in `config/codex-agents/*.toml` can include:
 
 - `model`: model id used by the role
 - `model_reasoning_effort`: `low|medium|high|xhigh`
 - `service_tier`: optional request tier such as `fast`
-- `default_permissions`: optional permission profile such as `:read-only` for read-only roles
+- `default_permissions`: optional permission profile such as `:read-only` for read-only roles;
+  do not put custom write profiles such as `workspace-git` in standalone role files because current
+  Codex App builds can surface them as the parent chat composer permission
 
 Important compatibility note:
 
@@ -351,7 +355,7 @@ Default Codex profile in this repo:
 - `orchestrator`: `gpt-5.5` + `high` + `fast`
 - `explorer`: `gpt-5.5` + `medium` + `fast`
 - `builder`: `gpt-5.3-codex` + `medium`
-- `git-commit`: `gpt-5.3-codex-spark` + `low` + `workspace-git`
+- `git-commit`: `gpt-5.3-codex-spark` + `low`; explicit CLI runs can layer the separate `workspace-git` profile
 - `reviewer`: `gpt-5.4` + `high` + `fast` + `:read-only`
 - `oracle`: `gpt-5.5` + `high` + `:read-only`
 - `librarian`: `gpt-5.4` + `medium` + `fast`
@@ -380,17 +384,26 @@ only for handoff or final reporting.
 The parent Codex session stays on the official workspace profile with approval review. The Go
 installer keeps `default_permissions = ":workspace"`, `approval_policy = "on-request"`, and
 `approvals_reviewer = "auto_review"` in `~/.codex/config.toml`, removes repo-managed
-under-development permission feature flags, and upserts the `workspace-git` profile below. The setup
+under-development permission feature flags, removes repo-managed `workspace-git` blocks from the
+base config, and writes the CLI-only `~/.codex/workspace-git.config.toml` profile below. The setup
 step is best-effort inside `install.sh`: legacy `sandbox_mode` conflicts are reported without
 blocking agent, skill, or shell symlink setup. Run `scripts/setup_codex_config.sh` directly for a
 focused failure message after resolving legacy sandbox settings.
 
-Simple git delegation uses `git-commit` role-local `default_permissions = "workspace-git"`. Codex
-applies role files as spawn-time config layers, so that role gets normal workspace writes plus `.git`
-metadata writes and GitHub domains used by `git push` and `gh pr create` without making the parent
-session broadly git-writable. `git-commit` does not use role-local `sandbox_mode =
-"danger-full-access"`. Bash hooks and RTK rewrites do not grant permissions; parent-session
-`rtk git add` still relies on normal approval/rules or should be delegated to the git role.
+Keep three Codex permission concepts separate:
+
+- Permission profile: parent Desktop chats should stay on `:workspace`.
+- Approval policy: parent chats should stay on `on-request`.
+- Approval reviewer: repo-managed default is `auto_review`; Desktop may label this differently from TUI.
+
+Do not put `workspace-git` defaults in `~/.codex/config.toml` or Codex role files. Current Codex App
+builds expose `git-commit` as a spawnable role but do not expose a `profile` or `default_permissions`
+parameter on that spawn path, and agent-only defaults can surface as the parent chat composer
+permission. App `git-commit` runs therefore use normal workspace permissions and request escalation
+when `.git` writes are blocked. Use the dedicated profile only for explicit CLI runs such as
+`codex --profile workspace-git ...`.
+
+`~/.codex/config.toml`:
 
 ```toml
 default_permissions = ":workspace"
@@ -399,6 +412,12 @@ approvals_reviewer = "auto_review"
 
 [agents]
 max_threads = 12
+```
+
+`~/.codex/workspace-git.config.toml`:
+
+```toml
+default_permissions = "workspace-git"
 
 [permissions.workspace-git]
 description = "Workspace editing with git metadata writes and GitHub network access."
@@ -468,8 +487,9 @@ managed Codex role files, per-agent MCP and skill enablement is generated from
 Provider-specific role prompts should not duplicate full shared skill policy. For example,
 `conventional-git-flow` owns branch, commit, push, and PR workflow rules, while the Codex
 `git-commit` role owns provider-specific execution details such as diff inspection, safe scope
-selection, git text generation, and non-interactive boundaries. Git metadata writes are handled by the
-role-local `workspace-git` permission profile, not by legacy sandbox overrides.
+selection, git text generation, and non-interactive boundaries. Git metadata writes are handled by an
+explicit `workspace-git` CLI profile or by normal escalation when the App role lacks `.git` write
+permission, not by legacy sandbox overrides.
 
 `execution-harness` is an optional process skill for structured coordination across phases, agents, git/workspace state, verification gates, diff sanity, lifecycle gates, and capture candidates. It is orchestrator-suggested and user-approved; it is not a mandatory SDLC and does not replace domain policy skills.
 

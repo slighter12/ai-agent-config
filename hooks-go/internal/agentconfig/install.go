@@ -188,7 +188,16 @@ func (c Config) SetupCodexConfig() error {
 			c.printf("   + Created %s\n", result.Path)
 		}
 	} else {
-		c.printf("   = %s already has workspace-git permission profile\n", result.Path)
+		c.printf("   = %s already has parent-safe defaults\n", result.Path)
+	}
+	if result.ProfileChanged {
+		if result.ProfileBackupPath != "" {
+			c.printf("   + Updated %s (backup: %s)\n", result.ProfilePath, result.ProfileBackupPath)
+		} else {
+			c.printf("   + Created %s\n", result.ProfilePath)
+		}
+	} else {
+		c.printf("   = %s already has workspace-git profile\n", result.ProfilePath)
 	}
 	c.println("")
 	c.println("Codex base config setup complete.")

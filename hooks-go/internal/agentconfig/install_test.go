@@ -167,14 +167,12 @@ func TestGenerateCodexRoleFilesRendersTemplatesAndProtectsUserFiles(t *testing.T
 	}
 }
 
-func TestGitCommitTemplateDeclaresWorkspaceGitProfile(t *testing.T) {
+func TestGitCommitTemplateDoesNotDeclareTopLevelPermissionProfile(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", "..", ".."))
 	template := readFile(t, filepath.Join(repoRoot, "config", "codex-agents", "git-commit.toml"))
-	mustContain(t, template, `default_permissions = "workspace-git"`)
-	mustContain(t, template, `[permissions.workspace-git]`)
-	mustContain(t, template, `[permissions.workspace-git.filesystem.":workspace_roots"]`)
-	mustContain(t, template, `".git" = "write"`)
-	mustContain(t, template, `[permissions.workspace-git.network.domains]`)
+	mustNotContain(t, template, `default_permissions = "workspace-git"`)
+	mustNotContain(t, template, `[permissions.workspace-git]`)
+	mustNotContain(t, template, `[permissions.workspace-git.filesystem.":workspace_roots"]`)
 }
 
 func TestGenerateCodexRoleFilesSkipsAlreadyCurrentManagedFiles(t *testing.T) {

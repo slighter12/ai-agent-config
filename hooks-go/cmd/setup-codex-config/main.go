@@ -24,7 +24,16 @@ func main() {
 		} else {
 			fmt.Printf("   + Created %s\n", result.Path)
 		}
+	} else {
+		fmt.Printf("   = %s already has parent-safe defaults\n", result.Path)
+	}
+	if result.ProfileChanged {
+		if result.ProfileBackupPath != "" {
+			fmt.Printf("   + Updated %s (backup: %s)\n", result.ProfilePath, result.ProfileBackupPath)
+		} else {
+			fmt.Printf("   + Created %s\n", result.ProfilePath)
+		}
 		return
 	}
-	fmt.Printf("   = %s already has workspace-git permission profile\n", result.Path)
+	fmt.Printf("   = %s already has workspace-git profile\n", result.ProfilePath)
 }

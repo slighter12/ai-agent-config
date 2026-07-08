@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-func TestEnsureWorkspaceGitProfileCreatesProfile(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile("")
+func TestEnsureBaseConfigCreatesParentSafeConfig(t *testing.T) {
+	got, err := EnsureBaseConfig("")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -20,14 +20,43 @@ func TestEnsureWorkspaceGitProfileCreatesProfile(t *testing.T) {
 	mustContain(t, got, `max_threads = 12`)
 	mustNotContain(t, got, `exec_permission_approvals`)
 	mustNotContain(t, got, `request_permissions_tool`)
+	mustNotContain(t, got, `[agents.git-commit]`)
+	mustNotContain(t, got, `[permissions.workspace-git]`)
+	mustNotContain(t, got, `".git" = "write"`)
+}
+
+func TestWorkspaceGitProfileConfigCreatesProfile(t *testing.T) {
+	got := WorkspaceGitProfileConfig()
+	mustContain(t, got, `default_permissions = "workspace-git"`)
 	mustContain(t, got, `[permissions.workspace-git]`)
 	mustContain(t, got, `".git" = "write"`)
 	mustContain(t, got, `[permissions.workspace-git.network]`)
 	mustContain(t, got, `"github.com" = "allow"`)
 }
 
-func TestEnsureWorkspaceGitProfileIsIdempotent(t *testing.T) {
-	first, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+func TestEnsureBaseConfigRemovesGitCommitAgentBlock(t *testing.T) {
+	got, err := EnsureBaseConfig(`[agents]
+max_threads = 4
+
+[agents.git-commit]
+config_file = "/old.toml"
+default_permissions = "workspace-git"
+
+[projects."/tmp/demo"]
+trust_level = "trusted"
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	mustContain(t, got, `max_threads = 12`)
+	mustNotContain(t, got, `[agents.git-commit]`)
+	mustNotContain(t, got, `default_permissions = "workspace-git"`)
+	mustNotContain(t, got, `/old.toml`)
+	mustContain(t, got, `[projects."/tmp/demo"]`)
+}
+
+func TestEnsureBaseConfigIsIdempotent(t *testing.T) {
+	first, err := EnsureBaseConfig(`model = "gpt-5.5"
 
 [projects."/tmp/demo"]
 trust_level = "trusted"
@@ -35,7 +64,7 @@ trust_level = "trusted"
 	if err != nil {
 		t.Fatalf("first apply: %v", err)
 	}
-	second, err := EnsureWorkspaceGitProfile(first)
+	second, err := EnsureBaseConfig(first)
 	if err != nil {
 		t.Fatalf("second apply: %v", err)
 	}
@@ -44,8 +73,8 @@ trust_level = "trusted"
 	}
 }
 
-func TestEnsureWorkspaceGitProfileReplacesExistingBlock(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`default_permissions = "workspace-git"
+func TestEnsureBaseConfigRemovesExistingWorkspaceGitBlock(t *testing.T) {
+	got, err := EnsureBaseConfig(`default_permissions = "workspace-git"
 
 [permissions.workspace-git]
 description = "old"
@@ -68,13 +97,14 @@ enabled = false
 		t.Fatalf("old workspace-git network block was not removed:\n%s", got)
 	}
 	mustContain(t, got, `default_permissions = ":workspace"`)
-	mustContain(t, got, `enabled = true`)
-	mustContain(t, got, `"api.github.com" = "allow"`)
+	mustNotContain(t, got, `[permissions.workspace-git]`)
+	mustNotContain(t, got, `enabled = true`)
+	mustNotContain(t, got, `"api.github.com" = "allow"`)
 	mustContain(t, got, `[hooks.state]`)
 }
 
-func TestEnsureWorkspaceGitProfileConvertsRepoManagedDefault(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`default_permissions = "workspace-git"
+func TestEnsureBaseConfigConvertsRepoManagedDefault(t *testing.T) {
+	got, err := EnsureBaseConfig(`default_permissions = "workspace-git"
 approvals_reviewer = "user"
 
 [projects."/tmp/demo"]
@@ -86,12 +116,12 @@ trust_level = "trusted"
 	mustContain(t, got, `default_permissions = ":workspace"`)
 	mustContain(t, got, `approval_policy = "on-request"`)
 	mustContain(t, got, `approvals_reviewer = "auto_review"`)
-	mustContain(t, got, `[permissions.workspace-git]`)
+	mustNotContain(t, got, `[permissions.workspace-git]`)
 	mustContain(t, got, `[projects."/tmp/demo"]`)
 }
 
-func TestEnsureWorkspaceGitProfileRemovesPermissionFeatureFlags(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+func TestEnsureBaseConfigRemovesPermissionFeatureFlags(t *testing.T) {
+	got, err := EnsureBaseConfig(`model = "gpt-5.5"
 
 [features]
 exec_permission_approvals = false
@@ -110,8 +140,8 @@ trust_level = "trusted"
 	mustNotContain(t, got, `request_permissions_tool`)
 }
 
-func TestEnsureWorkspaceGitProfileUpdatesAgentMaxThreads(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+func TestEnsureBaseConfigUpdatesAgentMaxThreads(t *testing.T) {
+	got, err := EnsureBaseConfig(`model = "gpt-5.5"
 
 [agents]
 max_threads = 4
@@ -130,8 +160,8 @@ trust_level = "trusted"
 	mustNotContain(t, got, `max_threads = 4`)
 }
 
-func TestEnsureWorkspaceGitProfileAddsAgentMaxThreads(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+func TestEnsureBaseConfigAddsAgentMaxThreads(t *testing.T) {
+	got, err := EnsureBaseConfig(`model = "gpt-5.5"
 
 [agents]
 max_depth = 2
@@ -144,8 +174,8 @@ max_depth = 2
 	mustContain(t, got, `max_depth = 2`)
 }
 
-func TestEnsureWorkspaceGitProfilePreservesUserDefaultPermissions(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`default_permissions = ":read-only"
+func TestEnsureBaseConfigPreservesUserDefaultPermissions(t *testing.T) {
+	got, err := EnsureBaseConfig(`default_permissions = ":read-only"
 
 [projects."/tmp/demo"]
 trust_level = "trusted"
@@ -154,12 +184,12 @@ trust_level = "trusted"
 		t.Fatalf("unexpected error: %v", err)
 	}
 	mustContain(t, got, `default_permissions = ":read-only"`)
-	mustContain(t, got, `[permissions.workspace-git]`)
+	mustNotContain(t, got, `[permissions.workspace-git]`)
 	mustContain(t, got, `[projects."/tmp/demo"]`)
 }
 
-func TestEnsureWorkspaceGitProfilePreservesUnrelatedTables(t *testing.T) {
-	got, err := EnsureWorkspaceGitProfile(`model = "gpt-5.5"
+func TestEnsureBaseConfigPreservesUnrelatedTables(t *testing.T) {
+	got, err := EnsureBaseConfig(`model = "gpt-5.5"
 
 [hooks.state."demo"]
 enabled = true
@@ -175,13 +205,13 @@ command = "node"
 	mustContain(t, got, `command = "node"`)
 }
 
-func TestEnsureWorkspaceGitProfileRejectsLegacySandbox(t *testing.T) {
-	_, err := EnsureWorkspaceGitProfile(`sandbox_mode = "workspace-write"
+func TestEnsureBaseConfigRejectsLegacySandbox(t *testing.T) {
+	_, err := EnsureBaseConfig(`sandbox_mode = "workspace-write"
 `)
 	if err == nil {
 		t.Fatal("expected legacy sandbox_mode error")
 	}
-	_, err = EnsureWorkspaceGitProfile(`[sandbox_workspace_write]
+	_, err = EnsureBaseConfig(`[sandbox_workspace_write]
 network_access = false
 `)
 	if err == nil {
@@ -215,6 +245,33 @@ func TestApplyFileBacksUpOnlyWhenChanged(t *testing.T) {
 	}
 }
 
+func TestApplyWritesBaseConfigAndWorkspaceGitProfile(t *testing.T) {
+	dir := t.TempDir()
+	now := time.Date(2026, 7, 8, 9, 0, 0, 0, time.UTC)
+	result, err := Apply(dir, now)
+	if err != nil {
+		t.Fatalf("apply: %v", err)
+	}
+	if !result.Changed || !result.ProfileChanged {
+		t.Fatalf("expected base and profile changes, got %+v", result)
+	}
+	base := readFile(t, filepath.Join(dir, "config.toml"))
+	profile := readFile(t, filepath.Join(dir, ProfileFileName))
+	mustContain(t, base, `default_permissions = ":workspace"`)
+	mustNotContain(t, base, `[permissions.workspace-git]`)
+	mustNotContain(t, base, `[agents.git-commit]`)
+	mustContain(t, profile, `default_permissions = "workspace-git"`)
+	mustContain(t, profile, `[permissions.workspace-git]`)
+
+	result, err = Apply(dir, now.Add(time.Second))
+	if err != nil {
+		t.Fatalf("second apply: %v", err)
+	}
+	if result.Changed || result.ProfileChanged {
+		t.Fatalf("expected second apply to be no-op, got %+v", result)
+	}
+}
+
 func mustContain(t *testing.T, text, want string) {
 	t.Helper()
 	if !strings.Contains(text, want) {
@@ -227,4 +284,13 @@ func mustNotContain(t *testing.T, text, want string) {
 	if strings.Contains(text, want) {
 		t.Fatalf("expected output not to contain %q:\n%s", want, text)
 	}
+}
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(data)
 }
