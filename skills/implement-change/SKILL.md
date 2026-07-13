@@ -2,9 +2,9 @@
 name: implement-change
 description: Implement scoped code, config, ordinary documentation changes, and approved throwaway prototypes with repo-pattern inspection, minimal edits, and risk-based verification. Use when the user asks to build, add, change, fix an already-understood issue, wire config, update behavior, edit ordinary docs, or build an approved throwaway prototype. Avoid when tests or executable evidence are the main product, or when the task is primarily diagnosis/root cause, design clarification, lifecycle capture, current-diff review, git workflow, or skill authoring.
 license: MIT
-compatibility: [codex, claude, gemini]
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.1.11"
+  version: "0.1.12"
 ---
 
 # Implement Change
@@ -95,3 +95,4 @@ Return:
 - v0.1.9 (2026-06-29): Add approved throwaway prototype handling without creating a standalone prototype skill.
 - v0.1.10 (2026-06-30): Remove retired lifecycle skill id from history wording.
 - v0.1.11 (2026-07-03): Omit lifecycle capture output when ordinary implementation has no capture signal.
+- v0.1.12 (2026-07-13): Declare OpenCode compatibility for the existing portable implementation workflow.

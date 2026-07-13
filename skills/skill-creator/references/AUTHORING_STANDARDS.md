@@ -1,6 +1,6 @@
 # Authoring Standards
 
-Use these standards to write portable, high-signal skills for Codex, Claude, and Gemini.
+Use these standards to write portable, high-signal skills for Codex, Claude, Gemini, and OpenCode.
 
 ## Source Priority
 
@@ -60,6 +60,7 @@ Duplicate guardrails, not policy.
 
 - Codex and Gemini rely on portable `name` and `description` for skill routing; keep optional standard fields small and spec-aligned.
 - Claude supports extra frontmatter such as `allowed-tools`, `disable-model-invocation`, and `user-invocable`; add these only in Claude-specific overlays or copies.
+- OpenCode discovers standard skills from its own and compatible `.agents` surfaces, lists their names and descriptions, and loads full skill bodies on demand through the native skill tool.
 - For one shared skill file, express Claude-like safety behavior in normal Markdown sections instead of provider-specific frontmatter.
 
 ## Supported Frontmatter Subset
@@ -67,7 +68,7 @@ Duplicate guardrails, not policy.
 The local validator intentionally supports a small portable subset:
 
 - Top-level scalar fields: `name`, `description`, `license`, and string-form `compatibility`.
-- Top-level inline list: `compatibility: [codex, claude, gemini]`.
+- Top-level inline list: `compatibility: [codex, claude, gemini, opencode]`.
 - One nested mapping: `metadata`, with single-line scalar values such as `version` and `author`.
 - No block lists, multiline strings (`|` or `>`), tab indentation, anchors, or complex YAML objects.
 

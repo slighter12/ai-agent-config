@@ -2,9 +2,9 @@
 name: verification-driven-change
 description: Implement or revise tests and verification loops when tests or executable evidence are the main product or driver of the change. Use when the user asks to add integration tests, add regression coverage, drive a change from a failing test, use TDD/test-first/red-green-refactor, write BDD/acceptance examples, contract/API/e2e tests, characterization tests, or property/invariant checks. Avoid when verification is only a supporting step for ordinary implementation, when the task is pure test strategy without edits, when root cause is unknown and diagnosis is primary, current-diff review, git workflow, or skill authoring.
 license: MIT
-compatibility: [codex, claude, gemini]
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 # Verification-Driven Change
@@ -76,3 +76,4 @@ Return:
 - v0.1.0 (2026-05-19): Initial verification-driven task workflow for test and executable-evidence changes.
 - v0.1.1 (2026-05-21): Route current-change review requests to renamed `code-review`.
 - v0.1.2 (2026-06-18): Add hard policy gate for testing and material API, security, infra, and language/framework verification risks.
+- v0.1.3 (2026-07-13): Declare OpenCode compatibility for the portable verification workflow.

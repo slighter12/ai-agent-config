@@ -2,6 +2,7 @@ package agentconfig
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -73,6 +74,56 @@ func TestCreateSkillSymlinksSkipsEntriesWithoutSkillManifest(t *testing.T) {
 		t.Fatalf("expected file entry to be skipped, err %v", err)
 	}
 	mustContain(t, out.String(), "Skipping non-skill entry")
+}
+
+func TestPrintOpenCodeSlimSkillSetupPrefersJSONCAndDoesNotModifyConfig(t *testing.T) {
+	dir := t.TempDir()
+	jsonPath := filepath.Join(dir, "oh-my-opencode-slim.json")
+	jsoncPath := filepath.Join(dir, "oh-my-opencode-slim.jsonc")
+	jsonContent := []byte(`{"preset":"json"}`)
+	jsoncContent := []byte("{\n  // user-owned\n  \"preset\": \"jsonc\",\n}\n")
+	if err := os.WriteFile(jsonPath, jsonContent, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(jsoncPath, jsoncContent, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	config := Config{RepoRoot: "/repo", OpenCodeHome: dir, Out: &out}
+
+	config.printOpenCodeSlimSkillSetup()
+
+	mustContain(t, out.String(), jsoncPath)
+	mustContain(t, out.String(), filepath.Join("/repo", "config", "opencode", "oh-my-opencode-slim-agent-skills.json"))
+	if got := []byte(readFile(t, jsonPath)); !bytes.Equal(got, jsonContent) {
+		t.Fatalf("JSON config was modified: %q", got)
+	}
+	if got := []byte(readFile(t, jsoncPath)); !bytes.Equal(got, jsoncContent) {
+		t.Fatalf("JSONC config was modified: %q", got)
+	}
+}
+
+func TestOpenCodeSlimAgentSkillConfigIsMinimal(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", "..", ".."))
+	raw, err := os.ReadFile(filepath.Join(repoRoot, "config", "opencode", "oh-my-opencode-slim-agent-skills.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		Agents map[string]struct {
+			Skills []string `json:"skills"`
+		} `json:"agents"`
+	}
+	if err := json.Unmarshal(raw, &config); err != nil {
+		t.Fatal(err)
+	}
+	if len(config.Agents) != 1 {
+		t.Fatalf("expected only orchestrator config, got %v", config.Agents)
+	}
+	want := []string{"*", "!execution-harness", "!goal-context"}
+	if got := config.Agents["orchestrator"].Skills; strings.Join(got, "\x00") != strings.Join(want, "\x00") {
+		t.Fatalf("unexpected orchestrator skills: got %v, want %v", got, want)
+	}
 }
 
 func TestCodexMarketplaceConfiguredDetectsRepoMarketplace(t *testing.T) {

@@ -137,6 +137,9 @@ The installer creates symlinks (without overwriting existing files):
 - OpenCode (`$OPENCODE_HOME` or `~/.config/opencode`, if present):
   - `skills/* -> ~/git/ai-config/skills/*`
   - `AGENTS.md -> ~/git/ai-config/AGENTS.md`
+  - If an `oh-my-opencode-slim.jsonc` or `.json` config exists, prints a non-mutating reminder to
+    merge `config/opencode/oh-my-opencode-slim-agent-skills.json`; the installer never rewrites the
+    third-party config.
 - Antigravity CLI (`$ANTIGRAVITY_HOME` or `$GEMINI_HOME` or `~/.gemini`, if present):
   - `antigravity-cli/skills/* -> ~/git/ai-config/skills/*`
   - `GEMINI.md -> ~/git/ai-config/AGENTS.md`
@@ -205,6 +208,25 @@ ls -la ~/.gemini/antigravity-cli/skills ~/.gemini/GEMINI.md
 
 If `CODEX_HOME`, `CLAUDE_HOME`, `OPENCODE_HOME`, `ANTIGRAVITY_HOME`, or `GEMINI_HOME` is set, check that directory instead of the default path.
 
+### Optional: oh-my-opencode-slim skill routing
+
+OpenCode discovers skill descriptions first and loads full skill bodies on demand. Keep repo workflows
+owned by the slim Orchestrator while excluding the two runtime workflows that do not belong there:
+
+```json
+{
+  "agents": {
+    "orchestrator": {
+      "skills": ["*", "!execution-harness", "!goal-context"]
+    }
+  }
+}
+```
+
+Merge the tracked fragment from `config/opencode/oh-my-opencode-slim-agent-skills.json` into the
+top level of your existing slim config. Leave specialist skill lists unchanged; their built-in role
+prompts remain the source of truth for delegation. Run `oh-my-opencode-slim doctor` afterward.
+
 ## Usage
 
 ### 1) Baseline behavior
@@ -268,11 +290,12 @@ they point back to this repo; the installer will not delete existing user files.
 Skill creation follows a source-plus-surfaces model:
 
 - Shared/global source of truth lives in this repo at `skills/<skill-name>/`, then `./install.sh`
-  links provider surfaces such as `~/.agents/skills`, `~/.claude/skills`, and the configured
-  Gemini/Antigravity skills directory.
+  links provider surfaces such as `~/.agents/skills`, `~/.claude/skills`,
+  `~/.config/opencode/skills`, and the configured Gemini/Antigravity skills directory.
 - Project-local skills should still use one portable source plus provider surfaces. Prefer
   `<project>/.agents/skills/<skill-name>/` as the portable source and link
-  `<project>/.claude/skills/<skill-name>` when Claude project discovery is needed.
+  `<project>/.claude/skills/<skill-name>` when Claude project discovery is needed; use
+  `<project>/.opencode/skills/<skill-name>` when explicit OpenCode-local discovery is needed.
 - Do not default to `.codex/skills` as a duplicate mirror. Create it only when a project or
   provider requires that surface.
 - When creating or updating a skill, report the source of truth, surfaces created or skipped,

@@ -1,6 +1,6 @@
 # skill-creator
 
-Create and modernize portable `SKILL.md`-based skills for Codex, Claude, Gemini, or shared multi-provider use.
+Create and modernize portable `SKILL.md`-based skills for Codex, Claude, Gemini, OpenCode, or shared multi-provider use.
 
 ## What It Does
 
@@ -95,6 +95,7 @@ go run ./hooks-go/cmd/agent-config package-skill skills/my-new-skill ./dist
 - Codex: keep the shared `name` and `description` concise because routing starts there. For this repo, shared Codex skills are installed through `~/.agents/skills`; do not mirror to `.codex/skills` unless a project proves it needs that surface. For project-local skills, treat `.agents/skills` as the portable source convention and explicitly verify or report Codex discovery.
 - Claude: use overlays or provider-specific copies for `allowed-tools`, `disable-model-invocation`, and `user-invocable`. Project-local Claude skills should expose `.claude/skills/<skill-name>`, usually as a symlink to the portable source.
 - Gemini: keep the shared skill compatible with Agent Skills structure and avoid provider-specific shared frontmatter. Use extension packaging when Gemini requires package-level metadata.
+- OpenCode: expose shared skills through `~/.config/opencode/skills` or a compatible `.agents/skills` surface. Use `.opencode/skills/<skill-name>` for explicit project-local discovery; OpenCode lists skill metadata first and loads full bodies on demand.
 
 ## Placement Lifecycle
 

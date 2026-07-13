@@ -151,6 +151,7 @@ func InitSkill(out io.Writer, skillName, path string) error {
 	fmt.Fprintln(out, "   - shared repo skill: run this repo's ./install.sh when ready;")
 	fmt.Fprintln(out, "   - project-local skill: prefer .agents/skills as source, then verify or report Codex discovery;")
 	fmt.Fprintln(out, "   - link .claude/skills when Claude project discovery is needed;")
+	fmt.Fprintln(out, "   - use .opencode/skills when explicit OpenCode project discovery is needed;")
 	fmt.Fprintln(out, "   - create .codex/skills only when the project/provider explicitly requires or verifies it.")
 	fmt.Fprintln(out, "7. Run agent-config validate-skill when ready.")
 	return nil

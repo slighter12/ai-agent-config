@@ -2,9 +2,9 @@
 name: diagnose
 description: Diagnose bugs, failing behavior, flaky tests, performance regressions, and bottlenecks through a feedback-loop-first workflow. Use when the user reports something broken, failing, flaky, slow, throwing, regressing, or asks to debug/diagnose/root-cause/optimize it. Avoid when the user only wants implementation of an already-understood change, current-diff review, git workflow, or broad design planning.
 license: MIT
-compatibility: [codex, claude, gemini]
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.1.8"
+  version: "0.1.9"
 ---
 
 # Diagnose
@@ -77,3 +77,4 @@ Return:
 - v0.1.6 (2026-06-29): Define red-capable feedback loop criteria and stop condition for missing diagnostic evidence.
 - v0.1.7 (2026-07-03): Clarify that targeted reproduction is allowed as the diagnostic feedback loop.
 - v0.1.8 (2026-07-06): Add performance optimization routing and measurement-before-rewrite guardrails.
+- v0.1.9 (2026-07-13): Declare OpenCode compatibility for the provider-neutral diagnostic workflow.

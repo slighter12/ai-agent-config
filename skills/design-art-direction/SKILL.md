@@ -2,9 +2,9 @@
 name: design-art-direction
 description: "Apply page design and visual art direction for polished product UI, landing pages, and design critique: composition, typography, color, imagery, motion, and `.design/` reference packs. Use when aesthetics, visual hierarchy, brand feel, page style, or rejected UI design quality are primary. Avoid when frontend implementation mechanics, API contracts, security, or testing strategy are primary."
 license: MIT
-compatibility: [codex, claude, gemini]
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.3.2"
+  version: "0.3.3"
 ---
 
 # Design Art Direction
@@ -21,7 +21,7 @@ Use this skill to improve the look, hierarchy, and interaction feel of an experi
 - The user rejects a design or asks for a redesign, visual critique, or better product presentation.
 - A project includes a `.design/` directory that should guide visual direction.
 - Frontend implementation exists, but the main decision is what the UI should look and feel like.
-- A Codex workflow wants optional specialist critique through a configured design agent.
+- A coordinated workflow wants optional specialist critique through a configured design agent.
 
 ## Avoid When
 
@@ -42,7 +42,7 @@ Use this skill to improve the look, hierarchy, and interaction feel of an experi
    - Games and playful tools may be more expressive, animated, and illustrative.
 6. Prefer real or generated bitmap imagery when visual assets matter. Do not substitute decorative SVGs, gradients, or atmospheric blobs for the actual product or state the user needs to inspect.
 7. Check composition, hierarchy, contrast, type scale, spacing rhythm, color balance, empty states, loading states, and responsive behavior.
-8. In Codex, when the user rejects a design or asks for a stronger visual pass, the coordinator may route advisory critique or explicitly bounded low-risk edits to `page-designer`. Keep final judgment with the primary agent.
+8. When the runtime provides a configured design specialist and the user rejects a design or asks for a stronger visual pass, the coordinator may route advisory critique or explicitly bounded low-risk edits to that specialist. Keep final judgment with the coordinator.
 
 ## Design Rules
 
@@ -73,7 +73,7 @@ Return:
 - `summary`: visual direction or design changes recommended.
 - `design_context`: `.design/` files, screenshots, URLs, or components inspected.
 - `recommendations`: accepted visual hierarchy, layout, palette, typography, imagery, and motion decisions.
-- `handoff`: whether `policy-frontend`, `policy-api`, or a Codex-only `page-designer` advisory pass should own follow-up work.
+- `handoff`: whether `policy-frontend`, `policy-api`, or a configured design specialist should own follow-up work.
 - `manual_verification`: responsive and visual checks needed after implementation.
 
 ## Version History
@@ -83,3 +83,4 @@ Return:
 - v0.3.0 (2026-06-29): Merge design bridge guidance into this provider-neutral page design skill and use a generic Codex design agent handoff.
 - v0.3.1 (2026-07-03): Clarify ownership of detailed visual/product UI rules shared with frontend work.
 - v0.3.2 (2026-07-06): Add UX-first flow, state, recovery, and friction checks before visual polish.
+- v0.3.3 (2026-07-13): Add OpenCode compatibility and make design-specialist handoff provider-neutral.

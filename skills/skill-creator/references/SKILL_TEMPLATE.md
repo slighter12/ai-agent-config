@@ -1,6 +1,6 @@
 # SKILL.md Template
 
-Use this portable template when creating a shared skill for Codex, Claude, and Gemini.
+Use this portable template when creating a shared skill for Codex, Claude, Gemini, and OpenCode.
 
 ```md
 ---

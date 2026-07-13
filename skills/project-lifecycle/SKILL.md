@@ -2,9 +2,9 @@
 name: project-lifecycle
 description: "Coordinate lifecycle capture for project decisions, implementation pivots, phase boundaries, capture-worthy handoff notes, loop memory, discussion records, status/documentation drift, and workflow learning. Use when the user asks to close out a phase, checkpoint progress, sync decision/status docs, record a decision, record a capture-worthy handoff note, wrap up a session, decide what a loop should remember, or capture reusable workflow/skill lessons; also use when active work reaches a project-level capture candidate. Avoid when the task is still active planning, direct implementation, diagnosis, current-diff review, test-primary work, pure git workflow, pure handoff packaging, pure skill authoring, or broad orchestration with no lifecycle capture need."
 license: MIT
-compatibility: [codex, claude, gemini]
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.1.4"
+  version: "0.1.5"
 ---
 
 # Project Lifecycle
@@ -139,6 +139,7 @@ Return:
 
 ## Version History
 
+- v0.1.5 (2026-07-13): Declare OpenCode compatibility for the provider-neutral lifecycle workflow.
 - v0.1.4 (2026-07-03): Keep capture target values centralized in `references/CAPTURE_GATE.md`.
 - v0.1.3 (2026-06-30): Add minimal ADR-style capture thresholds without introducing a template system.
 - v0.1.2 (2026-06-21): Clarify loop state layers, active-state evidence pointers, human-review

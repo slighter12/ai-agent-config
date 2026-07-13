@@ -19,6 +19,7 @@ For this repo, shared personal skills use:
 - Source of truth: `ai-agent-config/skills/<skill-name>/`.
 - Codex shared surface: `~/.agents/skills/<skill-name>`.
 - Claude shared surface: `~/.claude/skills/<skill-name>`.
+- OpenCode shared surface: `~/.config/opencode/skills/<skill-name>`; OpenCode also discovers compatible global `.agents/skills` entries.
 - Gemini/Antigravity shared surface: configured Gemini/Antigravity skills directory, currently reached through `~/.gemini/antigravity-cli/skills`.
 
 Use this repo's `./install.sh` to create or refresh global symlinks. Do not treat `~/.codex/skills` as the default shared source or mirror for this repo; it may contain system, plugin, legacy, or personal skills.
@@ -30,6 +31,7 @@ Use the same lifecycle as shared skills, but keep the source inside the target p
 - Preferred portable source: `<project>/.agents/skills/<skill-name>/`. This is a source convention, not proof that every provider will discover the skill automatically.
 - Claude project surface: `<project>/.claude/skills/<skill-name>` symlinked to the portable source when project-local Claude discovery is needed.
 - Codex project surface: report Codex project discovery as verified, unverified, not configured, or provider-specific. Do not claim the skill is Codex-discoverable solely because `.agents/skills` exists. Create `<project>/.codex/skills/<skill-name>` only when the project or provider explicitly requires or verifies that surface.
+- OpenCode project surface: use `<project>/.opencode/skills/<skill-name>` when explicit OpenCode-local discovery is needed; compatible `<project>/.agents/skills/<skill-name>` entries are also discoverable.
 - Gemini/Antigravity project surface: use the project or extension packaging convention when one exists; otherwise report that Gemini discovery is not configured instead of inventing a hidden copy.
 
 Use symlinks when possible so there is one portable source. Copy only when a provider requires provider-specific frontmatter or packaging.

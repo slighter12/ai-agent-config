@@ -2,9 +2,9 @@
 name: planning-grill
 description: "Clarify ambiguous requirements, product goals, design intent, architecture tradeoffs, prototype decisions, roadmap/phase planning, bounded codebase architecture discovery, and implementation-ready plans before coding. Use when the user asks to discuss direction, compare options, challenge assumptions, validate a plan, decide whether a prototype is worth building, inspect architecture shape/coupling/seams, split an approved design into text-only slices, or turn fuzzy intent into goals, constraints, success criteria, non-goals, open questions, architecture candidates, phases, or a compact handoff. Avoid when the task is direct implementation, approved prototype building, diagnosis, current-diff review, test-primary work, pure testing strategy, git workflow, lifecycle capture, issue/ticket publishing, formal report writing, orchestration, or policy-only guidance."
 license: MIT
-compatibility: [codex, claude, gemini]
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.1.11"
+  version: "0.1.12"
 ---
 
 # Planning Grill
@@ -93,6 +93,7 @@ Return:
 - v0.1.9 (2026-06-29): Add decision-tree, domain-term sharpening, and prototype-decision guidance while keeping approved prototype artifacts in `implement-change`.
 - v0.1.10 (2026-06-30): Add context-dependent architecture style selection guidance without defaulting to DDD or Clean Architecture.
 - v0.1.11 (2026-06-30): Remove retired lifecycle skill id from history wording.
+- v0.1.12 (2026-07-13): Declare OpenCode compatibility for the provider-neutral planning workflow.
 
 ## References
 

@@ -2,9 +2,9 @@
 name: code-review
 description: "Review code or current git changes through sanity, project-profile-aware full, security, architecture-diff-risk, or release-readiness modes without using provider-native review mode. Use when the user asks to review current changes, current diff, staged or unstaged changes, a code path, full/thorough/firmware code review, security review, auth/token/secret/PII/log leak handling, deploy readiness, go-live blockers, release risk, or whether changes are reasonable, coherent, safe to keep, or ready for follow-up. Ask one routing question when the user only says review this and the target could be code, design, git metadata, release readiness, or session/process review. Avoid when the task is design or architecture direction, whole-codebase architecture discovery, implementation fixes, commit/branch/PR metadata, session retrospective, external issue triage, or non-code artifact review."
 license: MIT
-compatibility: [codex, claude, gemini]
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.2.10"
+  version: "0.2.11"
 ---
 
 # Code Review
@@ -49,7 +49,7 @@ Provide an independent code review workflow for current diffs, focused code path
    - `release-readiness`: explicit release audit, deploy readiness, go-live blocker, rollback risk, or safe-to-ship review.
 2. If the prompt only says "review" and the target is unclear, ask one question to distinguish current diff, code path, design/architecture direction, git metadata, release readiness, or session/process review.
 3. Infer the project profile from repo and prompt facts before setting review depth: application, library/SDK, infrastructure, firmware/embedded, security-sensitive, docs/skill repo, or mixed.
-4. If the review appears high-impact, cross-layer, security-sensitive, firmware/safety-critical, too large for one context, or likely to need independent perspectives, ask whether to escalate through `execution-harness` or multi-agent review.
+4. Routing an initial review to the runtime's configured review specialist is normal execution, not multi-agent escalation. If the review appears high-impact, cross-layer, security-sensitive, firmware/safety-critical, too large for one context, or likely to need additional independent perspectives beyond that configured lane, ask whether to escalate through `execution-harness` or broader multi-agent review.
 5. Establish a clean review frame using current git state, relevant diffs or code paths, nearby files, repo rules, and active policy references.
 6. Before finalizing the verdict, load the corresponding `policy-*` skill when that policy area materially affects correctness, safety, or acceptance. This is a hard gate for API contracts, security/auth/secrets/PII, verification strategy, runtime/deploy/config behavior, and language/framework ownership boundaries. Do not load unrelated policy skills for routine review surfaces where the review frame fully covers the risk.
 7. Inspect enough evidence for the selected mode and project profile; keep `sanity` bounded, but allow `full` and `security` to widen scope when the risk justifies it.
@@ -94,7 +94,7 @@ In the challenge pass:
 - Do not deploy, tag, publish, run migrations, rotate secrets, clear caches, or change remote infrastructure.
 - Do not stage, commit, push, or create PRs.
 - Do not rely on hidden conversation context from another session as evidence.
-- Do not silently spawn subagents; ask or route to `execution-harness` when escalation is needed and not already requested.
+- Do not silently spawn additional subagents. A configured coordinator may route the initial review to its designated specialist without asking; further escalation requires approval unless already requested.
 
 ## Output
 
@@ -134,6 +134,7 @@ Return:
 - v0.2.8 (2026-06-29): Align release-readiness output contract across references.
 - v0.2.9 (2026-07-03): Fix portable review evidence paths, staged diff inspection, output reference wording, and git-flow boundary guidance.
 - v0.2.10 (2026-07-03): Generalize harness diff gate wording away from local runtime role names.
+- v0.2.11 (2026-07-13): Add OpenCode compatibility and distinguish configured review routing from broader multi-agent escalation.
 
 ## References
 

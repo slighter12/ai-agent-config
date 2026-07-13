@@ -121,6 +121,7 @@ func (c Config) Install() error {
 		if err := c.createSymlink(filepath.Join(c.RepoRoot, "AGENTS.md"), filepath.Join(c.OpenCodeHome, "AGENTS.md")); err != nil {
 			return err
 		}
+		c.printOpenCodeSlimSkillSetup()
 	} else {
 		c.printf("   - OpenCode home not found, skipping: %s\n", c.OpenCodeHome)
 	}
@@ -172,6 +173,19 @@ func (c Config) Install() error {
 	c.println("   2. Update skills and config/codex-agents as needed.")
 	c.println("   3. Run this script again after pulling updates.")
 	return nil
+}
+
+func (c Config) printOpenCodeSlimSkillSetup() {
+	for _, name := range []string{"oh-my-opencode-slim.jsonc", "oh-my-opencode-slim.json"} {
+		configPath := filepath.Join(c.OpenCodeHome, name)
+		if !fileExists(configPath) {
+			continue
+		}
+		c.printf("   i oh-my-opencode-slim config detected: %s\n", configPath)
+		c.printf("     Merge agent skill routing from: %s\n", filepath.Join(c.RepoRoot, "config", "opencode", "oh-my-opencode-slim-agent-skills.json"))
+		c.println("     Existing slim config left unchanged.")
+		return
+	}
 }
 
 func (c Config) SetupCodexConfig() error {

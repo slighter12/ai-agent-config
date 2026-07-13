@@ -3,7 +3,7 @@
 Use this index to select the needed template while creating or updating skills.
 
 - `SKILL_TEMPLATE.md` - SKILL.md frontmatter/body template and quick checklist
-- `AUTHORING_STANDARDS.md` - Portable rules for Codex, Claude, Gemini, and Agent Skills-compatible clients
+- `AUTHORING_STANDARDS.md` - Portable rules for Codex, Claude, Gemini, OpenCode, and Agent Skills-compatible clients
 - `workflows.md` - Workflow shape guidance for sequential and conditional skills
 - `output-patterns.md` - Output contract examples for strict and flexible responses
 - `SKILL_INTAKE_AND_EVALUATION.md` - External skill intake, skill-change routing probes, and AGENTS/CLAUDE guidance checks

@@ -1,15 +1,16 @@
 ---
 name: skill-creator
-description: Create, update, evaluate, or safely integrate portable CLI skills, including third-party skill intake, source placement, provider surfaces, validation, packaging, and install/discovery status. Use when the user asks to create, revise, validate, package, modernize, evaluate skill changes, decide placement for a SKILL.md-based skill, or adapt external skill guidance for Codex, Claude, Gemini, project-local, or shared multi-provider use, or when `project-lifecycle` has an approved shared skill capture candidate. Avoid when the task is only application code changes, ordinary documentation edits, lifecycle capture triage, or third-party skill installation without authoring changes.
+description: Create, update, evaluate, or safely integrate portable CLI skills, including third-party skill intake, source placement, provider surfaces, validation, packaging, and install/discovery status. Use when the user asks to create, revise, validate, package, modernize, evaluate skill changes, decide placement for a SKILL.md-based skill, or adapt external skill guidance for Codex, Claude, Gemini, OpenCode, project-local, or shared multi-provider use, or when `project-lifecycle` has an approved shared skill capture candidate. Avoid when the task is only application code changes, ordinary documentation edits, lifecycle capture triage, or third-party skill installation without authoring changes.
+compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.2.10"
+  version: "0.2.11"
 ---
 
 # skill-creator
 
 ## Purpose
 
-Create high-signal, portable skills that work well across Codex, Claude, and Gemini by default. Treat skill creation as a lifecycle: evaluate whether the workflow belongs in a skill, choose the source of truth, create or update the portable `SKILL.md`, sync provider discovery surfaces when appropriate, validate, and report install/discovery status.
+Create high-signal, portable skills that work well across Codex, Claude, Gemini, and OpenCode by default. Treat skill creation as a lifecycle: evaluate whether the workflow belongs in a skill, choose the source of truth, create or update the portable `SKILL.md`, sync provider discovery surfaces when appropriate, validate, and report install/discovery status.
 
 ## Use When
 
@@ -72,6 +73,7 @@ If a user asks for one file that must run everywhere, keep provider-specific con
    - shared repo skills use this repo's installer to link supported global surfaces;
    - project-local skills use one canonical project source plus provider surfaces; `.agents/skills/<name>` is the preferred portable source convention, not proof of Codex project discovery;
    - link `.claude/skills/<name>` when Claude project discovery is needed, and report Codex project discovery as verified, unverified, not configured, or provider-specific;
+   - use `.opencode/skills/<name>` when explicit project-local OpenCode discovery is needed; OpenCode also discovers compatible `.agents/skills` surfaces and loads skill bodies on demand;
    - `.codex/skills` is not the default shared or project-local mirror for this repo; create it only when a project/provider explicitly requires or verifies that surface.
 11. Run or recommend `agent-config validate-skill` when validation is requested or required by the packaging workflow.
 12. Return a concise summary of changed skill behavior, placement, provider-specific notes, validation, and manual verification checklist.
@@ -86,7 +88,7 @@ Return:
 - `provider_surfaces`: paths created, linked, already present, skipped, not configured, or unverified.
 - `validation`: checks run or why they were skipped.
 - `install_status`: whether shared install, project-local symlinks, provider packaging, or discovery checks were performed or skipped.
-- `provider_notes`: Codex, Claude, and Gemini compatibility implications.
+- `provider_notes`: Codex, Claude, Gemini, and OpenCode compatibility implications.
 - `assumptions`: correctness-relevant assumptions only.
 - `manual_verification`: focused checklist for routing, validation, and packaging.
 
@@ -103,6 +105,7 @@ Return:
 - v0.2.8 (2026-06-29): Clarify handoff boundaries for install-only and read-only review cases.
 - v0.2.9 (2026-07-03): Clarify provider-specific install handoff and prose-first output contracts.
 - v0.2.10 (2026-07-03): Align output examples with no-scope commit style and refresh README coverage.
+- v0.2.11 (2026-07-13): Add OpenCode compatibility, discovery surfaces, and on-demand skill-loading guidance.
 
 ## References
 
