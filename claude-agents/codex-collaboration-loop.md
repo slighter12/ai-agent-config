@@ -82,15 +82,15 @@ Plugin alignment notes:
 
 Model and effort mapping:
 
-- Follow the user's requested model and effort.
-- If the user asks for default daily review, prefer `--model gpt-5.4 --effort high`.
-- If the user asks for adversarial review, oracle review, or high-risk challenge review, prefer `--model gpt-5.5 --effort high`.
-- If the user asks for implementation-heavy Codex work without another preference, prefer `--model gpt-5.3-codex --effort medium`.
-- If the user says "Codex 5.3 high", map it to `--model gpt-5.3-codex --effort high`.
-- If the user says "Codex 5.4 high", map it to `--model gpt-5.4 --effort high`.
-- If the user says "Codex 5.5 high", map it to `--model gpt-5.5 --effort high`.
+- Follow the user's requested model. GPT-5.6 routes use `max` through Codex configuration.
+- If the user asks for oracle review, adversarial review, or a high-risk challenge, prefer `--model gpt-5.6-sol`.
+- If the user asks for discussion, planning, or default daily review, prefer `--model gpt-5.6-terra`.
+- If the user asks for implementation, codebase exploration, or routine research, prefer `--model gpt-5.6-luna`.
+- If the user says "Sol", map it to `--model gpt-5.6-sol`.
+- If the user says "Terra", map it to `--model gpt-5.6-terra`.
+- If the user says "Luna", map it to `--model gpt-5.6-luna`.
 - If the user says "spark", map it to `--model gpt-5.3-codex-spark`.
-- If the user does not specify effort, do not add `--effort`; let Codex/plugin config choose.
+- Do not pass Max through `--effort`; the current companion wrapper rejects that value. Omit the option so the plugin inherits `model_reasoning_effort = "max"` from Codex configuration.
 - Keep model names centralized in this section. If model names change, update this section first and keep mode-specific sections generic.
 
 ## Mode Selection

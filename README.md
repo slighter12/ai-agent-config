@@ -361,7 +361,7 @@ config-declared role that points at a separate `config_file`; this repo does not
 Codex role files in `config/codex-agents/*.toml` can include:
 
 - `model`: model id used by the role
-- `model_reasoning_effort`: `low|medium|high|xhigh`
+- `model_reasoning_effort`: `low|medium|high|xhigh|max`
 - `service_tier`: optional request tier such as `fast`
 - `default_permissions`: optional permission profile such as `:read-only` for read-only roles;
   do not put custom write profiles such as `workspace-git` in standalone role files because current
@@ -375,21 +375,23 @@ Important compatibility note:
 
 Default Codex profile in this repo:
 
-- `orchestrator`: `gpt-5.5` + `high` + `fast`
-- `explorer`: `gpt-5.5` + `medium` + `fast`
-- `builder`: `gpt-5.3-codex` + `medium`
+- `orchestrator`: `gpt-5.6-terra` + `max`
+- `explorer`: `gpt-5.6-luna` + `max`
+- `builder`: `gpt-5.6-luna` + `max`
 - `git-commit`: `gpt-5.3-codex-spark` + `low`; explicit CLI runs can layer the separate `workspace-git` profile
-- `reviewer`: `gpt-5.4` + `high` + `fast` + `:read-only`
-- `oracle`: `gpt-5.5` + `high` + `:read-only`
-- `librarian`: `gpt-5.4` + `medium` + `fast`
-- `test-runner`: `gpt-5.3-codex-spark` + `low`
+- `reviewer`: `gpt-5.6-terra` + `max` + `:read-only`
+- `oracle`: `gpt-5.6-sol` + `max` + `:read-only`
+- `librarian`: `gpt-5.6-luna` + `max`
+- `test-runner`: `gpt-5.6-luna` + `max`
+- `page-designer`: `gpt-5.6-luna` + `max`
 
 Why this mix:
 
-- `gpt-5.3-codex` stays on implementation-heavy work where prior results have been strong.
-- `gpt-5.4` handles daily review where official Codex subagent examples favor a high-effort reviewer profile.
-- `gpt-5.5` is reserved for high-precision coordination and manual challenge passes.
-- `gpt-5.3-codex-spark` stays on narrow deterministic validation and simple git workflow execution where speed matters, with strict prompts to preserve commit quality.
+- `gpt-5.6-sol` is reserved for manual high-risk oracle and challenge passes.
+- `gpt-5.6-terra` handles orchestration and daily review.
+- `gpt-5.6-luna` handles implementation, exploration, research, design, and routine validation.
+- All GPT-5.6 roles use `max`; they do not request Fast mode because it is not supported for GPT-5.6 and consumes credits at a higher rate on supported models.
+- `gpt-5.3-codex-spark` stays on simple git workflow execution where speed matters, with strict prompts to preserve commit quality.
 
 For Codex simple git actions, the `ai-agent-git-routing` `UserPromptSubmit` hook is the repo
 owner's explicit standing delegation request for direct branch, commit, push, or PR prompts over
@@ -538,7 +540,7 @@ and `project-lifecycle` across the standard installed and repo-local skill paths
 still see shared skills from their global skill directories, so their role prompts carry explicit
 guardrails against self-applying harness or lifecycle workflow.
 
-CLIProxyAPI is optional and must be started outside this repo. The shared `design-art-direction` skill owns page design and style guidance for all providers; Codex may route bounded UI or visual design critique through the `page-designer` agent when that provider is configured. The shell helper reads the local proxy client key from `~/.codex/secrets/cliproxyapi_api_key` and exposes it as `CLIPROXYAPI_API_KEY` for Codex; upstream provider OAuth remains managed by CLIProxyAPI itself. Normal workflows do not depend on CLIProxyAPI, and this repo does not install or start it.
+CLIProxyAPI is optional and must be started outside this repo. The shared `design-art-direction` skill owns page design and style guidance for all providers, while the default `page-designer` agent now uses the standard `gpt-5.6-luna` + `max` profile. The shell helper still reads the local proxy client key from `~/.codex/secrets/cliproxyapi_api_key` and exposes it as `CLIPROXYAPI_API_KEY` for Codex when present; upstream provider OAuth remains managed by CLIProxyAPI itself. Normal workflows do not depend on CLIProxyAPI, and this repo does not install or start it.
 
 Context7 is also optional. Codex role MCP definitions are generated from
 `config/codex-agents/role-manifest.json`; a generated MCP is enabled only when the role allows it,

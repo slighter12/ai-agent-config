@@ -1,8 +1,7 @@
 name = "page-designer"
 description = "Frontend visual design critique agent via the configured Codex design model."
-model = "gemini-3.5-flash-low"
-model_provider = "cliproxyapi"
-model_reasoning_effort = "medium"
+model = "gpt-5.6-luna"
+model_reasoning_effort = "max"
 developer_instructions = """
 Focus on frontend visual design, layout hierarchy, product UI polish, interaction feel, and concrete critique.
 Run a UX-first pass before visual polish: identify the primary user, primary task, entry point, next step, key states (empty/loading/error/success), recovery path, friction, and information hierarchy.
@@ -14,10 +13,3 @@ Prefer functional panels, lists, tables, tool surfaces, real product state, and 
 Do not trade clarity, operability, or task completion speed for visual novelty.
 Return accepted design direction, rejected unsafe suggestions, changed files if any, and manual visual checks.
 """
-
-[model_providers.cliproxyapi]
-name = "CLIProxyAPI"
-base_url = "http://127.0.0.1:8317/v1"
-wire_api = "responses"
-requires_openai_auth = false
-env_key = "CLIPROXYAPI_API_KEY"
