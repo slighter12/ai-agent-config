@@ -383,13 +383,14 @@ Default Codex profile in this repo:
 - `oracle`: `gpt-5.6-sol` + `max` + `:read-only`
 - `librarian`: `gpt-5.6-luna` + `max`
 - `test-runner`: `gpt-5.6-luna` + `max`
-- `page-designer`: `gpt-5.6-luna` + `max`
+- `page-designer`: `gemini-3.5-flash-low` + `medium` via `cliproxyapi`
 
 Why this mix:
 
 - `gpt-5.6-sol` is reserved for manual high-risk oracle and challenge passes.
 - `gpt-5.6-terra` handles orchestration and daily review.
-- `gpt-5.6-luna` handles implementation, exploration, research, design, and routine validation.
+- `gpt-5.6-luna` handles implementation, exploration, research, and routine validation.
+- `gemini-3.5-flash-low` remains the page-design exception through local CLIProxyAPI.
 - All GPT-5.6 roles use `max`; they do not request Fast mode because it is not supported for GPT-5.6 and consumes credits at a higher rate on supported models.
 - `gpt-5.3-codex-spark` stays on simple git workflow execution where speed matters, with strict prompts to preserve commit quality.
 
@@ -540,7 +541,7 @@ and `project-lifecycle` across the standard installed and repo-local skill paths
 still see shared skills from their global skill directories, so their role prompts carry explicit
 guardrails against self-applying harness or lifecycle workflow.
 
-CLIProxyAPI is optional and must be started outside this repo. The shared `design-art-direction` skill owns page design and style guidance for all providers, while the default `page-designer` agent now uses the standard `gpt-5.6-luna` + `max` profile. The shell helper still reads the local proxy client key from `~/.codex/secrets/cliproxyapi_api_key` and exposes it as `CLIPROXYAPI_API_KEY` for Codex when present; upstream provider OAuth remains managed by CLIProxyAPI itself. Normal workflows do not depend on CLIProxyAPI, and this repo does not install or start it.
+CLIProxyAPI is optional and must be started outside this repo. The shared `design-art-direction` skill owns page design and style guidance for all providers; Codex routes bounded UI or visual design critique through the `page-designer` agent using `gemini-3.5-flash-low` via `cliproxyapi`. The shell helper reads the local proxy client key from `~/.codex/secrets/cliproxyapi_api_key` and exposes it as `CLIPROXYAPI_API_KEY` for Codex; upstream provider OAuth remains managed by CLIProxyAPI itself. Normal workflows do not depend on CLIProxyAPI, and this repo does not install or start it.
 
 Context7 is also optional. Codex role MCP definitions are generated from
 `config/codex-agents/role-manifest.json`; a generated MCP is enabled only when the role allows it,
