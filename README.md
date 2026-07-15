@@ -381,7 +381,7 @@ Default Codex profile in this repo:
 - `git-commit`: `gpt-5.3-codex-spark` + `low`; explicit CLI runs can layer the separate `workspace-git` profile
 - `reviewer`: `gpt-5.6-terra` + `max` + `:read-only`
 - `oracle`: `gpt-5.6-sol` + `max` + `:read-only`
-- `librarian`: `gpt-5.6-luna` + `max`
+- `librarian`: `gpt-5.3-codex-spark` + `high`
 - `test-runner`: `gpt-5.6-luna` + `max`
 - `page-designer`: `gemini-3.5-flash-low` + `medium` via `cliproxyapi`
 
@@ -389,10 +389,10 @@ Why this mix:
 
 - `gpt-5.6-sol` is reserved for manual high-risk oracle and challenge passes.
 - `gpt-5.6-terra` handles orchestration and daily review.
-- `gpt-5.6-luna` handles implementation, exploration, research, and routine validation.
+- `gpt-5.6-luna` handles implementation, exploration, and routine validation.
 - `gemini-3.5-flash-low` remains the page-design exception through local CLIProxyAPI.
 - All GPT-5.6 roles use `max`; they do not request Fast mode because it is not supported for GPT-5.6 and consumes credits at a higher rate on supported models.
-- `gpt-5.3-codex-spark` stays on simple git workflow execution where speed matters, with strict prompts to preserve commit quality.
+- `gpt-5.3-codex-spark` handles simple git workflows and bounded source research where speed matters; the main agent retains judgment and synthesis.
 
 For Codex simple git actions, the `ai-agent-git-routing` `UserPromptSubmit` hook is the repo
 owner's explicit standing delegation request for direct branch, commit, push, or PR prompts over
