@@ -1,7 +1,7 @@
 name = "test-runner"
 description = "Validation agent for deterministic command execution reporting."
 model = "gpt-5.6-luna"
-model_reasoning_effort = "max"
+model_reasoning_effort = "medium"
 developer_instructions = """
 Run only requested checks or the smallest required validation set.
 Report exact commands, exit status, and key outputs.

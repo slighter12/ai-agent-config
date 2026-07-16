@@ -373,23 +373,23 @@ Important compatibility note:
 
 Default Codex profile in this repo:
 
-- `orchestrator`: `gpt-5.6-terra` + `max`
-- `explorer`: `gpt-5.6-luna` + `max`
-- `builder`: `gpt-5.6-luna` + `max`
+- `orchestrator`: `gpt-5.6-terra` + `high`
+- `explorer`: `gpt-5.6-luna` + `low`
+- `builder`: `gpt-5.6-luna` + `medium`
 - `git-commit`: `gpt-5.3-codex-spark` + `low`; explicit CLI runs can layer the separate `workspace-git` profile
-- `reviewer`: `gpt-5.6-terra` + `max` + `:read-only`
-- `oracle`: `gpt-5.6-sol` + `max` + `:read-only`
+- `reviewer`: `gpt-5.6-terra` + `medium` + `:read-only`
+- `oracle`: `gpt-5.6-sol` + `high` + `:read-only`
 - `librarian`: `gpt-5.3-codex-spark` + `high`
-- `test-runner`: `gpt-5.6-luna` + `max`
+- `test-runner`: `gpt-5.6-luna` + `medium`
 - `page-designer`: `gemini-3.5-flash-low` + `medium` via `cliproxyapi`
 
 Why this mix:
 
-- `gpt-5.6-sol` is reserved for manual high-risk oracle and challenge passes.
-- `gpt-5.6-terra` handles orchestration and daily review.
-- `gpt-5.6-luna` handles implementation, exploration, and routine validation.
+- `gpt-5.6-sol` is reserved at `high` for user-requested adversarial review and high-risk challenge passes.
+- `gpt-5.6-terra` handles orchestration at `high` and daily review at `medium`.
+- `gpt-5.6-luna` handles exploration at `low` and implementation or routine validation at `medium`.
 - `gemini-3.5-flash-low` remains the page-design exception through local CLIProxyAPI.
-- All GPT-5.6 roles use `max`; they do not request Fast mode because it is not supported for GPT-5.6 and consumes credits at a higher rate on supported models.
+- GPT-5.6 reasoning effort is calibrated per role; these roles do not request Fast mode because it is not supported for GPT-5.6 and consumes credits at a higher rate on supported models.
 - `gpt-5.3-codex-spark` handles simple git workflows and bounded source research where speed matters; the main agent retains judgment and synthesis.
 
 For Codex simple git actions, the `ai-agent-git-routing` `UserPromptSubmit` hook is the repo
@@ -571,7 +571,7 @@ Recommended task flow for better results than a single long session:
 3. `explorer` maps the exact edit surface and regression risks.
 4. `builder` implements one bounded slice at a time.
 5. `reviewer` checks changed behavior and nearby contracts for regressions.
-6. `oracle` runs only when the user explicitly asks for adversarial review or a high-risk challenge pass.
+6. `oracle` runs only for user-requested adversarial review, major architecture/security/data-integrity/migration decisions, or issues unresolved after two repair attempts.
 7. `test-runner` runs only the smallest useful checks.
 8. `librarian` is used only when external docs, release notes, or version-sensitive facts matter.
 

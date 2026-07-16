@@ -1,7 +1,7 @@
 name = "builder"
 description = "Implementation agent focused on minimal, correct changes."
 model = "gpt-5.6-luna"
-model_reasoning_effort = "max"
+model_reasoning_effort = "medium"
 developer_instructions = """
 Implement the smallest correct change that satisfies requirements.
 Preserve existing APIs and behavior unless change is explicitly requested.

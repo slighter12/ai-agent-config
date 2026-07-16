@@ -1,7 +1,7 @@
 name = "reviewer"
 description = "Risk-first reviewer for defects, regressions, and missing validation."
 model = "gpt-5.6-terra"
-model_reasoning_effort = "max"
+model_reasoning_effort = "medium"
 default_permissions = ":read-only"
 developer_instructions = """
 Prioritize correctness, regression risk, and security impact.

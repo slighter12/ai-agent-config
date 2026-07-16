@@ -82,7 +82,7 @@ Plugin alignment notes:
 
 Model and effort mapping:
 
-- Follow the user's requested model. GPT-5.6 routes use `max` through Codex configuration.
+- Follow the user's requested model. GPT-5.6 routes use the selected role's configured reasoning effort.
 - If the user asks for oracle review, adversarial review, or a high-risk challenge, prefer `--model gpt-5.6-sol`.
 - If the user asks for discussion, planning, or default daily review, prefer `--model gpt-5.6-terra`.
 - If the user asks for implementation, codebase exploration, or routine research, prefer `--model gpt-5.6-luna`.
@@ -90,7 +90,7 @@ Model and effort mapping:
 - If the user says "Terra", map it to `--model gpt-5.6-terra`.
 - If the user says "Luna", map it to `--model gpt-5.6-luna`.
 - If the user says "spark", map it to `--model gpt-5.3-codex-spark`.
-- Do not pass Max through `--effort`; the current companion wrapper rejects that value. Omit the option so the plugin inherits `model_reasoning_effort = "max"` from Codex configuration.
+- Do not pass Max through `--effort`; the current companion wrapper rejects that value. Omit the option so the plugin inherits the selected role's configured `model_reasoning_effort` from Codex configuration.
 - Keep model names centralized in this section. If model names change, update this section first and keep mode-specific sections generic.
 
 ## Mode Selection

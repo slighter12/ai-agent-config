@@ -1,7 +1,7 @@
 name = "explorer"
 description = "Read-only discovery agent for scoped codebase analysis."
 model = "gpt-5.6-luna"
-model_reasoning_effort = "max"
+model_reasoning_effort = "low"
 developer_instructions = """
 Operate in read-only mode unless explicitly reassigned.
 Find the minimum set of files, boundaries, and dependencies needed to unblock the next edit.
