@@ -325,9 +325,7 @@ skills.
 Codex hooks, skills, and agents intentionally overlap but do not replace each other. Hooks provide deterministic
 provider-specific guardrails or routing context, such as git workflow reminders. Skills decide the workflow
 contract. Agents are runtime roles used only when delegation is concrete and worth the cost. For
-`execution-harness`, asking for a harness does not automatically delegate to the runtime `orchestrator` role:
-the main assistant first decides whether the task is direct work, local orchestration, or large enough for
-delegated orchestrator or team-lead scheduling.
+`execution-harness`, asking for a harness activates coordination but does not automatically delegate to the runtime `orchestrator` role. The main assistant first chooses direct work or an active harness, then chooses local coordination unless the user explicitly requests an orchestrator/team or the work needs three independent lanes, sustained cross-session scheduling, or arbitration. A selected runtime orchestrator consumes that contract instead of re-evaluating activation.
 
 ### 5) Multi-agent workflow
 

@@ -1,6 +1,6 @@
 # Verification Gates
 
-The harness asks what evidence is needed before continuing. `policy-testing` owns the answer.
+The harness coordinates the evidence selected before continuing. `policy-testing` owns verification type and depth.
 
 ## Gate Types
 

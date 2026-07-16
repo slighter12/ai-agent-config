@@ -216,6 +216,10 @@ Run at least two independent probes when comparing before/after behavior. A prom
 | R18 | Use a specialist designer to critique the visual layout before I implement it. | `design-art-direction` | `policy-frontend` | `policy-frontend` | Specialist critique is advisory; primary agent keeps final judgment. |
 | R19 | I am not sure what to build yet; ask me the right questions and then give me a plan. | `planning-grill` | none | `execution-harness`, `policy-core` | Explore discoverable facts before asking preference questions. |
 | R20 | The test suite is flaky around timeouts; figure out why. | `diagnose` | `policy-testing`, language policy | `policy-testing` | Improve reproduction rate and isolate time/concurrency variables. |
+| R21 | Use a harness for two linear phases and one specialist handoff. | `execution-harness` with `main_agent` | task skills by phase | runtime `orchestrator` by default | Harness activation does not itself delegate a runtime orchestrator. |
+| R22 | Use a harness with three independent specialist lanes across two sessions. | `execution-harness` with runtime orchestrator when available | task skills by phase | `main_agent` as the only coordinator | Delegation needs independent lanes or sustained scheduling. |
+| R23 | The harness phase is complete; no decision, pivot, status drift, or handoff lesson emerged. | `execution-harness` | none | `project-lifecycle` | Close the phase without lifecycle classification. |
+| R24 | The harness phase produced an accepted decision and documentation drift. | `execution-harness` with lifecycle candidate | `project-lifecycle` | `execution-harness` as lifecycle classifier | Harness passes facts; lifecycle chooses the capture target. |
 
 ## Matt Skills Refresh Prompt Fixture
 

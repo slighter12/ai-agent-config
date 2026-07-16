@@ -4,7 +4,7 @@ description: "Coordinate lifecycle capture for project decisions, implementation
 license: MIT
 compatibility: [codex, claude, gemini, opencode]
 metadata:
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # Project Lifecycle
@@ -36,8 +36,8 @@ Goal Briefs, handoff references, result docs, or explicit active-state checkpoin
 - An active `implement-change` task discovers an implementation pivot, scope change, or product or
   architecture decision that should be surfaced instead of silently disappearing into the final
   answer.
-- `execution-harness` reaches a phase, final, capture-worthy handoff note, loop checkpoint, or
-  capture gate.
+- `execution-harness` passes a concrete lifecycle candidate from a phase, final, handoff note, or
+  loop checkpoint.
 
 ## Avoid When
 
@@ -139,6 +139,7 @@ Return:
 
 ## Version History
 
+- v0.1.6 (2026-07-16): Require a concrete harness lifecycle candidate before classification so ordinary phase completion does not trigger capture.
 - v0.1.5 (2026-07-13): Declare OpenCode compatibility for the provider-neutral lifecycle workflow.
 - v0.1.4 (2026-07-03): Keep capture target values centralized in `references/CAPTURE_GATE.md`.
 - v0.1.3 (2026-06-30): Add minimal ADR-style capture thresholds without introducing a template system.

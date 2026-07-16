@@ -7,12 +7,10 @@ narrower domain skills.
 ## In Scope
 
 - Coordinate multi-phase work.
-- Decide which gate is needed before continuing.
+- Coordinate the selected gate before continuing; narrower owners choose gate-specific strategy.
 - Route work to the narrowest owner skill or agent role.
 - Keep assumptions, blockers, status, and next action visible.
-- Route lifecycle capture when accepted decisions, implementation pivots, status or documentation
-  drift, capture-worthy handoff notes, loop active state, discussion records, or reusable workflow
-  lessons need classification.
+- Pass a concrete lifecycle candidate to `project-lifecycle` when capture classification is needed.
 - Propose learning candidates when a workflow is reusable.
 
 ## Out Of Scope

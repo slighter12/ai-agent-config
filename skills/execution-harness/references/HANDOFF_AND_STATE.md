@@ -4,17 +4,16 @@ Use lightweight state tracking. Avoid formal ceremony unless it prevents confusi
 
 ## Handoff Fields
 
-Include:
+Required:
 
 - `owner`: role or skill responsible for the next step.
 - `goal`: bounded outcome.
 - `inputs`: paths, diffs, links, commands, or constraints needed.
 - `acceptance`: evidence that proves the step is done.
 - `blockers`: unresolved blockers only.
-- `suggested_skills`: narrow skills the next owner should consider, or `none`.
-- `redaction_notes`: sensitive data removed or still requiring care.
-- `brief`: concise context the next owner needs before acting.
 - `return`: expected output shape.
+
+Add `suggested_skills` or `brief` only when they change the next owner's work. Before every handoff, inspect all fields for secrets, credentials, PII, private URLs, or raw request/response bodies. If any field may contain them, redact it before handoff and include `redaction_notes`; notes may name only the field and data type, never the raw value.
 
 ## Agent Selection Fields
 
@@ -38,7 +37,7 @@ For each selected delegated agent, include:
 - `spawn_timing`: when to delegate, including ordering gates.
 - `selection_reason`: why this role is the lowest-cost capable fit.
 
-If no delegated agents are selected, still write `agent_selection`; use `orchestration_owner: main_agent` for a local harness plan or `orchestration_owner: none` for a single-agent fallback.
+If no delegated agents are selected, still write `agent_selection`; use `orchestration_owner: main_agent` for an active local harness plan or `orchestration_owner: none` only for a non-activated single-agent fallback.
 
 Example:
 
@@ -68,38 +67,14 @@ Keep one short source of truth for:
 - Verification status.
 - Next action.
 
-For long-running, repeated, or multi-session phases, also track:
-
-- `work_unit`: smallest verifiable unit.
-- `evaluator_contract`: evidence that proves the phase gate and where it is surfaced.
-- `verified_progress`: accepted progress, rejected evidence, and evidence pointers.
-- `stop_or_escalate`: retry, turn, blocker, tool-failure, budget, and human-review stops.
+For long-running, repeated, or multi-session phases, carry `work_unit`, `evaluator_contract`, `verified_progress`, `claim_boundary`, `stop_or_escalate`, `metric_type`, and `context_layers` from the phase plan. Do not restate their semantics in the handoff.
 
 This state guides the next action; it does not prove final completion by itself.
 
 ## Lifecycle Capture Candidates
 
-At completion or a phase boundary, create a `project-lifecycle` handoff when there is an accepted
-decision, implementation pivot, status or documentation drift, capture-worthy handoff note, loop
-active state, discussion record, or reusable workflow candidate worth classifying.
-
-Use `project-lifecycle` and its `references/CAPTURE_GATE.md` target list to classify the candidate.
-Shared skill updates require explicit user approval and `skill-creator` review.
+At completion or a phase boundary, create a fact-only `project-lifecycle` handoff when a concrete capture signal is present. `project-lifecycle` owns target classification. Shared skill updates still require explicit user approval and `skill-creator` review.
 
 ## Phase Boundary Candidates
 
-At phase completion, route each remaining gate to the narrowest owner. Use `project-lifecycle` only
-for capture-worthy lifecycle signals, not as the silent owner for standalone review, verification,
-commit readiness, or handoff packaging gates.
-
-- Accepted decision or status docs sync -> `project-lifecycle`.
-- Implementation pivot, deferred scope, or rejected approach -> `project-lifecycle`.
-- Documentation drift -> `project-lifecycle`.
-- Current diff or code risk review -> `code-review`.
-- Missing verification evidence -> active task owner with `policy-testing` guidance.
-- Commit readiness or PR flow -> `conventional-git-flow` when the user asks for git actions.
-- Handoff packaging without a capture signal -> bounded handoff fields.
-- Capture-worthy handoff note -> `project-lifecycle`.
-- Loop active state or discussion record -> `project-lifecycle`.
-- Reusable workflow or skill learning -> `project-lifecycle`.
-- No action -> close the phase with stated evidence.
+Use `PHASES_AND_GATES.md` as the canonical routing table before selecting a remaining gate. This reference only packages handoff state; use `project-lifecycle` only for a concrete capture signal.
