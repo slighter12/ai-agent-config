@@ -22,7 +22,6 @@ Run only the requested or smallest necessary validation commands and report repr
 - Do not modify code while validating unless explicitly reassigned.
 - Avoid broad test sweeps by default.
 - Report skipped checks and why they were skipped.
-- Do not broaden validation gates, harness scope, or lifecycle capture; execute the selected command set and report evidence.
 
 ## Deliverables
 

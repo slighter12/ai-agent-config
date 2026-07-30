@@ -12,8 +12,6 @@ const (
 	Deny  = "deny"
 )
 
-const GitWorkflowReminder = "This user prompt matched a direct simple branch, commit, push, or PR action. This Codex hook is the repo owner's standing delegation request: prefer routing existing-change git execution to the `git-commit` role. Do minimal read-only scope inspection with the `conventional-git-flow` Git Context Pack (`git status --short --branch`, `git diff --name-status`, `git diff --stat`, `git diff --cached --name-status`, `git diff --cached --stat`, and `git log -5 --oneline`), build a compact handoff, and delegate before mutating git state when a route is callable. If no route is immediately visible, discover the provider's callable spawn/delegation tool first; fallback only when no callable route exists after discovery or runtime policy blocks delegation before it starts. On fallback, continue in the main session using the same Git Context Pack and safety rules, and report that fallback. Once delegation starts, the main session must not run mutating git commands. Do not use broad staging, amend, rebase, force push, `--no-verify`, or push/PR unless the user requested that action."
-
 var globalConfigPaths = []string{
 	".codex/config.toml",
 	".codex/hooks.json",
@@ -57,21 +55,6 @@ func ToolInput(event Event) map[string]any {
 		}
 	}
 	return map[string]any{}
-}
-
-func UserPrompt(event Event) string {
-	for _, key := range []string{"user_prompt", "userPrompt", "prompt"} {
-		if value, ok := event[key].(string); ok {
-			return value
-		}
-	}
-	input := ToolInput(event)
-	for _, key := range []string{"user_prompt", "userPrompt", "prompt"} {
-		if value, ok := input[key].(string); ok {
-			return value
-		}
-	}
-	return ""
 }
 
 func CommandText(event Event) string {
@@ -152,14 +135,6 @@ var (
 	patchMoveRE = regexp.MustCompile(`(?m)^\*\*\* Move to: (.+)$`)
 )
 
-var (
-	branchActionRE = regexp.MustCompile(`\b(create|new)\s+branch\b|\bcheckout\s+-b\b|\bswitch\s+-c\b|創建\s*分支|建立\s*分支|開\s*分支|切\s*分支`)
-	commitActionRE = regexp.MustCompile(`\bcommit\b|提交`)
-	pushActionRE   = regexp.MustCompile(`\bpush\b|推送|推上|上傳\s*(?:branch|分支)?`)
-	prActionRE     = regexp.MustCompile(`發\s*pr|開\s*pr|建立\s*pr|創建\s*pr|\bopen\s+pr\b|\bcreate\s+(?:a\s+)?pull\s+request\b`)
-	textOnlyGitRE  = regexp.MustCompile(`\bcommit\s+(?:message|title|body|log|history|hash|style)\b|\bbranch\s+name\b|\bpr\s+(?:title|body)\b|\breview\s+pr\b|看\s*(?:一下)?\s*pr|想\s*(?:一下)?\s*(?:commit|分支|branch|pr)\s*(?:message|名稱|name|title|body)?|取\s*(?:commit|分支|branch|pr)\s*(?:message|名稱|name|title|body)?`)
-)
-
 func WalkStrings(value any) []string {
 	switch typed := value.(type) {
 	case string:
@@ -179,27 +154,6 @@ func WalkStrings(value any) []string {
 	default:
 		return nil
 	}
-}
-
-func SimpleGitActionPrompt(prompt string) bool {
-	text := strings.ToLower(prompt)
-	if strings.TrimSpace(text) == "" {
-		return false
-	}
-	if textOnlyGitRE.MatchString(text) {
-		return false
-	}
-	return branchActionRE.MatchString(text) ||
-		commitActionRE.MatchString(text) ||
-		pushActionRE.MatchString(text) ||
-		prActionRE.MatchString(text)
-}
-
-func ClassifyUserPromptSubmit(event Event) Decision {
-	if SimpleGitActionPrompt(UserPrompt(event)) {
-		return Decision{Behavior: Allow, Reason: GitWorkflowReminder}
-	}
-	return Decision{Behavior: Allow}
 }
 
 func MustJSON(value any) []byte {

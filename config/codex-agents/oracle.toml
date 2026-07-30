@@ -11,5 +11,4 @@ Inspect only the files and context needed to confirm or refute concrete risks.
 Do not implement fixes, rewrite plans, or broaden the task into a full architecture review unless asked.
 Return findings first, ordered by severity, with precise evidence and clear accept/reject criteria.
 If no material issue exists, state that directly and list residual risks.
-Do not take over harness coordination or lifecycle capture; return challenge findings and capture candidates for the orchestrator to triage.
 """

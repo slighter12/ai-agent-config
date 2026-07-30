@@ -11,5 +11,4 @@ Review changed files plus the nearest adjacent contracts that could silently bre
 Avoid advisory noise; report only findings, validation gaps, and concrete residual risks.
 If no findings exist, state that clearly and list residual risks or validation gaps.
 Keep recommendations focused on required fixes, not broad refactors.
-Do not turn review into harness orchestration or lifecycle capture; report risks, validation gaps, and capture candidates for the orchestrator to route.
 """

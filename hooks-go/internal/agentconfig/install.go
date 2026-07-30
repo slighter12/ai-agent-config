@@ -121,13 +121,13 @@ func (c Config) Install() error {
 		if err := c.createSymlink(filepath.Join(c.RepoRoot, "AGENTS.md"), filepath.Join(c.OpenCodeHome, "AGENTS.md")); err != nil {
 			return err
 		}
-		c.printOpenCodeSlimSkillSetup()
 	} else {
 		c.printf("   - OpenCode home not found, skipping: %s\n", c.OpenCodeHome)
 	}
 	if dirExists(c.AntigravityHome) {
 		configured++
-		if err := c.createSkillSymlinks(filepath.Join(c.RepoRoot, "skills"), filepath.Join(c.AntigravityHome, "antigravity-cli", "skills")); err != nil {
+		targetSkills := filepath.Join(c.AntigravityHome, "antigravity-cli", "skills")
+		if err := c.createSkillSymlinks(filepath.Join(c.RepoRoot, "skills"), targetSkills); err != nil {
 			return err
 		}
 		if err := c.createSymlink(filepath.Join(c.RepoRoot, "AGENTS.md"), filepath.Join(c.AntigravityHome, "GEMINI.md")); err != nil {
@@ -173,19 +173,6 @@ func (c Config) Install() error {
 	c.println("   2. Update skills and config/codex-agents as needed.")
 	c.println("   3. Run this script again after pulling updates.")
 	return nil
-}
-
-func (c Config) printOpenCodeSlimSkillSetup() {
-	for _, name := range []string{"oh-my-opencode-slim.jsonc", "oh-my-opencode-slim.json"} {
-		configPath := filepath.Join(c.OpenCodeHome, name)
-		if !fileExists(configPath) {
-			continue
-		}
-		c.printf("   i oh-my-opencode-slim config detected: %s\n", configPath)
-		c.printf("     Merge agent skill routing from: %s\n", filepath.Join(c.RepoRoot, "config", "opencode", "oh-my-opencode-slim-agent-skills.json"))
-		c.println("     Existing slim config left unchanged.")
-		return
-	}
 }
 
 func (c Config) SetupCodexConfig() error {
@@ -288,21 +275,14 @@ func (c Config) BuildHooks() error {
 	if err := os.MkdirAll(filepath.Join(c.RepoRoot, "plugins", "ai-agent-config-guardrails", "hooks", "bin"), 0o755); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Join(c.RepoRoot, "plugins", "ai-agent-git-routing", "hooks", "bin"), 0o755); err != nil {
-		return err
-	}
 	if err := c.runGo("test", "./..."); err != nil {
 		return err
 	}
 	if err := c.runGo("build", "-o", filepath.Join(c.RepoRoot, "plugins", "ai-agent-config-guardrails", "hooks", "bin", "agent-config-guardrails"), "./cmd/agent-config-guardrails"); err != nil {
 		return err
 	}
-	if err := c.runGo("build", "-o", filepath.Join(c.RepoRoot, "plugins", "ai-agent-git-routing", "hooks", "bin", "agent-git-routing"), "./cmd/agent-git-routing"); err != nil {
-		return err
-	}
 	c.println("Built:")
 	c.println("  plugins/ai-agent-config-guardrails/hooks/bin/agent-config-guardrails")
-	c.println("  plugins/ai-agent-git-routing/hooks/bin/agent-git-routing")
 	return nil
 }
 
@@ -312,19 +292,14 @@ func (c Config) SetupCodexHooks() error {
 		return err
 	}
 	c.println("")
-	c.println("Installing Codex hook plugins...")
+	c.println("Installing Codex guardrail plugin...")
 	if c.codexMarketplaceConfigured() {
 		c.println("   = Codex marketplace already configured: ai-agent-config")
 	} else if err := c.runCodex("plugin", "marketplace", "add", c.RepoRoot); err != nil {
 		return err
 	}
-	for _, plugin := range []string{
-		"ai-agent-config-guardrails@ai-agent-config",
-		"ai-agent-git-routing@ai-agent-config",
-	} {
-		if err := c.runCodex("plugin", "add", plugin); err != nil {
-			return err
-		}
+	if err := c.runCodex("plugin", "add", "ai-agent-config-guardrails@ai-agent-config"); err != nil {
+		return err
 	}
 	c.println("")
 	c.println("Codex hook plugin setup complete.")
@@ -488,6 +463,40 @@ func (c Config) generateCodexRoleFiles(targetDir string) error {
 		return err
 	}
 	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
+	sourceNames := map[string]bool{}
+	for _, entry := range entries {
+		if !entry.IsDir() && filepath.Ext(entry.Name()) == ".toml" {
+			sourceNames[entry.Name()] = true
+		}
+	}
+	targetEntries, err := os.ReadDir(targetDir)
+	if err != nil {
+		return err
+	}
+	for _, entry := range targetEntries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".toml" || sourceNames[entry.Name()] {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() {
+			continue
+		}
+		target := filepath.Join(targetDir, entry.Name())
+		raw, err := os.ReadFile(target)
+		if err != nil {
+			return err
+		}
+		if !bytes.HasPrefix(raw, []byte(managedHeader)) {
+			continue
+		}
+		if err := os.Remove(target); err != nil {
+			return err
+		}
+		c.printf("   - Removed stale managed role file: %s\n", target)
+	}
 	for _, entry := range entries {
 		if entry.IsDir() || filepath.Ext(entry.Name()) != ".toml" {
 			continue

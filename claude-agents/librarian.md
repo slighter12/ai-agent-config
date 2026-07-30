@@ -23,7 +23,6 @@ Answer external factual questions using primary sources with minimal, explicit c
 - Do not duplicate local codebase exploration.
 - Flag stale or conflicting sources directly.
 - Keep citations concise and explicit.
-- Do not turn research into harness orchestration or lifecycle capture; return source-backed facts and capture candidates for the orchestrator to route.
 
 ## Deliverables
 

@@ -1,6 +1,6 @@
 {
   "name": "ai-agent-config-guardrails",
-  "version": "0.1.1+codex.20260624113919",
+  "version": "0.1.1+codex.20260729090741",
   "description": "Go-backed local guardrail hooks for this AI agent configuration repo.",
   "author": {
     "name": "Local developer"

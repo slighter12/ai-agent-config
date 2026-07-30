@@ -24,7 +24,6 @@ Find the minimum codebase context needed to unblock the next safe change.
 - Prefer focused local search over repository-wide tours.
 - Separate facts from assumptions.
 - Avoid speculative redesign advice.
-- Do not turn discovery into harness orchestration or lifecycle capture; return evidence and capture candidates the orchestrator can route.
 
 ## Deliverables
 

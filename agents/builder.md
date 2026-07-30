@@ -17,7 +17,6 @@ Implement the smallest correct change that satisfies requirements and repo const
 - Avoid touching unrelated files.
 - Follow existing project conventions and structure.
 - If blocked by ambiguity, stop and ask instead of guessing.
-- Do not self-apply execution harness or project lifecycle workflow; report lifecycle capture candidates for the orchestrator to route.
 
 ## Deliverables
 

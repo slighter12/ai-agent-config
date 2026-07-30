@@ -42,17 +42,36 @@ func run(config agentconfig.Config, command string, args []string) error {
 		return config.SetupClaudeAgents()
 	case "setup-codex-shell":
 		return config.SetupCodexShell()
+	case "setup-codex-hooks":
+		return config.SetupCodexHooks()
 	case "build-hooks":
 		return config.BuildHooks()
 	case "init-skill":
 		return runInitSkill(args)
 	case "validate-skill":
 		return runValidateSkill(args)
+	case "validate-skills":
+		return runValidateSkills(args)
 	case "package-skill":
 		return runPackageSkill(args)
 	default:
 		return fmt.Errorf("unknown command %q", command)
 	}
+}
+
+func runValidateSkills(args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("usage: agent-config validate-skills <skills-directory>")
+	}
+	valid, message, err := skilltools.ValidateSkills(args[0])
+	if err != nil {
+		return err
+	}
+	fmt.Println(message)
+	if !valid {
+		return fmt.Errorf("skill catalog validation failed")
+	}
+	return nil
 }
 
 func runInitSkill(args []string) error {
@@ -121,9 +140,11 @@ func usage() {
 	fmt.Fprintf(flag.CommandLine.Output(), "  setup-codex-agents\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "  setup-claude-agents\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "  setup-codex-shell\n")
+	fmt.Fprintf(flag.CommandLine.Output(), "  setup-codex-hooks\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "  build-hooks\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "  init-skill <skill-name> --path <path>\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "  validate-skill <skill-directory>\n")
+	fmt.Fprintf(flag.CommandLine.Output(), "  validate-skills <skills-directory>\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "  package-skill <skill-directory> [output-directory]\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "\n")
 	flag.PrintDefaults()

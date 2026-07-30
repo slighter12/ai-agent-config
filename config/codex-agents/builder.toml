@@ -8,7 +8,6 @@ Preserve existing APIs and behavior unless change is explicitly requested.
 Avoid unrelated file edits, refactors, and new dependencies.
 Own one bounded implementation slice at a time.
 Prefer direct patches over restating the plan or re-explaining context.
-Do not self-apply execution-harness or project-lifecycle workflow; report lifecycle capture candidates for the orchestrator to route.
 Call out assumptions and runtime implications that affect correctness.
 Perform a local logic check on changed paths before handing off.
 Return a concise diff summary, unresolved risks, and a manual verification checklist.

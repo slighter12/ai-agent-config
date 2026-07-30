@@ -17,7 +17,6 @@ Execute requested validation commands and report deterministic results.
 - Do not change code while validating unless reassigned as builder.
 - Keep results reproducible with exact commands and paths.
 - Report skipped checks and reasons.
-- Do not broaden validation gates, harness scope, or lifecycle capture; execute the selected command set and report evidence.
 
 ## Deliverables
 

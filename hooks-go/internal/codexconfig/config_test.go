@@ -20,7 +20,6 @@ func TestEnsureBaseConfigCreatesParentSafeConfig(t *testing.T) {
 	mustContain(t, got, `max_threads = 12`)
 	mustNotContain(t, got, `exec_permission_approvals`)
 	mustNotContain(t, got, `request_permissions_tool`)
-	mustNotContain(t, got, `[agents.git-commit]`)
 	mustNotContain(t, got, `[permissions.workspace-git]`)
 	mustNotContain(t, got, `".git" = "write"`)
 }
@@ -32,27 +31,6 @@ func TestWorkspaceGitProfileConfigCreatesProfile(t *testing.T) {
 	mustContain(t, got, `".git" = "write"`)
 	mustContain(t, got, `[permissions.workspace-git.network]`)
 	mustContain(t, got, `"github.com" = "allow"`)
-}
-
-func TestEnsureBaseConfigRemovesGitCommitAgentBlock(t *testing.T) {
-	got, err := EnsureBaseConfig(`[agents]
-max_threads = 4
-
-[agents.git-commit]
-config_file = "/old.toml"
-default_permissions = "workspace-git"
-
-[projects."/tmp/demo"]
-trust_level = "trusted"
-`)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	mustContain(t, got, `max_threads = 12`)
-	mustNotContain(t, got, `[agents.git-commit]`)
-	mustNotContain(t, got, `default_permissions = "workspace-git"`)
-	mustNotContain(t, got, `/old.toml`)
-	mustContain(t, got, `[projects."/tmp/demo"]`)
 }
 
 func TestEnsureBaseConfigIsIdempotent(t *testing.T) {
@@ -259,7 +237,6 @@ func TestApplyWritesBaseConfigAndWorkspaceGitProfile(t *testing.T) {
 	profile := readFile(t, filepath.Join(dir, ProfileFileName))
 	mustContain(t, base, `default_permissions = ":workspace"`)
 	mustNotContain(t, base, `[permissions.workspace-git]`)
-	mustNotContain(t, base, `[agents.git-commit]`)
 	mustContain(t, profile, `default_permissions = "workspace-git"`)
 	mustContain(t, profile, `[permissions.workspace-git]`)
 

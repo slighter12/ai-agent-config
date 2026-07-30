@@ -10,28 +10,30 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
-	maxNameLength          = 64
-	maxDescriptionLength   = 1024
-	maxCompatibilityLength = 500
-	maxLicenseLength       = 200
-	maxSkillLines          = 500
-	maxVersionLength       = 64
+	maxNameLength            = 64
+	maxDescriptionLength     = 1024
+	maxRepoModelContribution = 8000
+	maxCompatibilityLength   = 500
+	maxLicenseLength         = 200
+	maxVersionLength         = 64
 )
 
 var (
 	nameRE        = regexp.MustCompile(`^[a-z0-9-]+$`)
-	metadataKeyRE = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
+	metadataKeyRE = regexp.MustCompile(`^[A-Za-z0-9_./-]+$`)
 	versionRE     = regexp.MustCompile(`^v?\d+(?:\.\d+){0,2}(?:[-+][0-9A-Za-z.-]+)?$`)
 
 	allowedProperties = map[string]struct{}{
-		"name":          {},
-		"description":   {},
-		"license":       {},
-		"compatibility": {},
-		"metadata":      {},
+		"name":                     {},
+		"description":              {},
+		"disable-model-invocation": {},
+		"license":                  {},
+		"compatibility":            {},
+		"metadata":                 {},
 	}
 	requiredProperties = []string{"description", "name"}
 )
@@ -40,63 +42,15 @@ const skillTemplate = `---
 name: %[1]s
 description: Perform [capability]. Use when the user asks for [specific trigger contexts, file types, workflows, or intents]. Avoid when [nearby non-goals or cases better handled by another skill].
 metadata:
-  version: "0.1.0"
+  invocation: "[user|model]"
 ---
 
 # %[2]s
 
-## Purpose
-
-Enable the agent to [outcome], using only the context and resources needed for this task.
-
-## Use When
-
-- The request involves [trigger 1].
-- The user needs [trigger 2].
-- The task touches [file type, workflow, domain, or tool].
-
-## Avoid When
-
-- The request is only [nearby non-goal].
-- Another skill is more specific: [skill-name].
-- The task requires provider-specific behavior not covered by this shared skill.
-
 ## Workflow
 
-1. Confirm the goal, inputs, constraints, and expected output.
-2. Inspect only the relevant files, docs, or resources.
-3. Use bundled scripts only when they improve deterministic reliability or avoid repeated code generation.
-4. Load reference files only when their topic is directly needed.
-5. Stop when the requested outcome is complete, blocked by missing input, or further work would be speculative.
-
-## Tool And Side-Effect Boundaries
-
-- Prefer read-only inspection until the task clearly requires edits or execution.
-- Do not run side-effectful commands unless the user asked for them or the active policy allows them.
-- Do not create new dependencies, files, or broad refactors unless the task explicitly requires them.
-- For destructive, deployment, commit, notification, credential, or external-service workflows, require explicit user confirmation.
-
-## Output
-
-Return:
-
-- summary: what was done or recommended.
-- files_touched: exact paths, if any.
-- assumptions: only correctness-relevant assumptions.
-- manual_verification: checklist when execution was skipped or not required.
-
-## Version History
-
-- v0.1.0 (YYYY-MM-DD): Initial portable skill draft.
-
-## References
-
-- references/INDEX.md - Use when deeper topic navigation is needed.
-`
-
-const referenceIndex = `# References
-
-Add focused reference files here only when details would make SKILL.md too long or too hard to route.
+- [The smallest sequence of decisions or actions this skill must teach.]
+- [A boundary that prevents a nearby misuse.]
 `
 
 type frontmatterValue struct {
@@ -133,27 +87,12 @@ func InitSkill(out io.Writer, skillName, path string) error {
 	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(fmt.Sprintf(skillTemplate, skillName, titleCaseSkillName(skillName))), 0o644); err != nil {
 		return err
 	}
-	referencesDir := filepath.Join(skillDir, "references")
-	if err := os.MkdirAll(referencesDir, 0o755); err != nil {
-		return err
-	}
-	if err := os.WriteFile(filepath.Join(referencesDir, "INDEX.md"), []byte(referenceIndex), 0o644); err != nil {
-		return err
-	}
 	fmt.Fprintf(out, "Skill %q initialized at %s\n", skillName, skillDir)
 	fmt.Fprintln(out, "\nNext steps:")
-	fmt.Fprintln(out, "1. Replace bracketed placeholders in SKILL.md.")
-	fmt.Fprintln(out, "2. Replace YYYY-MM-DD in Version History with the actual release date.")
-	fmt.Fprintln(out, "3. Keep provider-specific frontmatter out of the shared template.")
-	fmt.Fprintln(out, "4. Add scripts/ or assets/ only when they materially improve reliability.")
-	fmt.Fprintln(out, "5. Decide and report placement scope: shared/global, project-local, or provider-specific.")
-	fmt.Fprintln(out, "6. Create or report provider surfaces:")
-	fmt.Fprintln(out, "   - shared repo skill: run this repo's ./install.sh when ready;")
-	fmt.Fprintln(out, "   - project-local skill: prefer .agents/skills as source, then verify or report Codex discovery;")
-	fmt.Fprintln(out, "   - link .claude/skills when Claude project discovery is needed;")
-	fmt.Fprintln(out, "   - use .opencode/skills when explicit OpenCode project discovery is needed;")
-	fmt.Fprintln(out, "   - create .codex/skills only when the project/provider explicitly requires or verifies it.")
-	fmt.Fprintln(out, "7. Run agent-config validate-skill when ready.")
+	fmt.Fprintln(out, "1. Replace bracketed placeholders and choose user or model invocation.")
+	fmt.Fprintln(out, "2. For user invocation, add Claude and OpenCode controls plus agents/openai.yaml.")
+	fmt.Fprintln(out, "3. Add references, scripts, or assets only when they materially improve the skill.")
+	fmt.Fprintf(out, "4. Validate %s with the same agent-config entrypoint used for initialization.\n", skillDir)
 	return nil
 }
 
@@ -169,9 +108,6 @@ func ValidateSkill(skillPath string) (bool, string, error) {
 	content := string(raw)
 	if !strings.HasPrefix(content, "---") {
 		return false, "No YAML frontmatter found", nil
-	}
-	if lineCount := len(strings.Split(strings.ReplaceAll(content, "\r\n", "\n"), "\n")); lineCount > maxSkillLines {
-		return false, fmt.Sprintf("SKILL.md is too long (%d lines). Move details into references/ and keep SKILL.md under %d lines.", lineCount, maxSkillLines), nil
 	}
 	frontmatterText, ok := extractFrontmatter(content)
 	if !ok {
@@ -218,13 +154,256 @@ func ValidateSkill(skillPath string) (bool, string, error) {
 			return false, err.Error(), nil
 		}
 	}
+	if err := validateDisableModelInvocation(frontmatter); err != nil {
+		return false, err.Error(), nil
+	}
 	if err := validateOptionalString(frontmatter, "license", maxLicenseLength); err != nil {
 		return false, err.Error(), nil
 	}
 	if err := validateCompatibility(frontmatter); err != nil {
 		return false, err.Error(), nil
 	}
+	if failures := invocationFailures(skillPath, frontmatter); len(failures) > 0 {
+		return false, strings.Join(failures, "\n"), nil
+	}
 	return true, "Skill is valid", nil
+}
+
+func ValidateSkills(skillsPath string) (bool, string, error) {
+	entries, err := os.ReadDir(skillsPath)
+	if err != nil {
+		return false, "", err
+	}
+	names := map[string]string{}
+	invocations := map[string]string{}
+	var failures []string
+	discoveryCharacters := 0
+	skillCount := 0
+	modelSkillCount := 0
+	userSkillCount := 0
+	allSkillsValid := true
+	routerPresent := false
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		skillPath := filepath.Join(skillsPath, entry.Name())
+		if _, err := os.Stat(filepath.Join(skillPath, "SKILL.md")); err != nil {
+			continue
+		}
+		if entry.Name() == "ask-skills" {
+			routerPresent = true
+		}
+		skillCount++
+		valid, message, err := ValidateSkill(skillPath)
+		if err != nil {
+			return false, "", err
+		}
+		if !valid {
+			allSkillsValid = false
+			failures = append(failures, fmt.Sprintf("%s: %s", entry.Name(), message))
+			continue
+		}
+		frontmatter, err := readSkillFrontmatter(skillPath)
+		if err != nil {
+			return false, "", err
+		}
+		name := strings.TrimSpace(frontmatter["name"].stringValue)
+		if previous, exists := names[name]; exists {
+			failures = append(failures, fmt.Sprintf("%s: duplicate skill name also used by %s", entry.Name(), previous))
+		} else {
+			names[name] = entry.Name()
+		}
+		if name != entry.Name() {
+			failures = append(failures, fmt.Sprintf("%s: directory and skill name %q differ", entry.Name(), name))
+		}
+		invocation := frontmatter["metadata"].mapping["invocation"]
+		invocations[name] = invocation
+		switch invocation {
+		case "model":
+			modelSkillCount++
+			discoveryCharacters += utf8.RuneCountInString(name)
+			discoveryCharacters += utf8.RuneCountInString(strings.TrimSpace(frontmatter["description"].stringValue))
+		case "user":
+			userSkillCount++
+		}
+	}
+
+	catalogPath := filepath.Join(skillsPath, "ask-skills", "references", "CATALOG.md")
+	if !routerPresent {
+		failures = append(failures, "required router skill ask-skills is missing")
+	} else if _, err := os.Stat(catalogPath); errors.Is(err, os.ErrNotExist) {
+		failures = append(failures, "ask-skills: canonical catalog reference not found")
+	} else if err != nil {
+		return false, "", err
+	} else if _, hasRouter := invocations["ask-skills"]; hasRouter && allSkillsValid {
+		failures = append(failures, catalogReferenceFailures(skillsPath, invocations)...)
+	}
+	if discoveryCharacters > maxRepoModelContribution {
+		failures = append(failures, fmt.Sprintf("repo model skill names and descriptions use %d contribution characters; maximum is %d", discoveryCharacters, maxRepoModelContribution))
+	}
+	if len(failures) > 0 {
+		sort.Strings(failures)
+		return false, strings.Join(failures, "\n"), nil
+	}
+	return true, fmt.Sprintf(
+		"Skill catalog is valid: %d skills (%d model, %d user), %d/%d repo model name/description contribution characters",
+		skillCount,
+		modelSkillCount,
+		userSkillCount,
+		discoveryCharacters,
+		maxRepoModelContribution,
+	), nil
+}
+
+func invocationFailures(skillPath string, frontmatter map[string]frontmatterValue) []string {
+	var failures []string
+	metadata, ok := frontmatter["metadata"]
+	if !ok || metadata.kind != mappingKind {
+		return []string{"metadata.invocation must be user or model"}
+	}
+	invocation := metadata.mapping["invocation"]
+	if invocation != "user" && invocation != "model" {
+		return []string{"metadata.invocation must be user or model"}
+	}
+	openCodeValue, hasOpenCode := metadata.mapping["opencode/autoinvoke"]
+	claudeValue, hasClaude := frontmatter["disable-model-invocation"]
+	claudeDisabled := hasClaude && strings.TrimSpace(claudeValue.stringValue) == "true"
+	sidecarPath := filepath.Join(skillPath, "agents", "openai.yaml")
+	sidecarRaw, sidecarErr := os.ReadFile(sidecarPath)
+	hasDisabledSidecar := sidecarErr == nil && codexImplicitInvocationDisabled(string(sidecarRaw))
+	if sidecarErr != nil && !errors.Is(sidecarErr, os.ErrNotExist) {
+		failures = append(failures, fmt.Sprintf("cannot read Codex sidecar: %v", sidecarErr))
+	}
+	if invocation == "user" {
+		if !claudeDisabled {
+			failures = append(failures, "user skill must set Claude disable-model-invocation to true")
+		}
+		if !hasOpenCode || openCodeValue != "false" {
+			failures = append(failures, "user skill must set OpenCode metadata opencode/autoinvoke to false")
+		}
+		if !hasDisabledSidecar {
+			failures = append(failures, "user skill must disable Codex implicit invocation")
+		}
+	} else {
+		if claudeDisabled {
+			failures = append(failures, "model skill must not disable Claude model invocation")
+		}
+		if hasOpenCode && openCodeValue == "false" {
+			failures = append(failures, "model skill must not disable OpenCode autoinvocation")
+		}
+		if hasDisabledSidecar {
+			failures = append(failures, "model skill must not disable Codex implicit invocation")
+		}
+	}
+	return failures
+}
+
+func catalogReferenceFailures(skillsPath string, invocations map[string]string) []string {
+	catalogPath := filepath.Join(skillsPath, "ask-skills", "references", "CATALOG.md")
+	raw, err := os.ReadFile(catalogPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return []string{"ask-skills: canonical catalog reference not found"}
+	}
+	if err != nil {
+		return []string{fmt.Sprintf("ask-skills: cannot read canonical catalog reference: %v", err)}
+	}
+
+	entries := map[string]string{}
+	var failures []string
+	section := ""
+	hasUserSection := false
+	hasModelSection := false
+	for _, line := range strings.Split(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
+		trimmed := strings.TrimSpace(line)
+		switch trimmed {
+		case "## User-invoked":
+			section = "user"
+			hasUserSection = true
+			continue
+		case "## Model-invoked":
+			section = "model"
+			hasModelSection = true
+			continue
+		}
+		if strings.HasPrefix(trimmed, "## ") {
+			section = ""
+			continue
+		}
+		name, ok := catalogRowSkillName(trimmed)
+		if !ok || section == "" {
+			continue
+		}
+		if previous, exists := entries[name]; exists {
+			failures = append(failures, fmt.Sprintf("ask-skills: catalog lists %s more than once (%s and %s)", name, previous, section))
+			continue
+		}
+		entries[name] = section
+	}
+	if !hasUserSection || !hasModelSection {
+		failures = append(failures, "ask-skills: catalog must contain User-invoked and Model-invoked sections")
+	}
+
+	for name, invocation := range invocations {
+		catalogInvocation, exists := entries[name]
+		if !exists {
+			failures = append(failures, fmt.Sprintf("ask-skills: catalog is missing %s", name))
+			continue
+		}
+		if catalogInvocation != invocation {
+			failures = append(failures, fmt.Sprintf("ask-skills: catalog groups %s as %s; metadata invocation is %s", name, catalogInvocation, invocation))
+		}
+	}
+	for name := range entries {
+		if _, exists := invocations[name]; !exists {
+			failures = append(failures, fmt.Sprintf("ask-skills: catalog contains unknown skill %s", name))
+		}
+	}
+	return failures
+}
+
+func catalogRowSkillName(line string) (string, bool) {
+	const prefix = "| `"
+	if !strings.HasPrefix(line, prefix) {
+		return "", false
+	}
+	remainder := strings.TrimPrefix(line, prefix)
+	end := strings.Index(remainder, "`")
+	if end <= 0 || !strings.Contains(remainder[end+1:], "|") {
+		return "", false
+	}
+	return remainder[:end], true
+}
+
+func codexImplicitInvocationDisabled(text string) bool {
+	inPolicy := false
+	for _, line := range strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if !strings.HasPrefix(line, " ") {
+			inPolicy = trimmed == "policy:"
+			continue
+		}
+		if inPolicy && trimmed == "allow_implicit_invocation: false" {
+			return true
+		}
+	}
+	return false
+}
+
+func readSkillFrontmatter(skillPath string) (map[string]frontmatterValue, error) {
+	raw, err := os.ReadFile(filepath.Join(skillPath, "SKILL.md"))
+	if err != nil {
+		return nil, err
+	}
+	text, ok := extractFrontmatter(string(raw))
+	if !ok {
+		return nil, errors.New("invalid skill frontmatter")
+	}
+	return parseFrontmatter(text)
 }
 
 func PackageSkill(out io.Writer, skillPath, outputDir string) (string, error) {
@@ -464,13 +643,23 @@ func validateDescription(description string) error {
 	if len(description) > maxDescriptionLength {
 		return fmt.Errorf("Description is too long (%d characters). Maximum is %d characters.", len(description), maxDescriptionLength)
 	}
-	if !strings.Contains(lower, "use when") {
-		return errors.New("Description must include a 'Use when...' trigger boundary")
-	}
-	if !strings.Contains(lower, "avoid when") {
-		return errors.New("Description must include an 'Avoid when...' non-goal boundary")
-	}
 	return nil
+}
+
+func validateDisableModelInvocation(frontmatter map[string]frontmatterValue) error {
+	value, ok := frontmatter["disable-model-invocation"]
+	if !ok {
+		return nil
+	}
+	if value.kind != stringKind {
+		return errors.New("disable-model-invocation must be true or false")
+	}
+	switch strings.TrimSpace(value.stringValue) {
+	case "true", "false":
+		return nil
+	default:
+		return errors.New("disable-model-invocation must be true or false")
+	}
 }
 
 func validateMetadata(value frontmatterValue) error {
@@ -482,7 +671,7 @@ func validateMetadata(value frontmatterValue) error {
 			return errors.New("metadata keys cannot be empty")
 		}
 		if !metadataKeyRE.MatchString(key) {
-			return fmt.Errorf("metadata key %q should use letters, digits, dots, underscores, or hyphens", key)
+			return fmt.Errorf("metadata key %q should use letters, digits, dots, slashes, underscores, or hyphens", key)
 		}
 		item = strings.TrimSpace(item)
 		if item == "" {

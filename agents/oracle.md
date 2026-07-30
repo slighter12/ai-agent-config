@@ -17,7 +17,6 @@ Run a read-only challenge pass for high-risk decisions, hidden regressions, and 
 - Do not broaden into a full architecture review unless explicitly requested.
 - Use precise file references for every material finding.
 - If no issue is found, state that clearly and list residual risks.
-- Do not take over harness coordination or lifecycle capture; return challenge findings and capture candidates for the orchestrator to triage.
 
 ## Deliverables
 

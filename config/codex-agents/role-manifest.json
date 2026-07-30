@@ -36,11 +36,6 @@
     }
   ],
   "skill_groups": {
-    "execution-harness": [
-      "{{CODEX_HOME}}/skills/execution-harness",
-      "{{AGENTS_HOME}}/skills/execution-harness",
-      "{{REPO_ROOT}}/skills/execution-harness"
-    ],
     "figma-design": [
       "{{CODEX_HOME}}/skills/figma-implement-design"
     ],
@@ -48,44 +43,9 @@
       "{{AGENTS_HOME}}/skills/design-art-direction",
       "{{REPO_ROOT}}/skills/design-art-direction"
     ],
-    "legacy-skill-creator": [
-      "{{CODEX_HOME}}/skills/skill-creator"
-    ],
     "mcp-builder-go": [
-      "{{CODEX_HOME}}/skills/mcp-builder-go"
-    ],
-    "planning-grill": [
-      "{{AGENTS_HOME}}/skills/planning-grill",
-      "{{REPO_ROOT}}/skills/planning-grill"
-    ],
-    "policy-api": [
-      "{{CODEX_HOME}}/skills/policy-api"
-    ],
-    "policy-frontend": [
-      "{{CODEX_HOME}}/skills/policy-frontend"
-    ],
-    "policy-go": [
-      "{{CODEX_HOME}}/skills/policy-go"
-    ],
-    "policy-infra": [
-      "{{CODEX_HOME}}/skills/policy-infra"
-    ],
-    "policy-rust": [
-      "{{CODEX_HOME}}/skills/policy-rust"
-    ],
-    "policy-security": [
-      "{{CODEX_HOME}}/skills/policy-security"
-    ],
-    "policy-testing": [
-      "{{CODEX_HOME}}/skills/policy-testing"
-    ],
-    "project-lifecycle": [
-      "{{CODEX_HOME}}/skills/project-lifecycle",
-      "{{AGENTS_HOME}}/skills/project-lifecycle",
-      "{{REPO_ROOT}}/skills/project-lifecycle"
-    ],
-    "system-skill-creator": [
-      "{{CODEX_HOME}}/skills/.system/skill-creator"
+      "{{AGENTS_HOME}}/skills/mcp-builder-go",
+      "{{REPO_ROOT}}/skills/mcp-builder-go"
     ],
     "system-skill-installer": [
       "{{CODEX_HOME}}/skills/.system/skill-installer"
@@ -94,121 +54,35 @@
   "roles": {
     "builder": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "system-skill-installer",
-        "system-skill-creator",
-        "execution-harness",
-        "project-lifecycle",
-        "planning-grill"
-      ]
+      "disabled_skill_groups": ["system-skill-installer"]
     },
     "explorer": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "figma-design",
-        "legacy-skill-creator",
-        "system-skill-creator",
-        "system-skill-installer",
-        "execution-harness",
-        "project-lifecycle",
-        "planning-grill"
-      ]
-    },
-    "git-commit": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "execution-harness",
-        "project-lifecycle"
-      ]
+      "disabled_skill_groups": ["figma-design", "system-skill-installer"]
     },
     "page-designer": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "design-art-direction",
-        "mcp-builder-go",
-        "policy-api",
-        "policy-go",
-        "policy-infra",
-        "policy-rust",
-        "policy-security",
-        "policy-testing",
-        "legacy-skill-creator",
-        "system-skill-creator",
-        "system-skill-installer",
-        "execution-harness",
-        "project-lifecycle",
-        "planning-grill"
-      ]
+      "disabled_skill_groups": ["design-art-direction", "mcp-builder-go", "system-skill-installer"]
     },
     "librarian": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "mcp-builder-go",
-        "policy-api",
-        "policy-frontend",
-        "policy-go",
-        "policy-infra",
-        "policy-rust",
-        "policy-security",
-        "policy-testing",
-        "legacy-skill-creator",
-        "figma-design",
-        "system-skill-creator",
-        "system-skill-installer",
-        "execution-harness",
-        "project-lifecycle",
-        "planning-grill"
-      ]
+      "disabled_skill_groups": ["mcp-builder-go", "figma-design", "system-skill-installer"]
     },
     "oracle": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "figma-design",
-        "legacy-skill-creator",
-        "system-skill-creator",
-        "system-skill-installer",
-        "execution-harness",
-        "project-lifecycle",
-        "planning-grill"
-      ]
+      "disabled_skill_groups": ["figma-design", "system-skill-installer"]
     },
     "orchestrator": {
-      "allowed_mcp_servers": [
-        "sequential-thinking",
-        "clickup"
-      ],
+      "allowed_mcp_servers": ["sequential-thinking", "clickup"],
       "disabled_skill_groups": []
     },
     "reviewer": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "figma-design",
-        "legacy-skill-creator",
-        "system-skill-creator",
-        "system-skill-installer",
-        "execution-harness",
-        "project-lifecycle",
-        "planning-grill"
-      ]
+      "disabled_skill_groups": ["figma-design", "system-skill-installer"]
     },
     "test-runner": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": [
-        "mcp-builder-go",
-        "policy-api",
-        "policy-frontend",
-        "policy-go",
-        "policy-infra",
-        "policy-rust",
-        "policy-security",
-        "legacy-skill-creator",
-        "figma-design",
-        "system-skill-creator",
-        "system-skill-installer",
-        "execution-harness",
-        "project-lifecycle",
-        "planning-grill"
-      ]
+      "disabled_skill_groups": ["mcp-builder-go", "figma-design", "system-skill-installer"]
     }
   }
 }

@@ -17,7 +17,6 @@ Map the codebase quickly and return evidence-based findings that unblock impleme
 - Prefer fast local search (`rg`, file listings) over broad scans.
 - Cite every important claim with concrete file references.
 - Separate facts from assumptions explicitly.
-- Do not turn discovery into harness orchestration or lifecycle capture; return evidence and capture candidates the orchestrator can route.
 
 ## Deliverables
 

@@ -13,18 +13,17 @@ Drive a task to completion by delegating only when the split is concrete, useful
 
 ## Responsibilities
 
-1. When a harness is active, consume its objective, constraints, done criteria, and state; otherwise clarify them before delegating.
+1. Clarify the objective, constraints, done criteria, and current state before delegating.
 2. Keep the plan lightweight and close to execution.
 3. Delegate only independent subtasks with clear ownership.
 4. Integrate results and decide whether more delegation is still necessary.
 5. Escalate only true blockers or conflicting requirements.
-6. When no harness is active, suggest `execution-harness` only when phase, agent, git/workspace, verification, or lifecycle coordination is worth the overhead.
 
 ## Guardrails
 
 - Avoid workflow ceremony and verbose handoff formats.
 - Do simple or tightly-coupled work locally.
-- When a harness is active, update its state; otherwise keep one lightweight source of truth for assumptions and blockers.
+- Keep one lightweight source of truth for assumptions and blockers.
 - For standalone delegation, include `owner`, `goal`, `inputs`, `acceptance`, `blockers`, and `return`.
 - Do not assume delegated agents can dynamically gain skills or tools; include only relevant guidance in handoffs.
 - Optimize for closure, not orchestration volume.

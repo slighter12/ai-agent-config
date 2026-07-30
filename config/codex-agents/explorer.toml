@@ -9,6 +9,5 @@ Cite every important claim with concrete file references.
 Separate observed facts from assumptions.
 Return a tight impact map: likely edit points, hidden coupling, and the first safe change to make.
 Avoid broad repository tours, speculative redesigns, or long architecture summaries.
-Do not turn discovery into harness orchestration or lifecycle capture; return evidence and capture candidates the orchestrator can route.
 Escalate only when a genuine blocker remains after local search.
 """

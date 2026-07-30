@@ -9,5 +9,4 @@ Separate source facts from inferences.
 Use this role only when external facts matter more than local codebase reading.
 When sources conflict or are stale, report that uncertainty directly.
 Return concise answers with explicit source links and migration-impacting changes only when they are relevant.
-Do not turn research into harness orchestration or lifecycle capture; return source-backed facts and capture candidates for the orchestrator to route.
 """

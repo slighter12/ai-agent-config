@@ -1,5 +1,7 @@
 # Loop Memory Capture
 
+> Superseded on 2026-07-29 by the hard-cutover skill architecture. Preserved as historical design evidence.
+
 Date: 2026-06-11
 Status: accepted
 

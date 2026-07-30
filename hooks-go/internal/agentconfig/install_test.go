@@ -2,7 +2,6 @@ package agentconfig
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -76,56 +75,6 @@ func TestCreateSkillSymlinksSkipsEntriesWithoutSkillManifest(t *testing.T) {
 	mustContain(t, out.String(), "Skipping non-skill entry")
 }
 
-func TestPrintOpenCodeSlimSkillSetupPrefersJSONCAndDoesNotModifyConfig(t *testing.T) {
-	dir := t.TempDir()
-	jsonPath := filepath.Join(dir, "oh-my-opencode-slim.json")
-	jsoncPath := filepath.Join(dir, "oh-my-opencode-slim.jsonc")
-	jsonContent := []byte(`{"preset":"json"}`)
-	jsoncContent := []byte("{\n  // user-owned\n  \"preset\": \"jsonc\",\n}\n")
-	if err := os.WriteFile(jsonPath, jsonContent, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(jsoncPath, jsoncContent, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	var out bytes.Buffer
-	config := Config{RepoRoot: "/repo", OpenCodeHome: dir, Out: &out}
-
-	config.printOpenCodeSlimSkillSetup()
-
-	mustContain(t, out.String(), jsoncPath)
-	mustContain(t, out.String(), filepath.Join("/repo", "config", "opencode", "oh-my-opencode-slim-agent-skills.json"))
-	if got := []byte(readFile(t, jsonPath)); !bytes.Equal(got, jsonContent) {
-		t.Fatalf("JSON config was modified: %q", got)
-	}
-	if got := []byte(readFile(t, jsoncPath)); !bytes.Equal(got, jsoncContent) {
-		t.Fatalf("JSONC config was modified: %q", got)
-	}
-}
-
-func TestOpenCodeSlimAgentSkillConfigIsMinimal(t *testing.T) {
-	repoRoot := filepath.Clean(filepath.Join("..", "..", ".."))
-	raw, err := os.ReadFile(filepath.Join(repoRoot, "config", "opencode", "oh-my-opencode-slim-agent-skills.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	var config struct {
-		Agents map[string]struct {
-			Skills []string `json:"skills"`
-		} `json:"agents"`
-	}
-	if err := json.Unmarshal(raw, &config); err != nil {
-		t.Fatal(err)
-	}
-	if len(config.Agents) != 1 {
-		t.Fatalf("expected only orchestrator config, got %v", config.Agents)
-	}
-	want := []string{"*", "!execution-harness", "!goal-context"}
-	if got := config.Agents["orchestrator"].Skills; strings.Join(got, "\x00") != strings.Join(want, "\x00") {
-		t.Fatalf("unexpected orchestrator skills: got %v, want %v", got, want)
-	}
-}
-
 func TestCodexMarketplaceConfiguredDetectsRepoMarketplace(t *testing.T) {
 	dir := t.TempDir()
 	codexHome := filepath.Join(dir, ".codex")
@@ -197,6 +146,18 @@ func TestGenerateCodexRoleFilesRendersTemplatesAndProtectsUserFiles(t *testing.T
 	if err := os.WriteFile(userTarget, []byte("user-owned"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	staleManagedTarget := filepath.Join(targetDir, "stale-managed.toml")
+	if err := os.WriteFile(staleManagedTarget, []byte(managedHeader+"name = \"stale-managed\"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	staleUserTarget := filepath.Join(targetDir, "stale-user.toml")
+	if err := os.WriteFile(staleUserTarget, []byte("user-owned stale role"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	staleForeignLink := filepath.Join(targetDir, "stale-link.toml")
+	if err := os.Symlink(filepath.Join(repo, "foreign-role.toml"), staleForeignLink); err != nil {
+		t.Fatal(err)
+	}
 	config := Config{
 		RepoRoot:   repo,
 		Home:       filepath.Join(repo, "home"),
@@ -216,14 +177,15 @@ func TestGenerateCodexRoleFilesRendersTemplatesAndProtectsUserFiles(t *testing.T
 	if got := readFile(t, userTarget); got != "user-owned" {
 		t.Fatalf("user-owned role file was overwritten: %q", got)
 	}
-}
-
-func TestGitCommitTemplateDoesNotDeclareTopLevelPermissionProfile(t *testing.T) {
-	repoRoot := filepath.Clean(filepath.Join("..", "..", ".."))
-	template := readFile(t, filepath.Join(repoRoot, "config", "codex-agents", "git-commit.toml"))
-	mustNotContain(t, template, `default_permissions = "workspace-git"`)
-	mustNotContain(t, template, `[permissions.workspace-git]`)
-	mustNotContain(t, template, `[permissions.workspace-git.filesystem.":workspace_roots"]`)
+	if _, err := os.Stat(staleManagedTarget); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected stale managed role removed, err=%v", err)
+	}
+	if got := readFile(t, staleUserTarget); got != "user-owned stale role" {
+		t.Fatalf("stale user-owned role file changed: %q", got)
+	}
+	if _, err := os.Lstat(staleForeignLink); err != nil {
+		t.Fatalf("stale foreign role link was removed: %v", err)
+	}
 }
 
 func TestGenerateCodexRoleFilesSkipsAlreadyCurrentManagedFiles(t *testing.T) {

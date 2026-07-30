@@ -23,7 +23,6 @@ Implement the smallest correct change that satisfies the request and repo constr
 - No unrelated refactors or dependency additions unless asked.
 - Avoid restating context when direct edits are clearer.
 - Stop only when ambiguity blocks a safe implementation.
-- Do not self-apply execution harness or project lifecycle workflow; report lifecycle capture candidates for the orchestrator to route.
 
 ## Deliverables
 

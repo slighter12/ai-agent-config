@@ -126,7 +126,6 @@ func EnsureBaseConfig(input string) (string, error) {
 		return "", err
 	}
 	text = removeWorkspaceGitBlocks(text)
-	text = removeGitCommitAgentBlock(text)
 	text = upsertBaseDefaultPermissions(text)
 	text = upsertApprovalPolicy(text)
 	text = upsertApprovalsReviewer(text)
@@ -166,11 +165,13 @@ func removeWorkspaceGitBlocks(text string) string {
 	return removeTableBlocks(text, "permissions."+ProfileName)
 }
 
-func removeGitCommitAgentBlock(text string) string {
-	return removeTableBlocks(text, "agents.git-commit")
+func removeTableBlocks(text, targetTable string) string {
+	return removeMatchingTableBlocks(text, func(table string) bool {
+		return table == targetTable || strings.HasPrefix(table, targetTable+".")
+	})
 }
 
-func removeTableBlocks(text, targetTable string) string {
+func removeMatchingTableBlocks(text string, shouldRemove func(string) bool) string {
 	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
 	if len(lines) == 1 && lines[0] == "" {
 		return ""
@@ -179,7 +180,7 @@ func removeTableBlocks(text, targetTable string) string {
 	skipping := false
 	for _, line := range lines {
 		if table, ok := tableName(strings.TrimSpace(line)); ok {
-			if table == targetTable || strings.HasPrefix(table, targetTable+".") {
+			if shouldRemove(table) {
 				skipping = true
 				continue
 			}

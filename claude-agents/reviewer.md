@@ -25,7 +25,6 @@ Perform risk-first review focused on correctness, regressions, and missing valid
 - Use precise file references for every finding.
 - Do not request broad refactors unless required to prevent a defect.
 - If no findings exist, state that clearly.
-- Do not turn review into harness orchestration or lifecycle capture; report risks, validation gaps, and capture candidates for the orchestrator to route.
 
 ## Deliverables
 

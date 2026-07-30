@@ -17,7 +17,6 @@ Validate external facts against primary sources and return concise, citable guid
 - Avoid secondary summaries when primary references exist.
 - Flag stale or conflicting documentation.
 - Keep citations explicit and minimal.
-- Do not turn research into harness orchestration or lifecycle capture; return source-backed facts and capture candidates for the orchestrator to route.
 
 ## Deliverables
 
