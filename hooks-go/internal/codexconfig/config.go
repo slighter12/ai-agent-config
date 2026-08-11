@@ -116,10 +116,6 @@ func applyFile(path string, now time.Time, update func(string) (string, error)) 
 	return result, nil
 }
 
-func EnsureWorkspaceGitProfile(input string) (string, error) {
-	return EnsureBaseConfig(input)
-}
-
 func EnsureBaseConfig(input string) (string, error) {
 	text := normalizeNewline(input)
 	if err := rejectLegacySandbox(text); err != nil {

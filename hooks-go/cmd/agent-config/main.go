@@ -4,9 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"ai-agent-config/hooks/internal/agentconfig"
+	"ai-agent-config/hooks/internal/pathidentity"
+	"ai-agent-config/hooks/internal/skillcatalog"
 	"ai-agent-config/hooks/internal/skilltools"
 )
 
@@ -51,7 +54,7 @@ func run(config agentconfig.Config, command string, args []string) error {
 	case "validate-skill":
 		return runValidateSkill(args)
 	case "validate-skills":
-		return runValidateSkills(args)
+		return runValidateSkills(args, config.RepoRoot)
 	case "package-skill":
 		return runPackageSkill(args)
 	default:
@@ -59,19 +62,51 @@ func run(config agentconfig.Config, command string, args []string) error {
 	}
 }
 
-func runValidateSkills(args []string) error {
+func runValidateSkills(args []string, repoRoot string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("usage: agent-config validate-skills <skills-directory>")
 	}
-	valid, message, err := skilltools.ValidateSkills(args[0])
+	skillsDir, err := repositorySkillsDirectory(repoRoot, args[0])
 	if err != nil {
 		return err
 	}
-	fmt.Println(message)
+	retiredNames, err := skillcatalog.LoadRetiredSkillsFromRoot(repoRoot)
+	if err != nil {
+		return err
+	}
+	valid, message, err := skilltools.ValidateSkills(skillsDir)
+	if err != nil {
+		return err
+	}
 	if !valid {
+		fmt.Println(message)
 		return fmt.Errorf("skill catalog validation failed")
 	}
+	if err := skillcatalog.ValidateRepositoryRetirements(repoRoot, skillsDir, retiredNames); err != nil {
+		return fmt.Errorf("retired skill validation failed: %w", err)
+	}
+	fmt.Println(message)
 	return nil
+}
+
+func repositorySkillsDirectory(repoRoot, skillsDir string) (string, error) {
+	canonicalRepoRoot, _, err := pathidentity.ResolveDirectory(repoRoot)
+	if err != nil {
+		return "", fmt.Errorf("resolve repository root %q: %w", repoRoot, err)
+	}
+	expectedSkillsPath := filepath.Join(canonicalRepoRoot, "skills")
+	canonicalExpectedSkillsDir, expectedInfo, err := pathidentity.ResolveDirectory(expectedSkillsPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve repository skills directory %q: %w; pass <repo-root>/skills", expectedSkillsPath, err)
+	}
+	canonicalSkillsDir, providedInfo, err := pathidentity.ResolveDirectory(skillsDir)
+	if err != nil {
+		return "", fmt.Errorf("resolve skills directory %q: %w", skillsDir, err)
+	}
+	if canonicalExpectedSkillsDir != canonicalSkillsDir || !os.SameFile(expectedInfo, providedInfo) {
+		return "", fmt.Errorf("skills directory %q does not match this repository's skills directory %q; pass <repo-root>/skills", skillsDir, expectedSkillsPath)
+	}
+	return canonicalSkillsDir, nil
 }
 
 func runInitSkill(args []string) error {

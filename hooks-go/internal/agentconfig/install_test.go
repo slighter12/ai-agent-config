@@ -60,7 +60,7 @@ func TestCreateSkillSymlinksSkipsEntriesWithoutSkillManifest(t *testing.T) {
 	}
 	var out bytes.Buffer
 	config := Config{Out: &out}
-	if err := config.createSkillSymlinks(sourceDir, targetDir); err != nil {
+	if err := config.createSkillSymlinks(sourceDir, targetDir, []string{"retired-alpha"}); err != nil {
 		t.Fatal(err)
 	}
 	if link, err := os.Readlink(filepath.Join(targetDir, "valid-skill")); err != nil || link != validSkill {
@@ -73,6 +73,170 @@ func TestCreateSkillSymlinksSkipsEntriesWithoutSkillManifest(t *testing.T) {
 		t.Fatalf("expected file entry to be skipped, err %v", err)
 	}
 	mustContain(t, out.String(), "Skipping non-skill entry")
+	if strings.Contains(out.String(), "README.md") {
+		t.Fatalf("ordinary files should be skipped silently:\n%s", out.String())
+	}
+}
+
+func TestCreateSkillSymlinksRemovesOnlyRetiredRepoSymlinks(t *testing.T) {
+	dir := t.TempDir()
+	sourceDir := filepath.Join(dir, "repo", "skills")
+	targetDir := filepath.Join(dir, "home", "skills")
+	validSkill := filepath.Join(sourceDir, "valid-skill")
+	if err := os.MkdirAll(validSkill, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(validSkill, "SKILL.md"), []byte("name: valid-skill\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	retiredNames := []string{"retired-alpha", "retired-beta", "retired-gamma"}
+	ownedRetired := filepath.Join(targetDir, retiredNames[0])
+	if err := os.Symlink(filepath.Join(sourceDir, retiredNames[0]), ownedRetired); err != nil {
+		t.Fatal(err)
+	}
+	foreignRetired := filepath.Join(targetDir, retiredNames[1])
+	foreignSource := filepath.Join(dir, "foreign", retiredNames[1])
+	if err := os.Symlink(foreignSource, foreignRetired); err != nil {
+		t.Fatal(err)
+	}
+	userRetired := filepath.Join(targetDir, retiredNames[2])
+	if err := os.WriteFile(userRetired, []byte("user-owned"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	var out bytes.Buffer
+	config := Config{Out: &out}
+	if err := config.createSkillSymlinks(sourceDir, targetDir, retiredNames); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(ownedRetired); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected repo-owned retired symlink removed, err=%v", err)
+	}
+	if link, err := os.Readlink(foreignRetired); err != nil || link != foreignSource {
+		t.Fatalf("foreign retired symlink changed: link=%q err=%v", link, err)
+	}
+	if got := readFile(t, userRetired); got != "user-owned" {
+		t.Fatalf("user-owned retired target changed: %q", got)
+	}
+	if _, err := os.Readlink(filepath.Join(targetDir, "valid-skill")); err != nil {
+		t.Fatalf("current skill was not linked: %v", err)
+	}
+	mustContain(t, out.String(), "Removed retired repo skill symlink")
+	mustContain(t, out.String(), "leaving unchanged")
+}
+
+func TestCreateSkillSymlinksPreservesRepromotedRetiredSkill(t *testing.T) {
+	dir := t.TempDir()
+	sourceDir := filepath.Join(dir, "repo", "skills")
+	targetDir := filepath.Join(dir, "home", "skills")
+	retiredName := "retired-alpha"
+	repromoted := filepath.Join(sourceDir, retiredName)
+	if err := os.MkdirAll(repromoted, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repromoted, "SKILL.md"), []byte("name: "+retiredName+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(targetDir, retiredName)
+	if err := os.Symlink(repromoted, target); err != nil {
+		t.Fatal(err)
+	}
+
+	var out bytes.Buffer
+	config := Config{Out: &out}
+	if err := config.createSkillSymlinks(sourceDir, targetDir, []string{retiredName}); err != nil {
+		t.Fatal(err)
+	}
+	if link, err := os.Readlink(target); err != nil || link != repromoted {
+		t.Fatalf("repromoted skill symlink changed: link=%q err=%v", link, err)
+	}
+	if strings.Contains(out.String(), "Removed retired repo skill symlink") {
+		t.Fatalf("repromoted skill was logged as retired:\n%s", out.String())
+	}
+}
+
+func TestCleanupRetiredSymlinkUsesCanonicalSourceParent(t *testing.T) {
+	dir := t.TempDir()
+	repoDir := filepath.Join(dir, "repo")
+	sourceDir := filepath.Join(repoDir, "skills")
+	aliasRepo := filepath.Join(dir, "repo-alias")
+	targetDir := filepath.Join(dir, "home", "skills")
+	retiredName := "retired-alpha"
+	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(repoDir, aliasRepo); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(targetDir, retiredName)
+	if err := os.Symlink(filepath.Join("..", "..", "repo-alias", "skills", retiredName), target); err != nil {
+		t.Fatal(err)
+	}
+
+	var out bytes.Buffer
+	config := Config{Out: &out}
+	if err := config.cleanupRetiredSkillSymlinks(sourceDir, targetDir, []string{retiredName}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(target); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("canonical repo-owned alias was not removed, err=%v", err)
+	}
+}
+
+func TestInstallRejectsInvalidRetiredManifestBeforeProviderMutation(t *testing.T) {
+	repo := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(repo, "config"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "config", "retired-skills.json"), []byte(`{"retired_skills": ["Invalid"]}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	codexHome := filepath.Join(t.TempDir(), "codex")
+	if err := os.MkdirAll(codexHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	config := Config{
+		RepoRoot:        repo,
+		CodexHome:       codexHome,
+		ClaudeHome:      filepath.Join(t.TempDir(), "claude"),
+		OpenCodeHome:    filepath.Join(t.TempDir(), "opencode"),
+		AntigravityHome: filepath.Join(t.TempDir(), "antigravity"),
+		AgentsHome:      filepath.Join(t.TempDir(), "agents"),
+		Out:             &bytes.Buffer{},
+	}
+	if err := config.Install(); err == nil {
+		t.Fatal("expected invalid retired manifest to stop install")
+	}
+	if _, err := os.Lstat(filepath.Join(codexHome, "AGENTS.md")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("provider target changed before manifest validation, err=%v", err)
+	}
+}
+
+func TestSetupCodexAgentsRejectsInvalidRetiredManifestBeforeMutation(t *testing.T) {
+	repo := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(repo, "config"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "config", "retired-skills.json"), []byte(`{"retired_skills": ["Invalid"]}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	codexHome := filepath.Join(t.TempDir(), "codex")
+	config := Config{RepoRoot: repo, CodexHome: codexHome, AgentsHome: filepath.Join(t.TempDir(), "agents"), Out: &bytes.Buffer{}}
+	if err := config.SetupCodexAgents(); err == nil {
+		t.Fatal("expected invalid retired manifest to stop Codex setup")
+	}
+	if _, err := os.Lstat(codexHome); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Codex provider root changed before manifest validation, err=%v", err)
+	}
 }
 
 func TestCodexMarketplaceConfiguredDetectsRepoMarketplace(t *testing.T) {
@@ -474,6 +638,117 @@ func TestGenerateCodexRoleFilesReplacesLegacyTemplateSymlink(t *testing.T) {
 		t.Fatal("expected generated regular file, got symlink")
 	}
 	mustContain(t, readFile(t, target), filepath.ToSlash(filepath.Join(repo, "home", "demo")))
+}
+
+func TestGenerateCodexRoleFilesDoesNotFollowReplacementSymlink(t *testing.T) {
+	repo := t.TempDir()
+	sourceDir := filepath.Join(repo, "config", "codex-agents")
+	targetDir := filepath.Join(repo, "home", ".codex", "agents")
+	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "demo.toml"), []byte(`name = "demo"`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	writeRoleManifest(t, sourceDir, `{"skill_groups":{"demo":["{{REPO_ROOT}}/skills/demo"]},"roles":{"demo":{}}}`)
+	external := filepath.Join(repo, "external.toml")
+	if err := os.WriteFile(external, []byte("external-owned"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(targetDir, "demo.toml")
+	config := Config{
+		RepoRoot: repo,
+		Out:      &bytes.Buffer{},
+		beforeGeneratedRoleWrite: func(path string) {
+			if err := os.Symlink(external, path); err != nil {
+				t.Fatal(err)
+			}
+		},
+	}
+	if err := config.generateCodexRoleFiles(targetDir); err != nil {
+		t.Fatal(err)
+	}
+	if got := readFile(t, external); got != "external-owned" {
+		t.Fatalf("external replacement was modified: %q", got)
+	}
+	if link, err := os.Readlink(target); err != nil || link != external {
+		t.Fatalf("replacement symlink was not preserved: link=%q err=%v", link, err)
+	}
+}
+
+func TestGenerateCodexRoleFilesDoesNotRemoveReplacementRegularStaleFile(t *testing.T) {
+	repo := t.TempDir()
+	sourceDir := filepath.Join(repo, "config", "codex-agents")
+	targetDir := filepath.Join(repo, "home", ".codex", "agents")
+	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "demo.toml"), []byte(`name = "demo"`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	writeRoleManifest(t, sourceDir, `{"skill_groups":{"demo":["{{REPO_ROOT}}/skills/demo"]},"roles":{"demo":{}}}`)
+	stale := filepath.Join(targetDir, "stale.toml")
+	if err := os.WriteFile(stale, []byte(managedHeader+"name = \"stale\"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	config := Config{
+		RepoRoot: repo,
+		Out:      &bytes.Buffer{},
+		beforeStaleRoleRemove: func(path string) {
+			if err := os.Remove(path); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(path, []byte("replacement-owned"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		},
+	}
+	if err := config.generateCodexRoleFiles(targetDir); err != nil {
+		t.Fatal(err)
+	}
+	if got := readFile(t, stale); got != "replacement-owned" {
+		t.Fatalf("replacement regular file was removed or changed: %q", got)
+	}
+}
+
+func TestCleanupRetiredSkillSymlinksDoesNotRemoveReplacementRegularFile(t *testing.T) {
+	dir := t.TempDir()
+	sourceDir := filepath.Join(dir, "repo", "skills")
+	targetDir := filepath.Join(dir, "home", "skills")
+	retiredName := "retired-alpha"
+	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(targetDir, retiredName)
+	if err := os.Symlink(filepath.Join(sourceDir, retiredName), target); err != nil {
+		t.Fatal(err)
+	}
+	config := Config{
+		Out: &bytes.Buffer{},
+		beforeRetiredSkillRemove: func(path string) {
+			if err := os.Remove(path); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(path, []byte("replacement-owned"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		},
+	}
+	if err := config.cleanupRetiredSkillSymlinks(sourceDir, targetDir, []string{retiredName}); err != nil {
+		t.Fatal(err)
+	}
+	if got := readFile(t, target); got != "replacement-owned" {
+		t.Fatalf("replacement regular file was removed or changed: %q", got)
+	}
 }
 
 func TestAppendZshrcSourceIsIdempotent(t *testing.T) {

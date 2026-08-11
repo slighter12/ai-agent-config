@@ -3,10 +3,13 @@ package skilltools
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"ai-agent-config/hooks/internal/skillcatalog"
 )
 
 func TestValidateSkillAcceptsPortableFrontmatter(t *testing.T) {
@@ -18,6 +21,7 @@ func TestValidateSkillAcceptsPortableFrontmatter(t *testing.T) {
 	writeFile(t, filepath.Join(skillDir, "SKILL.md"), `---
 name: demo-skill
 description: Perform demo validation. Use when checking the Go validator. Avoid when another skill is more specific.
+argument-hint: "What should be validated?"
 license: MIT
 compatibility: [codex, claude, gemini]
 metadata:
@@ -219,6 +223,18 @@ func TestInitSkillCreatesTemplateFiles(t *testing.T) {
 	}
 }
 
+func TestInitSkillUsesSharedNameRules(t *testing.T) {
+	for _, name := range []string{"", "Upper-case", "-leading", "trailing-", "double--dash", strings.Repeat("a", 65)} {
+		t.Run(name, func(t *testing.T) {
+			sharedErr := skillcatalog.ValidateSkillName(name)
+			initErr := InitSkill(&bytes.Buffer{}, name, t.TempDir())
+			if (sharedErr == nil) != (initErr == nil) {
+				t.Fatalf("shared rule error = %v, InitSkill error = %v", sharedErr, initErr)
+			}
+		})
+	}
+}
+
 func TestValidateSkillsAcceptsRepositoryCatalog(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", "..", ".."))
 	valid, message, err := ValidateSkills(filepath.Join(repoRoot, "skills"))
@@ -228,7 +244,7 @@ func TestValidateSkillsAcceptsRepositoryCatalog(t *testing.T) {
 	if !valid {
 		t.Fatalf("expected repository catalog to be valid:\n%s", message)
 	}
-	mustContain(t, message, "23 skills (10 model, 13 user)")
+	mustContain(t, message, "27 skills (13 model, 14 user)")
 	mustContain(t, message, "repo model name/description contribution characters")
 }
 
@@ -291,7 +307,7 @@ func TestValidateSkillsRejectsMissingRouter(t *testing.T) {
 	if valid {
 		t.Fatal("expected missing router to invalidate the catalog")
 	}
-	mustContain(t, message, "required router skill ask-skills is missing")
+	mustContain(t, message, "required router skill ask-matt is missing")
 }
 
 func TestValidateSkillsRejectsMissingUserInvocationControls(t *testing.T) {
@@ -335,7 +351,7 @@ func TestValidateSkillsChecksCanonicalCatalogReference(t *testing.T) {
 
 | Skill | Purpose |
 | --- | --- |
-| ` + "`ask-skills`" + ` | Explain routes. |
+| ` + "`ask-matt`" + ` | Explain routes. |
 
 ## Model-invoked
 
@@ -353,7 +369,7 @@ func TestValidateSkillsChecksCanonicalCatalogReference(t *testing.T) {
 
 | Skill | Purpose |
 | --- | --- |
-| ` + "`ask-skills`" + ` | Explain routes. |
+| ` + "`ask-matt`" + ` | Explain routes. |
 
 ## Model-invoked
 `,
@@ -367,7 +383,7 @@ func TestValidateSkillsChecksCanonicalCatalogReference(t *testing.T) {
 
 | Skill | Purpose |
 | --- | --- |
-| ` + "`ask-skills`" + ` | Explain routes. |
+| ` + "`ask-matt`" + ` | Explain routes. |
 
 ## Model-invoked
 
@@ -386,8 +402,8 @@ func TestValidateSkillsChecksCanonicalCatalogReference(t *testing.T) {
 
 | Skill | Purpose |
 | --- | --- |
-| ` + "`ask-skills`" + ` | Explain routes. |
-| ` + "`ask-skills`" + ` | Explain routes twice. |
+| ` + "`ask-matt`" + ` | Explain routes. |
+| ` + "`ask-matt`" + ` | Explain routes twice. |
 
 ## Model-invoked
 
@@ -395,7 +411,7 @@ func TestValidateSkillsChecksCanonicalCatalogReference(t *testing.T) {
 | --- | --- |
 | ` + "`demo-model`" + ` | Demonstrate model routing. |
 `,
-			wantMessage: "catalog lists ask-skills more than once",
+			wantMessage: "catalog lists ask-matt more than once",
 		},
 		{
 			name: "wrong group",
@@ -405,7 +421,7 @@ func TestValidateSkillsChecksCanonicalCatalogReference(t *testing.T) {
 
 | Skill | Purpose |
 | --- | --- |
-| ` + "`ask-skills`" + ` | Explain routes. |
+| ` + "`ask-matt`" + ` | Explain routes. |
 | ` + "`demo-model`" + ` | Demonstrate model routing. |
 
 ## Model-invoked
@@ -433,7 +449,7 @@ func TestValidateSkillsChecksCanonicalCatalogReference(t *testing.T) {
 
 func TestValidateSkillsRejectsMissingCanonicalCatalogReference(t *testing.T) {
 	skillsDir := t.TempDir()
-	writeInvocationSkill(t, skillsDir, "ask-skills", "user")
+	writeInvocationSkill(t, skillsDir, "ask-matt", "user")
 	writeInvocationSkill(t, skillsDir, "demo-model", "model")
 
 	valid, message, err := ValidateSkills(skillsDir)
@@ -444,6 +460,97 @@ func TestValidateSkillsRejectsMissingCanonicalCatalogReference(t *testing.T) {
 		t.Fatal("expected invalid catalog")
 	}
 	mustContain(t, message, "canonical catalog reference not found")
+}
+
+func TestValidatorRejectsUnsafeAndOversizedInputs(t *testing.T) {
+	t.Run("symlinked SKILL.md", func(t *testing.T) {
+		root := t.TempDir()
+		external := filepath.Join(t.TempDir(), "outside.md")
+		writeFile(t, external, "---\nname: demo\ndescription: Demo.\nmetadata:\n  invocation: model\n---\n")
+		skillDir := filepath.Join(root, "demo")
+		if err := os.Mkdir(skillDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Symlink(external, filepath.Join(skillDir, "SKILL.md")); err != nil {
+			t.Fatal(err)
+		}
+		if _, _, err := ValidateSkill(skillDir); err == nil || !strings.Contains(err.Error(), "is a symlink") {
+			t.Fatalf("expected symlink rejection, got %v", err)
+		}
+	})
+
+	t.Run("oversized SKILL.md", func(t *testing.T) {
+		skillDir := filepath.Join(t.TempDir(), "demo")
+		if err := os.Mkdir(skillDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		writeFile(t, filepath.Join(skillDir, "SKILL.md"), strings.Repeat("x", maxValidatorFileBytes+1))
+		if _, _, err := ValidateSkill(skillDir); err == nil || !strings.Contains(err.Error(), "exceeds 1 MiB") {
+			t.Fatalf("expected size rejection, got %v", err)
+		}
+	})
+
+	t.Run("aggregate budget", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "input")
+		writeFile(t, path, "12345")
+		budget := &validatorBudget{remaining: 4}
+		if _, err := readValidatorFile(path, budget); err == nil || !strings.Contains(err.Error(), "aggregate limit") {
+			t.Fatalf("expected aggregate rejection, got %v", err)
+		}
+	})
+
+	t.Run("entry count", func(t *testing.T) {
+		root := t.TempDir()
+		for i := 0; i <= maxValidatorSkillEntries; i++ {
+			if err := os.Mkdir(filepath.Join(root, fmt.Sprintf("entry-%04d", i)), 0o755); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if _, err := readSkillEntries(root); err == nil || !strings.Contains(err.Error(), "more than") {
+			t.Fatalf("expected entry-count rejection, got %v", err)
+		}
+	})
+
+	t.Run("symlinked sidecar parent", func(t *testing.T) {
+		root := t.TempDir()
+		writeInvocationSkill(t, root, "demo-user", "user")
+		agents := filepath.Join(root, "demo-user", "agents")
+		if err := os.RemoveAll(agents); err != nil {
+			t.Fatal(err)
+		}
+		external := t.TempDir()
+		writeFile(t, filepath.Join(external, "openai.yaml"), "policy:\n  allow_implicit_invocation: false\n")
+		if err := os.Symlink(external, agents); err != nil {
+			t.Fatal(err)
+		}
+		valid, message, err := ValidateSkill(filepath.Join(root, "demo-user"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if valid || !strings.Contains(message, "parent") || !strings.Contains(message, "symlink") {
+			t.Fatalf("expected sidecar parent-symlink rejection, got valid=%v message=%q", valid, message)
+		}
+	})
+
+	t.Run("symlinked catalog parent", func(t *testing.T) {
+		root := createCatalogFixture(t, "# Skill Catalog\n\n## User-invoked\n\n| Skill | Purpose |\n| --- | --- |\n| `ask-matt` | Router. |\n\n## Model-invoked\n\n| Skill | Purpose |\n| --- | --- |\n| `demo-model` | Model. |\n")
+		references := filepath.Join(root, "ask-matt", "references")
+		if err := os.RemoveAll(references); err != nil {
+			t.Fatal(err)
+		}
+		external := t.TempDir()
+		writeFile(t, filepath.Join(external, "CATALOG.md"), "# Skill Catalog\n")
+		if err := os.Symlink(external, references); err != nil {
+			t.Fatal(err)
+		}
+		valid, message, err := ValidateSkills(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if valid || !strings.Contains(message, "parent") || !strings.Contains(message, "symlink") {
+			t.Fatalf("expected catalog parent-symlink rejection, got valid=%v message=%q", valid, message)
+		}
+	})
 }
 
 func TestPackageSkillCreatesSkillArchive(t *testing.T) {
@@ -517,9 +624,9 @@ metadata:
 func createCatalogFixture(t *testing.T, catalog string) string {
 	t.Helper()
 	skillsDir := t.TempDir()
-	writeInvocationSkill(t, skillsDir, "ask-skills", "user")
+	writeInvocationSkill(t, skillsDir, "ask-matt", "user")
 	writeInvocationSkill(t, skillsDir, "demo-model", "model")
-	referencesDir := filepath.Join(skillsDir, "ask-skills", "references")
+	referencesDir := filepath.Join(skillsDir, "ask-matt", "references")
 	if err := os.MkdirAll(referencesDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -529,10 +636,10 @@ func createCatalogFixture(t *testing.T, catalog string) string {
 
 func writeRouterCatalog(t *testing.T, skillsDir string, userNames, modelNames []string) {
 	t.Helper()
-	writeInvocationSkill(t, skillsDir, "ask-skills", "user")
+	writeInvocationSkill(t, skillsDir, "ask-matt", "user")
 	var catalog strings.Builder
 	catalog.WriteString("# Skill Catalog\n\n## User-invoked\n\n| Skill | Purpose |\n| --- | --- |\n")
-	catalog.WriteString("| `ask-skills` | Explain routes. |\n")
+	catalog.WriteString("| `ask-matt` | Explain routes. |\n")
 	for _, name := range userNames {
 		catalog.WriteString("| `" + name + "` | User fixture. |\n")
 	}
@@ -540,7 +647,7 @@ func writeRouterCatalog(t *testing.T, skillsDir string, userNames, modelNames []
 	for _, name := range modelNames {
 		catalog.WriteString("| `" + name + "` | Model fixture. |\n")
 	}
-	referencesDir := filepath.Join(skillsDir, "ask-skills", "references")
+	referencesDir := filepath.Join(skillsDir, "ask-matt", "references")
 	if err := os.MkdirAll(referencesDir, 0o755); err != nil {
 		t.Fatal(err)
 	}

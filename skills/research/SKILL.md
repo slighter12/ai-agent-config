@@ -1,14 +1,14 @@
 ---
 name: research
-description: Research a technical or product question from current primary sources and turn it into a decision-ready synthesis. Use when the answer depends on external documentation, papers, standards, or recent facts. Avoid when repository evidence alone can answer the question.
+description: Investigate a question against high-trust primary sources and produce a cited Markdown result; write it to the repository only when the enclosing request authorizes artifact creation. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.
 metadata:
   invocation: model
 ---
 
-# Research
+Run one research pass. When a provider-native background-agent primitive is available, delegate the complete pass to it by default and continue other in-scope work while it runs. Perform the complete pass in the current session only when that primitive is unavailable or the launch fails. Either execution path must satisfy every research requirement below.
 
-Define the decision and evidence needed. Prefer official documentation, standards, source repositories, and original papers; distinguish sourced fact from inference.
+Its job:
 
-Research directly for a bounded question. Delegate to a librarian or background agent only when the work is large and can be split into independent source sets with low coordination cost.
-
-Use current official docs for live SDK, protocol, framework, language, and deployment behavior. Cite claims near their supporting source and note version or date sensitivity.
+1. Investigate the question against **primary sources** — official docs, source code, specs, first-party APIs — not a secondary write-up of them. Follow every claim back to the source that owns it.
+2. Write the findings as one cited Markdown result.
+3. Save it in the repo only when the enclosing request authorizes artifact creation. Otherwise return it inline or in the OS temporary directory, and report the location. When repo writes are authorized, match the existing notes convention; if there is none, put it somewhere sensible and say where.

@@ -28,7 +28,7 @@ The installer:
 - links the same `skills/*` directories to Codex, Claude, OpenCode, and Gemini/Antigravity discovery surfaces;
 - generates managed Codex role files;
 - relies on each skill's frontmatter and provider sidecar for declarative invocation controls;
-- leaves user files, unknown targets, and links from other repositories unchanged;
+- removes only retired skill symlinks that point exactly into this repository, while leaving user files, unknown targets, and links from other repositories unchanged;
 - builds and installs this repository's Codex guardrail plugin.
 
 Default skill surfaces:
@@ -42,16 +42,19 @@ Environment variables such as `CODEX_HOME`, `CLAUDE_HOME`, `OPENCODE_HOME`, `ANT
 
 ## Skill Catalog
 
-The canonical catalog and route map live in [`ask-skills/references/CATALOG.md`](skills/ask-skills/references/CATALOG.md). User-invoked means the skill instructions load only after explicit invocation; an equivalent plain-language request may still use the model's default behavior under `AGENTS.md` and provider permissions.
+The canonical catalog and route map live in [`ask-matt/references/CATALOG.md`](skills/ask-matt/references/CATALOG.md). It contains Matt Pocock's 25 promoted skills plus two local extensions, `design-art-direction` and `mcp-builder-go`. User-invoked means the skill instructions load only after explicit invocation; an equivalent plain-language request may still use the model's default behavior under `AGENTS.md` and provider permissions.
+
+Upstream runtime artifacts are synchronized from the pinned source recorded in [`skills/UPSTREAM.md`](skills/UPSTREAM.md). The source stays flat locally because the installer links each skill directly into four provider discovery roots.
 
 ## Project Coordination
 
-`setup-skills` initializes these paths only when requested:
+`setup-matt-pocock-skills` initializes these paths only when requested:
 
-- `docs/agents/issue-tracker.md`: external tracker configuration, local fallback, status, and blocking edges.
-- `docs/agents/domain/`: durable domain context and ADRs.
+- `docs/agents/issue-tracker.md`: external tracker configuration or local Markdown conventions, including Wayfinder operations.
+- `docs/agents/triage-labels.md`: the five canonical triage roles.
+- `docs/agents/domain.md`: how skills find root or context-local `CONTEXT.md` files and ADRs.
 
-Artifact-producing workflows read this file instead of guessing a tracker or fallback. Explicitly invoke `setup-skills` to initialize a missing tracker choice. The catalog does not define triage labels.
+Artifact-producing workflows read these files instead of guessing. `CONTEXT.md`, `CONTEXT-MAP.md`, and `docs/adr/` are created lazily when durable domain information exists. Explicitly invoke `setup-matt-pocock-skills` to initialize or change this configuration.
 
 ## Provider Invocation Contract
 
@@ -86,18 +89,19 @@ Run these commands from the repository root. Path arguments are resolved from `h
 
 `validate-skills` checks:
 
+- the supplied catalog resolves to `<repo-root>/skills`, so manifest and routing evidence cannot be mixed across repositories;
 - supported-provider skill validity;
 - unique names and directory/name agreement;
 - `user` or `model` invocation metadata;
 - Claude, Codex, and OpenCode controls for user-invoked skills;
-- the required `ask-skills` router and synchronized canonical catalog;
+- the required `ask-matt` router and synchronized canonical catalog;
 - an 8,000-character repo-local contribution limit for model skill names and descriptions. Codex applies its [runtime budget](https://github.com/openai/codex/blob/main/codex-rs/core-skills/src/render.rs#L143-L158) to the complete rendered metadata from every source, so this is not a full-session estimate.
 
 ## Codex Roles
 
 Codex role source lives in `config/codex-agents/*.toml`; installation generates managed files under `~/.codex/agents/`. `config/codex-agents/role-manifest.json` owns role-scoped MCP availability and intentional skill exclusions.
 
-Use delegation only when a subtask is independent, concrete, and worth the coordination cost. `research` may use a librarian for large independent source sets. High-cost adversarial review remains explicit.
+Use provider-native delegation when a subtask is independent, concrete, and its isolation or parallelism justifies the coordination cost; otherwise complete the equivalent work sequentially in the current session. `research` is the upstream-first exception: run its reading legwork in a background agent whenever the provider primitive is available, then complete the same pass in the current session only when that primitive is unavailable or fails to start. `code-review` keeps independent Standards and Spec passes by default; explicit correctness, full-review, and release-readiness requests add their documented local axes. High-cost adversarial review remains explicit.
 
 ## Hooks and Codex Profiles
 
@@ -127,7 +131,7 @@ Validate the source catalog before installation:
 go -C hooks-go run ./cmd/agent-config validate-skills ../skills
 ```
 
-`validate-skill` and `package-skill` enforce the complete invocation contract for one skill. `validate-skills` also checks that the canonical `ask-skills` catalog contains every skill exactly once in the correct invocation group.
+`validate-skill` and `package-skill` enforce the complete invocation contract for one skill. `validate-skills` also checks that the canonical `ask-matt` catalog contains every skill exactly once in the correct invocation group.
 
 Then inspect provider surfaces:
 
@@ -147,8 +151,10 @@ git pull
 ./install.sh
 ```
 
-Run `go -C hooks-go run ./cmd/agent-config validate-skills ../skills` after catalog changes. Add references only when a branch of the workflow genuinely needs details that would otherwise obscure the main skill.
+Run `go -C hooks-go run ./cmd/agent-config validate-skills ../skills` after catalog changes. Compare against the SHA and path mapping in `skills/UPSTREAM.md` before adopting a new upstream release. Add references only when a branch of the workflow genuinely needs details that would otherwise obscure the main skill.
+
+Run `./scripts/check_go_targets.sh` after changing `hooks-go` code guarded by build tags. `go build` and `go test` on the host cover one target only, so a broken build tag or an unresolved `//go:linkname` on another platform stays invisible until that platform is compiled.
 
 ## License
 
-Personal configuration. Adapt as needed.
+Personal configuration. Adapt as needed. Vendored Matt Pocock skill content remains subject to the MIT license in `LICENSES/mattpocock-skills-MIT.txt`.

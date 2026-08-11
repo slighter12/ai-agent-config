@@ -11,19 +11,24 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"ai-agent-config/hooks/internal/securepath"
+	"ai-agent-config/hooks/internal/skillcatalog"
 )
 
 const (
-	maxNameLength            = 64
-	maxDescriptionLength     = 1024
-	maxRepoModelContribution = 8000
-	maxCompatibilityLength   = 500
-	maxLicenseLength         = 200
-	maxVersionLength         = 64
+	maxDescriptionLength       = 1024
+	maxRepoModelContribution   = 8000
+	maxCompatibilityLength     = 500
+	maxLicenseLength           = 200
+	maxArgumentHintLength      = 200
+	maxVersionLength           = 64
+	maxValidatorFileBytes      = 1 << 20
+	maxValidatorAggregateBytes = 8 << 20
+	maxValidatorSkillEntries   = 1024
 )
 
 var (
-	nameRE        = regexp.MustCompile(`^[a-z0-9-]+$`)
 	metadataKeyRE = regexp.MustCompile(`^[A-Za-z0-9_./-]+$`)
 	versionRE     = regexp.MustCompile(`^v?\d+(?:\.\d+){0,2}(?:[-+][0-9A-Za-z.-]+)?$`)
 
@@ -31,6 +36,7 @@ var (
 		"name":                     {},
 		"description":              {},
 		"disable-model-invocation": {},
+		"argument-hint":            {},
 		"license":                  {},
 		"compatibility":            {},
 		"metadata":                 {},
@@ -68,8 +74,111 @@ const (
 	mappingKind
 )
 
+type validatorBudget struct {
+	remaining int64
+}
+
+func newValidatorBudget() *validatorBudget {
+	return &validatorBudget{remaining: maxValidatorAggregateBytes}
+}
+
+func readValidatorFile(path string, budget *validatorBudget) ([]byte, error) {
+	return readValidatorFileWithHook(path, budget, nil)
+}
+
+// readValidatorFileWithHook keeps replacement and growth checks deterministic
+// in tests without making the production validator depend on timing.
+func readValidatorFileWithHook(path string, budget *validatorBudget, afterOpen func()) ([]byte, error) {
+	parent, name, err := securepath.OpenParent(path)
+	if err != nil {
+		return nil, err
+	}
+	defer parent.Close()
+	return readValidatorFileFromParent(parent, name, path, budget, afterOpen)
+}
+
+func readValidatorFileRelative(root *os.File, relativePath string, budget *validatorBudget, afterOpen func()) ([]byte, error) {
+	file, err := securepath.OpenFileRelative(root, relativePath)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "too many levels of symbolic links") {
+			return nil, fmt.Errorf("validator input %s is a symlink", filepath.Join(root.Name(), relativePath))
+		}
+		return nil, fmt.Errorf("open validator input %s: %w", filepath.Join(root.Name(), relativePath), err)
+	}
+	defer file.Close()
+	return readValidatorFileHandle(file, filepath.Join(root.Name(), relativePath), budget, afterOpen)
+}
+
+func readValidatorFileFromParent(parent *os.File, name, displayPath string, budget *validatorBudget, afterOpen func()) ([]byte, error) {
+	file, err := securepath.OpenFileAt(parent, name)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "too many levels of symbolic links") {
+			return nil, fmt.Errorf("validator input %s is a symlink", displayPath)
+		}
+		return nil, fmt.Errorf("open validator input %s: %w", displayPath, err)
+	}
+	defer file.Close()
+	return readValidatorFileHandle(file, displayPath, budget, afterOpen)
+}
+
+func readValidatorFileHandle(file *os.File, path string, budget *validatorBudget, afterOpen func()) ([]byte, error) {
+	if budget == nil {
+		budget = newValidatorBudget()
+	}
+	openedInfo, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("stat validator input %s: %w", path, err)
+	}
+	if !openedInfo.Mode().IsRegular() {
+		return nil, fmt.Errorf("validator input %s is not a regular file", path)
+	}
+	if openedInfo.Size() > maxValidatorFileBytes {
+		return nil, fmt.Errorf("validator input %s exceeds 1 MiB limit while opening (%d bytes)", path, openedInfo.Size())
+	}
+	if openedInfo.Size() > budget.remaining {
+		return nil, validatorAggregateLimitError(path, openedInfo.Size(), budget.remaining)
+	}
+	if afterOpen != nil {
+		afterOpen()
+	}
+	readLimit := int64(maxValidatorFileBytes)
+	if budget.remaining < readLimit {
+		readLimit = budget.remaining
+	}
+	raw, err := io.ReadAll(io.LimitReader(file, readLimit+1))
+	if err != nil {
+		return nil, fmt.Errorf("read validator input %s: %w", path, err)
+	}
+	if int64(len(raw)) > maxValidatorFileBytes {
+		return nil, fmt.Errorf("validator input %s exceeds 1 MiB limit while reading", path)
+	}
+	if int64(len(raw)) > budget.remaining {
+		return nil, validatorAggregateLimitError(path, int64(len(raw)), budget.remaining)
+	}
+
+	finalInfo, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("stat validator input %s after reading: %w", path, err)
+	}
+	if !finalInfo.Mode().IsRegular() || !os.SameFile(openedInfo, finalInfo) {
+		return nil, fmt.Errorf("validator input %s was replaced while reading", path)
+	}
+	if finalInfo.Size() != openedInfo.Size() {
+		return nil, fmt.Errorf("validator input %s grew or changed while reading", path)
+	}
+	if int64(len(raw)) != finalInfo.Size() {
+		return nil, fmt.Errorf("validator input %s changed while reading", path)
+	}
+	budget.remaining -= int64(len(raw))
+	return raw, nil
+}
+
+func validatorAggregateLimitError(path string, size, remaining int64) error {
+	return fmt.Errorf("validator inputs exceed 8 MiB aggregate limit at %s (%d bytes; %d bytes remaining)", path, size, remaining)
+}
+
 func InitSkill(out io.Writer, skillName, path string) error {
-	if err := validateSkillName(skillName); err != nil {
+	if err := skillcatalog.ValidateSkillName(skillName); err != nil {
 		return err
 	}
 	skillDir, err := filepath.Abs(filepath.Join(path, skillName))
@@ -97,25 +206,45 @@ func InitSkill(out io.Writer, skillName, path string) error {
 }
 
 func ValidateSkill(skillPath string) (bool, string, error) {
-	skillMD := filepath.Join(skillPath, "SKILL.md")
-	raw, err := os.ReadFile(skillMD)
+	valid, message, _, err := validateSkillWithBudget(skillPath, newValidatorBudget())
+	return valid, message, err
+}
+
+func validateSkillWithBudget(skillPath string, budget *validatorBudget) (bool, string, map[string]frontmatterValue, error) {
+	directory, err := securepath.OpenDirectory(skillPath)
+	if err != nil {
+		return false, "", nil, err
+	}
+	defer directory.Close()
+	return validateSkillDirectoryWithBudget(directory, skillPath, budget)
+}
+
+func validateSkillDirectoryWithBudget(directory *os.File, skillPath string, budget *validatorBudget) (bool, string, map[string]frontmatterValue, error) {
+	info, err := directory.Stat()
+	if err != nil {
+		return false, "", nil, fmt.Errorf("stat skill path %s: %w", skillPath, err)
+	}
+	if !info.IsDir() {
+		return false, "", nil, fmt.Errorf("skill path %s is not a directory", skillPath)
+	}
+	raw, err := readValidatorFileRelative(directory, "SKILL.md", budget, nil)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return false, "SKILL.md not found", nil
+			return false, "SKILL.md not found", nil, nil
 		}
-		return false, "", err
+		return false, "", nil, err
 	}
 	content := string(raw)
 	if !strings.HasPrefix(content, "---") {
-		return false, "No YAML frontmatter found", nil
+		return false, "No YAML frontmatter found", nil, nil
 	}
 	frontmatterText, ok := extractFrontmatter(content)
 	if !ok {
-		return false, "Invalid frontmatter format", nil
+		return false, "Invalid frontmatter format", nil, nil
 	}
 	frontmatter, err := parseFrontmatter(frontmatterText)
 	if err != nil {
-		return false, fmt.Sprintf("Invalid frontmatter: %v", err), nil
+		return false, fmt.Sprintf("Invalid frontmatter: %v", err), nil, nil
 	}
 	for key := range frontmatter {
 		if _, ok := allowedProperties[key]; !ok {
@@ -126,54 +255,63 @@ func ValidateSkill(skillPath string) (bool, string, error) {
 				}
 			}
 			sort.Strings(unexpected)
-			return false, fmt.Sprintf("Unexpected key(s) in portable SKILL.md frontmatter: %s. Allowed properties are: %s", strings.Join(unexpected, ", "), strings.Join(sortedKeys(allowedProperties), ", ")), nil
+			return false, fmt.Sprintf("Unexpected key(s) in portable SKILL.md frontmatter: %s. Allowed properties are: %s", strings.Join(unexpected, ", "), strings.Join(sortedKeys(allowedProperties), ", ")), nil, nil
 		}
 	}
 	for _, key := range requiredProperties {
 		if _, ok := frontmatter[key]; !ok {
-			return false, fmt.Sprintf("Missing %q in frontmatter", key), nil
+			return false, fmt.Sprintf("Missing %q in frontmatter", key), nil, nil
 		}
 	}
 	nameValue := frontmatter["name"]
 	if nameValue.kind != stringKind {
-		return false, fmt.Sprintf("Name must be a string, got %s", kindName(nameValue.kind)), nil
+		return false, fmt.Sprintf("Name must be a string, got %s", kindName(nameValue.kind)), nil, nil
 	}
 	name := strings.TrimSpace(nameValue.stringValue)
-	if err := validateSkillName(name); err != nil {
-		return false, fmt.Sprintf("Name %q %s", name, validationSuffix(err.Error())), nil
+	if err := skillcatalog.ValidateSkillName(name); err != nil {
+		return false, fmt.Sprintf("Name %q %s", name, validationSuffix(err.Error())), nil, nil
 	}
 	descriptionValue := frontmatter["description"]
 	if descriptionValue.kind != stringKind {
-		return false, fmt.Sprintf("Description must be a string, got %s", kindName(descriptionValue.kind)), nil
+		return false, fmt.Sprintf("Description must be a string, got %s", kindName(descriptionValue.kind)), nil, nil
 	}
 	if err := validateDescription(strings.TrimSpace(descriptionValue.stringValue)); err != nil {
-		return false, err.Error(), nil
+		return false, err.Error(), nil, nil
 	}
 	if value, ok := frontmatter["metadata"]; ok {
 		if err := validateMetadata(value); err != nil {
-			return false, err.Error(), nil
+			return false, err.Error(), nil, nil
 		}
 	}
 	if err := validateDisableModelInvocation(frontmatter); err != nil {
-		return false, err.Error(), nil
+		return false, err.Error(), nil, nil
 	}
 	if err := validateOptionalString(frontmatter, "license", maxLicenseLength); err != nil {
-		return false, err.Error(), nil
+		return false, err.Error(), nil, nil
+	}
+	if err := validateOptionalString(frontmatter, "argument-hint", maxArgumentHintLength); err != nil {
+		return false, err.Error(), nil, nil
 	}
 	if err := validateCompatibility(frontmatter); err != nil {
-		return false, err.Error(), nil
+		return false, err.Error(), nil, nil
 	}
-	if failures := invocationFailures(skillPath, frontmatter); len(failures) > 0 {
-		return false, strings.Join(failures, "\n"), nil
+	if failures := invocationFailuresFromDirectory(directory, skillPath, frontmatter, budget); len(failures) > 0 {
+		return false, strings.Join(failures, "\n"), frontmatter, nil
 	}
-	return true, "Skill is valid", nil
+	return true, "Skill is valid", frontmatter, nil
 }
 
 func ValidateSkills(skillsPath string) (bool, string, error) {
-	entries, err := os.ReadDir(skillsPath)
+	directory, err := securepath.OpenDirectory(skillsPath)
 	if err != nil {
 		return false, "", err
 	}
+	defer directory.Close()
+	entries, err := readSkillEntriesFromDirectory(directory, skillsPath)
+	if err != nil {
+		return false, "", err
+	}
+	budget := newValidatorBudget()
 	names := map[string]string{}
 	invocations := map[string]string{}
 	var failures []string
@@ -185,29 +323,36 @@ func ValidateSkills(skillsPath string) (bool, string, error) {
 	routerPresent := false
 
 	for _, entry := range entries {
+		if entry.Type()&os.ModeSymlink != 0 {
+			failures = append(failures, fmt.Sprintf("%s: skill entry is a symlink", entry.Name()))
+			allSkillsValid = false
+			continue
+		}
 		if !entry.IsDir() {
 			continue
 		}
 		skillPath := filepath.Join(skillsPath, entry.Name())
-		if _, err := os.Stat(filepath.Join(skillPath, "SKILL.md")); err != nil {
-			continue
+		skillDirectory, err := securepath.OpenDirectoryAt(directory, entry.Name())
+		if err != nil {
+			return false, "", fmt.Errorf("open skill %s: %w", entry.Name(), err)
 		}
-		if entry.Name() == "ask-skills" {
+		if entry.Name() == "ask-matt" {
 			routerPresent = true
 		}
 		skillCount++
-		valid, message, err := ValidateSkill(skillPath)
+		valid, message, frontmatter, err := validateSkillDirectoryWithBudget(skillDirectory, skillPath, budget)
+		skillDirectory.Close()
 		if err != nil {
 			return false, "", err
+		}
+		if !valid && message == "SKILL.md not found" {
+			skillCount--
+			continue
 		}
 		if !valid {
 			allSkillsValid = false
 			failures = append(failures, fmt.Sprintf("%s: %s", entry.Name(), message))
 			continue
-		}
-		frontmatter, err := readSkillFrontmatter(skillPath)
-		if err != nil {
-			return false, "", err
 		}
 		name := strings.TrimSpace(frontmatter["name"].stringValue)
 		if previous, exists := names[name]; exists {
@@ -230,15 +375,10 @@ func ValidateSkills(skillsPath string) (bool, string, error) {
 		}
 	}
 
-	catalogPath := filepath.Join(skillsPath, "ask-skills", "references", "CATALOG.md")
 	if !routerPresent {
-		failures = append(failures, "required router skill ask-skills is missing")
-	} else if _, err := os.Stat(catalogPath); errors.Is(err, os.ErrNotExist) {
-		failures = append(failures, "ask-skills: canonical catalog reference not found")
-	} else if err != nil {
-		return false, "", err
-	} else if _, hasRouter := invocations["ask-skills"]; hasRouter && allSkillsValid {
-		failures = append(failures, catalogReferenceFailures(skillsPath, invocations)...)
+		failures = append(failures, "required router skill ask-matt is missing")
+	} else if _, hasRouter := invocations["ask-matt"]; hasRouter && allSkillsValid {
+		failures = append(failures, catalogReferenceFailuresFromDirectory(directory, skillsPath, invocations, budget)...)
 	}
 	if discoveryCharacters > maxRepoModelContribution {
 		failures = append(failures, fmt.Sprintf("repo model skill names and descriptions use %d contribution characters; maximum is %d", discoveryCharacters, maxRepoModelContribution))
@@ -257,7 +397,34 @@ func ValidateSkills(skillsPath string) (bool, string, error) {
 	), nil
 }
 
-func invocationFailures(skillPath string, frontmatter map[string]frontmatterValue) []string {
+func readSkillEntries(skillsPath string) ([]os.DirEntry, error) {
+	directory, err := securepath.OpenDirectory(skillsPath)
+	if err != nil {
+		return nil, fmt.Errorf("open skills path %s: %w", skillsPath, err)
+	}
+	defer directory.Close()
+	return readSkillEntriesFromDirectory(directory, skillsPath)
+}
+
+func readSkillEntriesFromDirectory(directory *os.File, skillsPath string) ([]os.DirEntry, error) {
+	openedInfo, err := directory.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("stat skills path %s: %w", skillsPath, err)
+	}
+	if !openedInfo.IsDir() {
+		return nil, fmt.Errorf("skills path %s is not a directory", skillsPath)
+	}
+	entries, err := directory.ReadDir(maxValidatorSkillEntries + 1)
+	if err != nil {
+		return nil, fmt.Errorf("read skills path %s: %w", skillsPath, err)
+	}
+	if len(entries) > maxValidatorSkillEntries {
+		return nil, fmt.Errorf("skills path %s contains more than %d entries", skillsPath, maxValidatorSkillEntries)
+	}
+	return entries, nil
+}
+
+func invocationFailuresFromDirectory(directory *os.File, skillPath string, frontmatter map[string]frontmatterValue, budget *validatorBudget) []string {
 	var failures []string
 	metadata, ok := frontmatter["metadata"]
 	if !ok || metadata.kind != mappingKind {
@@ -270,8 +437,7 @@ func invocationFailures(skillPath string, frontmatter map[string]frontmatterValu
 	openCodeValue, hasOpenCode := metadata.mapping["opencode/autoinvoke"]
 	claudeValue, hasClaude := frontmatter["disable-model-invocation"]
 	claudeDisabled := hasClaude && strings.TrimSpace(claudeValue.stringValue) == "true"
-	sidecarPath := filepath.Join(skillPath, "agents", "openai.yaml")
-	sidecarRaw, sidecarErr := os.ReadFile(sidecarPath)
+	sidecarRaw, sidecarErr := readValidatorFileRelative(directory, filepath.Join("agents", "openai.yaml"), budget, nil)
 	hasDisabledSidecar := sidecarErr == nil && codexImplicitInvocationDisabled(string(sidecarRaw))
 	if sidecarErr != nil && !errors.Is(sidecarErr, os.ErrNotExist) {
 		failures = append(failures, fmt.Sprintf("cannot read Codex sidecar: %v", sidecarErr))
@@ -300,14 +466,13 @@ func invocationFailures(skillPath string, frontmatter map[string]frontmatterValu
 	return failures
 }
 
-func catalogReferenceFailures(skillsPath string, invocations map[string]string) []string {
-	catalogPath := filepath.Join(skillsPath, "ask-skills", "references", "CATALOG.md")
-	raw, err := os.ReadFile(catalogPath)
+func catalogReferenceFailuresFromDirectory(directory *os.File, skillsPath string, invocations map[string]string, budget *validatorBudget) []string {
+	raw, err := readValidatorFileRelative(directory, filepath.Join("ask-matt", "references", "CATALOG.md"), budget, nil)
 	if errors.Is(err, os.ErrNotExist) {
-		return []string{"ask-skills: canonical catalog reference not found"}
+		return []string{"ask-matt: canonical catalog reference not found"}
 	}
 	if err != nil {
-		return []string{fmt.Sprintf("ask-skills: cannot read canonical catalog reference: %v", err)}
+		return []string{fmt.Sprintf("ask-matt: cannot read canonical catalog reference: %v", err)}
 	}
 
 	entries := map[string]string{}
@@ -336,28 +501,28 @@ func catalogReferenceFailures(skillsPath string, invocations map[string]string) 
 			continue
 		}
 		if previous, exists := entries[name]; exists {
-			failures = append(failures, fmt.Sprintf("ask-skills: catalog lists %s more than once (%s and %s)", name, previous, section))
+			failures = append(failures, fmt.Sprintf("ask-matt: catalog lists %s more than once (%s and %s)", name, previous, section))
 			continue
 		}
 		entries[name] = section
 	}
 	if !hasUserSection || !hasModelSection {
-		failures = append(failures, "ask-skills: catalog must contain User-invoked and Model-invoked sections")
+		failures = append(failures, "ask-matt: catalog must contain User-invoked and Model-invoked sections")
 	}
 
 	for name, invocation := range invocations {
 		catalogInvocation, exists := entries[name]
 		if !exists {
-			failures = append(failures, fmt.Sprintf("ask-skills: catalog is missing %s", name))
+			failures = append(failures, fmt.Sprintf("ask-matt: catalog is missing %s", name))
 			continue
 		}
 		if catalogInvocation != invocation {
-			failures = append(failures, fmt.Sprintf("ask-skills: catalog groups %s as %s; metadata invocation is %s", name, catalogInvocation, invocation))
+			failures = append(failures, fmt.Sprintf("ask-matt: catalog groups %s as %s; metadata invocation is %s", name, catalogInvocation, invocation))
 		}
 	}
 	for name := range entries {
 		if _, exists := invocations[name]; !exists {
-			failures = append(failures, fmt.Sprintf("ask-skills: catalog contains unknown skill %s", name))
+			failures = append(failures, fmt.Sprintf("ask-matt: catalog contains unknown skill %s", name))
 		}
 	}
 	return failures
@@ -392,18 +557,6 @@ func codexImplicitInvocationDisabled(text string) bool {
 		}
 	}
 	return false
-}
-
-func readSkillFrontmatter(skillPath string) (map[string]frontmatterValue, error) {
-	raw, err := os.ReadFile(filepath.Join(skillPath, "SKILL.md"))
-	if err != nil {
-		return nil, err
-	}
-	text, ok := extractFrontmatter(string(raw))
-	if !ok {
-		return nil, errors.New("invalid skill frontmatter")
-	}
-	return parseFrontmatter(text)
 }
 
 func PackageSkill(out io.Writer, skillPath, outputDir string) (string, error) {
@@ -612,19 +765,6 @@ func unquoteValue(value string) string {
 		}
 	}
 	return value
-}
-
-func validateSkillName(name string) error {
-	switch {
-	case !nameRE.MatchString(name):
-		return errors.New("must use lowercase letters, digits, and hyphens only")
-	case strings.HasPrefix(name, "-") || strings.HasSuffix(name, "-") || strings.Contains(name, "--"):
-		return errors.New("cannot start/end with hyphen or contain consecutive hyphens")
-	case len(name) > maxNameLength:
-		return fmt.Errorf("must be %d characters or fewer", maxNameLength)
-	default:
-		return nil
-	}
 }
 
 func validateDescription(description string) error {

@@ -1,18 +1,18 @@
 ---
 name: implement
-description: Implement an approved local change and run the focused validation needed for confidence. Use when the user explicitly asks to implement an understood spec, ticket, or fix. Avoid when diagnosis, requirements discovery, review, commit, push, or deployment is the primary request.
+description: "Implement a piece of work based on a spec or set of tickets."
 disable-model-invocation: true
 metadata:
   invocation: user
   opencode/autoinvoke: "false"
 ---
 
-# Implement
+Implement the work described by the user in the spec or tickets.
 
-Read the controlling spec or ticket, repository instructions, and nearby patterns. Make the smallest complete change, preserving unrelated user work and public contracts.
+Use /tdd where possible, at pre-agreed seams.
 
-Run focused, nondestructive validation required by the change. Prefer an existing narrow test or check; do not broaden into a full suite without cause.
+Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
-Completion is the local change, focused verification, and handoff. Review, commit, push, deployment, and external communication begin only under a separate explicit user request.
+Once done, use /code-review to review the work.
 
-Report changed files, evidence actually run, skipped checks, assumptions, and runtime/config/migration risks.
+Commit only when the enclosing user request explicitly authorizes it. Otherwise report the verified, uncommitted state and the exact checks run.

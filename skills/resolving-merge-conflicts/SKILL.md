@@ -1,16 +1,16 @@
 ---
 name: resolving-merge-conflicts
-description: Resolve all conflicts in an in-progress merge or rebase and continue it to completion. Use when the user explicitly invokes this skill for an active conflict. Avoid when there is no merge or rebase in progress, or when only a read-only safety review is requested.
-disable-model-invocation: true
+description: "Use when you need to resolve an in-progress git merge/rebase conflict."
 metadata:
-  invocation: user
-  opencode/autoinvoke: "false"
+  invocation: model
 ---
 
-# Resolving Merge Conflicts
+1. **See the current state** of the merge/rebase. Check git history, and the conflicting files.
 
-Explicit invocation authorizes resolving the current merge or rebase, staging resolved paths, and running the required continue or commit loop.
+2. **Find the primary sources** for each conflict. Understand deeply why each change was made, and what the original intent was. Read the commit messages, check the PRs, check original issues/tickets.
 
-Inspect both sides, the base, repository intent, and nearby tests before choosing a resolution. Preserve compatible changes from both sides where possible. Validate the resolved result narrowly.
+3. **Resolve each hunk.** Preserve both intents where possible. Where incompatible, pick the one matching the merge's stated goal and note the trade-off. Do **not** invent new behaviour. Always resolve; never `--abort`.
 
-Never abort the merge or rebase. Never discard unrelated work. Stop and ask only when the intended behavior cannot be inferred safely.
+4. Discover the project's **automated checks** and run them — typically typecheck, then tests, then format. Fix anything the merge broke.
+
+5. **Respect the requested stopping point.** A request to resolve conflicts authorizes editing the conflicted paths and staging the resolved paths. Run `git merge --continue` or `git rebase --continue`, create the resulting commit, and continue through every rebased commit only when the user explicitly asks to finish or continue the operation.

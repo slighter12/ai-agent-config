@@ -1,0 +1,3 @@
+interface:
+  display_name: "MCP Builder Go"
+  short_description: "Build agent-native MCP servers in Go"

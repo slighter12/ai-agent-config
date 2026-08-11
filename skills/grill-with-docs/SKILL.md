@@ -1,12 +1,10 @@
 ---
 name: grill-with-docs
-description: Start a requirements interview that also captures domain context and decisions. Use when the user explicitly asks to be grilled and wants durable domain documentation. Avoid when no documentation should be written.
+description: A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.
 disable-model-invocation: true
 metadata:
   invocation: user
   opencode/autoinvoke: "false"
 ---
 
-# Grill With Docs
-
-Run a `grilling` session using `domain-modeling` to capture durable facts and decisions.
+Run a `/grilling` session, using the `/domain-modeling` skill.

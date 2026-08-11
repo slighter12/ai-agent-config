@@ -11,4 +11,4 @@ These rules apply to all tasks in this repository unless a more specific reposit
 - Security: do not expose secrets, tokens, credentials, PII, or authentication material. Treat authorization checks and trust-boundary changes as security-sensitive.
 - Review: keep review read-only and evidence-backed. Delegate only independently parallelizable work whose coordination cost is justified.
 - Verification: report only checks actually run. Use focused validation proportional to risk; when checks are skipped, include a manual verification checklist and note relevant runtime, environment, configuration, or migration risks.
-- Project sources of truth: use `docs/agents/issue-tracker.md` for tracker routing and blocking edges, and `docs/agents/domain/` for durable domain context and decisions when those files exist.
+- Project sources of truth: use `docs/agents/issue-tracker.md` for tracker routing and blocking edges, `docs/agents/triage-labels.md` for triage roles, and `docs/agents/domain.md` to locate `CONTEXT.md` / `CONTEXT-MAP.md` and relevant ADRs when those files exist.
