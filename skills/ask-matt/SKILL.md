@@ -97,4 +97,4 @@ Off the main flow entirely.
 ## Local extensions
 
 - **`/design-art-direction`** — establish or critique the visual direction of a product interface.
-- **`/mcp-builder-go`** — design or implement an agent-native MCP server or companion CLI in Go.
+- **`/mcp-builder-go`** — design or implement a current-protocol MCP server in Go without imposing an SDK or project layout.

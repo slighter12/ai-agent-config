@@ -2,6 +2,8 @@
 
 Date: 2026-08-08
 
+> Superseded for current catalog counts and routing acceptance by `docs/skill-routing-eval.md`. Preserved as evidence of the 2026-08-08 sync.
+
 ## Decision
 
 Synchronize the complete promoted runtime catalog from `mattpocock/skills` commit `84fdeffd12f2ee307994d1eb6feb48173b6e0502` while retaining the local multi-provider packaging and request-type authorization model.

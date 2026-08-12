@@ -446,7 +446,7 @@ func TestCodeReviewUntrackedReadTOCTOUContract(t *testing.T) {
 	}
 }
 
-func TestLocalModelSkillsExposeCodexInterfaceMetadata(t *testing.T) {
+func TestLocalSkillsExposeCodexInterfaceMetadata(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	tests := map[string]string{
 		"design-art-direction": "Design Art Direction",
@@ -459,6 +459,18 @@ func TestLocalModelSkillsExposeCodexInterfaceMetadata(t *testing.T) {
 			mustContain(t, sidecar, "short_description:")
 		})
 	}
+}
+
+func TestMCPBuilderGoDisclosesProtocolResearchAndPreservesLocalStdio(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	skillDir := filepath.Join(repoRoot, "skills", "mcp-builder-go")
+	skill := readFile(t, filepath.Join(skillDir, "SKILL.md"))
+	mustContain(t, skill, "references/PROTOCOL-RESEARCH.md")
+	mustContain(t, skill, "Use `stdio` when the host launches the server as a local subprocess")
+
+	reference := readFile(t, filepath.Join(skillDir, "references", "PROTOCOL-RESEARCH.md"))
+	mustContain(t, reference, "Pin current authority")
+	mustContain(t, reference, "Keep protocol state distinct from process lifetime and deployment topology")
 }
 
 func TestLocalTrackerSeparatesTriageFromWorkLifecycle(t *testing.T) {

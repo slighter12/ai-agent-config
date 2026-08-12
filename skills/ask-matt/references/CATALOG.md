@@ -20,6 +20,7 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `teach` | Teach a concept in a stateful workspace. | upstream |
 | `to-questionnaire` | Gather decisions from another person asynchronously. | upstream |
 | `wait-what` | Re-pitch the last message with missing context. | upstream |
+| `mcp-builder-go` | Design a current-protocol MCP server in Go with project-fit dependencies. | local extension |
 
 ## Model-invoked
 
@@ -37,4 +38,3 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `grilling` | Interview by design-tree frontier rounds. | upstream |
 | `writing-for-agents` | Write predictable documents agents consume. | upstream |
 | `design-art-direction` | Establish or critique visual product direction. | local extension |
-| `mcp-builder-go` | Design an agent-native MCP or CLI boundary in Go. | local extension |
