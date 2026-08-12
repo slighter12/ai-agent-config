@@ -42,7 +42,7 @@ Environment variables such as `CODEX_HOME`, `CLAUDE_HOME`, `OPENCODE_HOME`, `ANT
 
 ## Skill Catalog
 
-The canonical catalog and route map live in [`ask-matt/references/CATALOG.md`](skills/ask-matt/references/CATALOG.md). It contains Matt Pocock's 25 promoted skills plus two local extensions, `design-art-direction` and `mcp-builder-go`. User-invoked means the skill instructions load only after explicit invocation; an equivalent plain-language request may still use the model's default behavior under `AGENTS.md` and provider permissions.
+The canonical catalog and route map live in [`ask-matt/references/CATALOG.md`](skills/ask-matt/references/CATALOG.md). It contains Matt Pocock's 25 promoted skills plus the local `mcp-builder-go` extension. User-invoked means the skill instructions load only after explicit invocation; an equivalent plain-language request may still use the model's default behavior under `AGENTS.md` and provider permissions.
 
 Upstream runtime artifacts are synchronized from the pinned source recorded in [`skills/UPSTREAM.md`](skills/UPSTREAM.md). The source stays flat locally because the installer links each skill directly into four provider discovery roots.
 

@@ -449,8 +449,7 @@ func TestCodeReviewUntrackedReadTOCTOUContract(t *testing.T) {
 func TestLocalSkillsExposeCodexInterfaceMetadata(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	tests := map[string]string{
-		"design-art-direction": "Design Art Direction",
-		"mcp-builder-go":       "MCP Builder Go",
+		"mcp-builder-go": "MCP Builder Go",
 	}
 	for name, displayName := range tests {
 		t.Run(name, func(t *testing.T) {

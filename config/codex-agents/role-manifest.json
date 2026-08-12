@@ -39,10 +39,6 @@
     "figma-design": [
       "{{CODEX_HOME}}/skills/figma-implement-design"
     ],
-    "design-art-direction": [
-      "{{AGENTS_HOME}}/skills/design-art-direction",
-      "{{REPO_ROOT}}/skills/design-art-direction"
-    ],
     "mcp-builder-go": [
       "{{AGENTS_HOME}}/skills/mcp-builder-go",
       "{{REPO_ROOT}}/skills/mcp-builder-go"
@@ -62,7 +58,7 @@
     },
     "page-designer": {
       "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["design-art-direction", "mcp-builder-go", "system-skill-installer"]
+      "disabled_skill_groups": ["mcp-builder-go", "system-skill-installer"]
     },
     "librarian": {
       "allowed_mcp_servers": [],

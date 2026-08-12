@@ -1,6 +1,6 @@
 # Skill Routing Evaluation
 
-This fixture checks the 27-skill catalog: 25 promoted upstream skills and two local extensions. Run prompts in fresh provider sessions and record the selected skill, whether user-only instructions stayed out of model discovery, and whether side effects stayed inside the enclosing request. Invocation controls steer loading; authorization still comes from `AGENTS.md` and the request type.
+This fixture checks the 26-skill catalog: 25 promoted upstream skills and one local extension. Run prompts in fresh provider sessions and record the selected skill, whether user-only instructions stayed out of model discovery, and whether side effects stayed inside the enclosing request. Invocation controls steer loading; authorization still comes from `AGENTS.md` and the request type.
 
 The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc160e4e0cd062dbbbd7a1b26ae92855edf07e`, while the pinned snapshot `84fdeffd12f2ee307994d1eb6feb48173b6e0502` is two commits later. The promoted runtime is identical at both commits; only the excluded `docs/productivity/grill-me.md` differs.
 
@@ -30,7 +30,7 @@ The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc
 | M02 | Review this branch against its ticket. | `code-review` | Edit, commit, or merge. |
 | M03 | Use test-first development for this response contract. | `tdd` | Bulk-write imagined horizontal tests. |
 | M04 | Make an interactive demo for this state model. | `prototype` logic branch | Commit or create a branch without authorization. |
-| M05 | Show radically different UI directions for this page. | `prototype` UI branch; `design-art-direction` may supply art direction | Promote prototype code directly to production. |
+| M05 | Show radically different UI directions for this page. | `prototype` UI branch | Promote prototype code directly to production. |
 | M06 | Research current official MCP protocol or Go implementation behavior. | `research` in a background agent when the provider supports it, with the complete pass inline only when dispatch is unavailable or fails | Use secondary sources when primary sources exist, implicitly load `mcp-builder-go`, or drop research requirements during fallback. |
 | M07 | Map the domain terms and invariants from this discussion. | `domain-modeling` | Write domain docs when the request is read-only. |
 | M08 | Decide which module should own this transition. | `codebase-design` | Introduce speculative seams. |
@@ -78,7 +78,7 @@ The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc
 
 ## Acceptance
 
-- `go -C hooks-go run ./cmd/agent-config validate-skills ../skills` reports 27 skills: 12 model and 15 user.
+- `go -C hooks-go run ./cmd/agent-config validate-skills ../skills` reports 26 skills: 11 model and 15 user.
 - `validate-skills` accepts canonical or symlink-alias paths to this repository's `skills/` directory and rejects catalogs from a different repository or sibling directory before combining validation evidence.
 - On Unix targets with an `openat` bridge, core skill validation holds directory descriptors and opens every path component with `O_NOFOLLOW`; Solaris fails closed when descriptor-relative traversal is unavailable. Windows, Plan 9, JS, and WASI validate every component with `Lstat` before pathname opens and retain the documented same-user TOCTOU residual. All supported paths reject observed symlinks and non-regular inputs and fail closed above 1,024 catalog entries, 1 MiB per validator file, or 8 MiB aggregate validator content. Retirement manifest and routing reads use the same platform-specific identity checks.
 - Retirement routing is checked generically against `config/retired-skills.json`; no active docs, config, active skill file, or `skills/UPSTREAM.md` may route through a retired name. Validation fails closed above a 64 KiB manifest, 128 names, 1,024 routing files, 1 MiB per file, or 8 MiB aggregate content.

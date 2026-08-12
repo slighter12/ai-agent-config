@@ -37,4 +37,3 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `wizard` | Generate an interactive Bash workflow for human-only steps. | upstream |
 | `grilling` | Interview by design-tree frontier rounds. | upstream |
 | `writing-for-agents` | Write predictable documents agents consume. | upstream |
-| `design-art-direction` | Establish or critique visual product direction. | local extension |

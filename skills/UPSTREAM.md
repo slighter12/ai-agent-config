@@ -13,17 +13,16 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 
 ## Local extensions
 
-- `design-art-direction`
 - `mcp-builder-go`
 
-These remain outside the upstream set and are marked `local extension` in the canonical catalog.
-Both carry local `agents/openai.yaml` interface metadata so Codex presents human-readable names and descriptions.
+This remains outside the upstream set and is marked `local extension` in the canonical catalog.
+It carries local `agents/openai.yaml` interface metadata so Codex presents a human-readable name and description.
 
 ## Required overlays
 
 - Every skill carries `metadata.invocation`; user-invoked skills also carry Claude, Codex, and OpenCode implicit-invocation controls.
 - `validate-skills` resolves repository directories through one filesystem-identity helper and requires the requested catalog to be this repository's `skills/` directory before loading the repository-owned retirement manifest and routing evidence. Active and retired names share one canonical syntax validator. Core skill validation, retirement manifest reads, and routing reads share one `internal/securepath` opener. On Unix targets it holds a directory descriptor and walks each component with `openat` and `O_NOFOLLOW`, so the kernel never resolves a complete caller-supplied path; Solaris fails closed because its `syscall` package exposes no `openat` bridge. On Windows, Plan 9, JS, and WASI the same API validates every component with `Lstat` and rejects symlinks before a pathname open, which is best-effort: it leaves a same-user time-of-check to time-of-use window the descriptor-relative path does not have. Both paths reject symlink and non-regular inputs. Only caller-supplied trust anchors are canonicalized -- the repository root and the requested catalog directory -- so `config` and the manifest leaf stay under component-wise no-follow and a symlinked `config` is rejected instead of redirecting the read outside the repository. Validation fails closed above 1,024 catalog entries, 1 MiB per validator file, or 8 MiB aggregate validator content, and separately above a 64 KiB manifest, 128 retired names, 1,024 routing files, 1 MiB per routing surface, or 8 MiB aggregate routing content; this file is an active routing surface.
-- `ask-matt` links the canonical catalog and routes the two local extensions.
+- `ask-matt` links the canonical catalog and routes the local extension.
 - `code-review` is always read-only and keeps the upstream Standards and Spec axes as its default. The local security checklist remains conditional on sensitive changes; an explicit correctness review adds Correctness, while an explicit full review or release-readiness request adds Correctness and Release readiness through `code-review/references/FULL_REVIEW.md`.
 - The former always-on local `code-review` full-review gate and `research` large-work gate deliberately yield to upstream delegation. `research` uses a provider-native background agent whenever that primitive is available so the main session can continue while it reads; an unavailable primitive or failed dispatch falls back to the same complete pass in the current session. `code-review` keeps independent required and explicitly triggered review passes and uses target-aware committed-range or complete WIP diffs, including selected untracked content; `wayfinder` keeps independent research passes. Those passes, plus `improve-codebase-architecture`, `codebase-design`, and `grilling`, use provider-native sub-agents when their isolation or parallelism justifies coordination cost and otherwise complete the same work in the current session.
 - `ask-matt/SKILL.md` keeps the local merge/rebase authorization boundary: conflict routing resolves and stages by intent, then finishes or continues only when the user explicitly requests that stopping point.
