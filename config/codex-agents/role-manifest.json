@@ -1,81 +1,55 @@
 {
-  "schemaVersion": 2,
-  "updatedAt": "2026-10-18",
-  "defaultExecutionMode": "single-window-smart-zone",
-  "escalationPolicy": {
-    "level0_singleWindow": "Default for single-slice features, bug fixes, grilling, and to-spec.",
-    "level1_readOnlySubagent": "Use explorer, librarian, oracle, reviewer, or test-runner only when raw search/review/test output would pollute the main context window.",
-    "level2_parallelWorktree": "Use orchestrator or /implement (Mode B) with builder subagents only when a multi-ticket spec graph has explicit Blocked-by edges and non-overlapping Write scopes."
+  "skill_groups": {
+    "figma-design": [
+      "{{CODEX_HOME}}/skills/figma-implement-design"
+    ],
+    "mcp-builder-go": [
+      "{{AGENTS_HOME}}/skills/mcp-builder-go",
+      "{{REPO_ROOT}}/skills/mcp-builder-go"
+    ],
+    "system-skill-installer": [
+      "{{CODEX_HOME}}/skills/.system/skill-installer"
+    ]
   },
   "roles": {
-    "orchestrator": {
-      "source": "agents/orchestrator.md",
-      "tier": "high-reasoning",
-      "mode": "primary-or-coordinator",
-      "recommendedSkills": [
-        "implement",
-        "to-spec",
-        "code-review",
-        "pr",
-        "retro"
-      ]
-    },
-    "oracle": {
-      "source": "agents/oracle.md",
-      "tier": "high-reasoning",
-      "mode": "read-only-subagent",
-      "recommendedSkills": [
-        "codebase-design",
-        "diagnosing-bugs",
-        "grilling"
+    "builder": {
+      "disabled_skill_groups": [
+        "system-skill-installer"
       ]
     },
     "explorer": {
-      "source": "agents/explorer.md",
-      "tier": "fast-code",
-      "mode": "read-only-subagent",
-      "recommendedSkills": []
+      "disabled_skill_groups": [
+        "figma-design",
+        "system-skill-installer"
+      ]
     },
     "librarian": {
-      "source": "agents/librarian.md",
-      "tier": "fast-code",
-      "mode": "read-only-subagent",
-      "recommendedSkills": []
-    },
-    "builder": {
-      "source": "agents/builder.md",
-      "tier": "fast-code",
-      "mode": "execution-subagent",
-      "recommendedSkills": [
-        "tdd",
-        "implement",
-        "codebase-design"
+      "disabled_skill_groups": [
+        "mcp-builder-go",
+        "figma-design",
+        "system-skill-installer"
       ]
     },
-    "page-designer": {
-      "source": "agents/page-designer.md",
-      "tier": "balanced",
-      "mode": "execution-subagent",
-      "recommendedSkills": [
-        "implement",
-        "pr"
+    "oracle": {
+      "disabled_skill_groups": [
+        "figma-design",
+        "system-skill-installer"
       ]
+    },
+    "orchestrator": {
+      "disabled_skill_groups": []
     },
     "reviewer": {
-      "source": "agents/reviewer.md",
-      "tier": "high-reasoning",
-      "mode": "read-only-subagent",
-      "recommendedSkills": [
-        "code-review",
-        "codebase-design"
+      "disabled_skill_groups": [
+        "figma-design",
+        "system-skill-installer"
       ]
     },
     "test-runner": {
-      "source": "agents/test-runner.md",
-      "tier": "fast-code",
-      "mode": "read-only-subagent",
-      "recommendedSkills": [
-        "tdd"
+      "disabled_skill_groups": [
+        "mcp-builder-go",
+        "figma-design",
+        "system-skill-installer"
       ]
     }
   }

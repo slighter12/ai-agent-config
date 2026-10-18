@@ -404,7 +404,7 @@ func TestGenerateCodexRoleFilesRejectsUnknownSkillToggleGroup(t *testing.T) {
 	}
 }
 
-func TestGenerateCodexRoleFilesRejectsUnknownMCPServer(t *testing.T) {
+func TestGenerateCodexRoleFilesRejectsMCPManifestKeys(t *testing.T) {
 	repo := t.TempDir()
 	sourceDir := filepath.Join(repo, "config", "codex-agents")
 	targetDir := filepath.Join(repo, "home", ".codex", "agents")
@@ -420,159 +420,13 @@ func TestGenerateCodexRoleFilesRejectsUnknownMCPServer(t *testing.T) {
 	writeRoleManifest(t, sourceDir, `{
   "mcp_servers": [{"name": "context7", "command": "bunx"}],
   "skill_groups": {"demo": ["{{REPO_ROOT}}/skills/demo"]},
-  "roles": {"demo": {"allowed_mcp_servers": ["missing"]}}
+  "roles": {"demo": {"disabled_skill_groups": ["demo"]}}
 }`)
 	config := Config{RepoRoot: repo, Out: &bytes.Buffer{}}
 	err := config.generateCodexRoleFiles(targetDir)
-	if err == nil || !strings.Contains(err.Error(), `unknown mcp server "missing"`) {
-		t.Fatalf("expected unknown mcp server error, got %v", err)
+	if err == nil || !strings.Contains(err.Error(), `unknown field "mcp_servers"`) {
+		t.Fatalf("expected unknown mcp_servers field error, got %v", err)
 	}
-}
-
-func TestGenerateCodexRoleFilesRendersMCPServersWithAvailability(t *testing.T) {
-	repo := t.TempDir()
-	sourceDir := filepath.Join(repo, "config", "codex-agents")
-	targetDir := filepath.Join(repo, "home", ".codex", "agents")
-	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.MkdirAll(targetDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(repo, "home", ".codex", "config.toml"), []byte("[mcp_servers.sequential-thinking]\n\n[mcp_servers.clickup]\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(sourceDir, "demo.toml"), []byte(`name = "demo"`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	writeRoleManifest(t, sourceDir, `{
-  "mcp_servers": [
-    {
-      "name": "context7",
-      "command": "bunx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {"DEFAULT_MINIMUM_TOKENS": "40000"}
-    },
-    {
-      "name": "sequential-thinking",
-      "command": "bunx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    {
-      "name": "clickup",
-      "command": "bunx",
-      "args": ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"],
-      "enabled_tools": ["clickup_search", "clickup_update_task"]
-    }
-  ],
-  "skill_groups": {"demo": ["{{REPO_ROOT}}/skills/demo"]},
-  "roles": {
-    "demo": {
-      "allowed_mcp_servers": ["sequential-thinking", "clickup"],
-      "disabled_skill_groups": ["demo"]
-    }
-  }
-}`)
-	config := Config{
-		RepoRoot:   repo,
-		Home:       filepath.Join(repo, "home"),
-		CodexHome:  filepath.Join(repo, "home", ".codex"),
-		AgentsHome: filepath.Join(repo, "home", ".agents"),
-		Out:        &bytes.Buffer{},
-		LookPath: func(command string) (string, error) {
-			if command == "bunx" {
-				return filepath.Join(repo, "bin", "bunx"), nil
-			}
-			return "", os.ErrNotExist
-		},
-	}
-	if err := config.generateCodexRoleFiles(targetDir); err != nil {
-		t.Fatal(err)
-	}
-	got := readFile(t, filepath.Join(targetDir, "demo.toml"))
-	mustContain(t, got, "[mcp_servers.context7]")
-	mustContain(t, got, `args = ["-y", "@upstash/context7-mcp"]`)
-	mustContain(t, got, "enabled = false\n\n[mcp_servers.context7.env]")
-	mustContain(t, got, `DEFAULT_MINIMUM_TOKENS = "40000"`)
-	mustContain(t, got, "[mcp_servers.sequential-thinking]")
-	mustContain(t, got, "enabled = true\n\n[mcp_servers.clickup]")
-	mustContain(t, got, `enabled_tools = ["clickup_search", "clickup_update_task"]`)
-	mustContain(t, got, `path = "`+filepath.ToSlash(filepath.Join(repo, "skills", "demo"))+`"`)
-}
-
-func TestGenerateCodexRoleFilesDisablesAllowedMCPWhenCommandMissing(t *testing.T) {
-	repo := t.TempDir()
-	sourceDir := filepath.Join(repo, "config", "codex-agents")
-	targetDir := filepath.Join(repo, "home", ".codex", "agents")
-	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.MkdirAll(targetDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(repo, "home", ".codex", "config.toml"), []byte("[mcp_servers.sequential-thinking]\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(sourceDir, "demo.toml"), []byte(`name = "demo"`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	writeRoleManifest(t, sourceDir, `{
-  "mcp_servers": [{"name": "sequential-thinking", "command": "bunx"}],
-  "skill_groups": {"demo": ["{{REPO_ROOT}}/skills/demo"]},
-  "roles": {"demo": {"allowed_mcp_servers": ["sequential-thinking"]}}
-}`)
-	config := Config{
-		RepoRoot: repo,
-		Out:      &bytes.Buffer{},
-		LookPath: func(string) (string, error) {
-			return "", os.ErrNotExist
-		},
-	}
-	if err := config.generateCodexRoleFiles(targetDir); err != nil {
-		t.Fatal(err)
-	}
-	got := readFile(t, filepath.Join(targetDir, "demo.toml"))
-	mustContain(t, got, "[mcp_servers.sequential-thinking]")
-	mustContain(t, got, "enabled = false")
-	mustNotContain(t, got, "enabled = true")
-}
-
-func TestGenerateCodexRoleFilesDisablesAllowedMCPWhenNotConfigured(t *testing.T) {
-	repo := t.TempDir()
-	sourceDir := filepath.Join(repo, "config", "codex-agents")
-	targetDir := filepath.Join(repo, "home", ".codex", "agents")
-	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.MkdirAll(targetDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(sourceDir, "demo.toml"), []byte(`name = "demo"`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	writeRoleManifest(t, sourceDir, `{
-  "mcp_servers": [{"name": "sequential-thinking", "command": "bunx"}],
-  "skill_groups": {"demo": ["{{REPO_ROOT}}/skills/demo"]},
-  "roles": {"demo": {"allowed_mcp_servers": ["sequential-thinking"]}}
-}`)
-	config := Config{
-		RepoRoot:  repo,
-		CodexHome: filepath.Join(repo, "home", ".codex"),
-		Out:       &bytes.Buffer{},
-		LookPath: func(command string) (string, error) {
-			if command == "bunx" {
-				return filepath.Join(repo, "bin", "bunx"), nil
-			}
-			return "", os.ErrNotExist
-		},
-	}
-	if err := config.generateCodexRoleFiles(targetDir); err != nil {
-		t.Fatal(err)
-	}
-	got := readFile(t, filepath.Join(targetDir, "demo.toml"))
-	mustContain(t, got, "[mcp_servers.sequential-thinking]")
-	mustContain(t, got, "enabled = false")
-	mustNotContain(t, got, "enabled = true")
 }
 
 func TestRenderRoleTemplateRejectsNameMismatch(t *testing.T) {
@@ -596,7 +450,7 @@ func TestRenderRoleTemplateRejectsMCPBlocks(t *testing.T) {
 	}
 	config := Config{RepoRoot: dir, Out: &bytes.Buffer{}}
 	_, err := config.renderRoleTemplate(source, "demo", codexRoleManifest{})
-	if err == nil || !strings.Contains(err.Error(), "role-manifest.json") {
+	if err == nil || !strings.Contains(err.Error(), "inherit MCP servers from the parent session") {
 		t.Fatalf("expected mcp block rejection, got %v", err)
 	}
 }

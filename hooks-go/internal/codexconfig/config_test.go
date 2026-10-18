@@ -17,7 +17,7 @@ func TestEnsureBaseConfigCreatesParentSafeConfig(t *testing.T) {
 	mustContain(t, got, `approval_policy = "on-request"`)
 	mustContain(t, got, `approvals_reviewer = "auto_review"`)
 	mustContain(t, got, `[agents]`)
-	mustContain(t, got, `max_threads = 12`)
+	mustContain(t, got, `max_concurrent_threads_per_session = 12`)
 	mustNotContain(t, got, `exec_permission_approvals`)
 	mustNotContain(t, got, `request_permissions_tool`)
 	mustNotContain(t, got, `[permissions.workspace-git]`)
@@ -132,10 +132,24 @@ trust_level = "trusted"
 		t.Fatalf("unexpected error: %v", err)
 	}
 	mustContain(t, got, `[agents]`)
-	mustContain(t, got, `max_threads = 12`)
+	mustContain(t, got, `max_concurrent_threads_per_session = 12`)
 	mustContain(t, got, `max_depth = 2`)
 	mustContain(t, got, `[projects."/tmp/demo"]`)
-	mustNotContain(t, got, `max_threads = 4`)
+	mustNotContain(t, got, `max_threads`)
+}
+
+func TestEnsureBaseConfigCollapsesLegacyAndCurrentAgentThreadKeys(t *testing.T) {
+	got, err := EnsureBaseConfig(`[agents]
+max_concurrent_threads_per_session = 6
+max_threads = 4
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if count := strings.Count(got, "max_concurrent_threads_per_session = 12"); count != 1 {
+		t.Fatalf("expected exactly one thread setting, got %d:\n%s", count, got)
+	}
+	mustNotContain(t, got, `max_threads`)
 }
 
 func TestEnsureBaseConfigAddsAgentMaxThreads(t *testing.T) {
@@ -148,7 +162,7 @@ max_depth = 2
 		t.Fatalf("unexpected error: %v", err)
 	}
 	mustContain(t, got, `[agents]`)
-	mustContain(t, got, `max_threads = 12`)
+	mustContain(t, got, `max_concurrent_threads_per_session = 12`)
 	mustContain(t, got, `max_depth = 2`)
 }
 

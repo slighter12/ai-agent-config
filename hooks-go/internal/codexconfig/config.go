@@ -15,6 +15,7 @@ const (
 	ProfileFileName    = ProfileName + ".config.toml"
 	BasePermissionName = ":workspace"
 	AgentMaxThreads    = 12
+	agentMaxThreadsKey = "max_concurrent_threads_per_session"
 )
 
 var (
@@ -23,7 +24,8 @@ var (
 	topLevelApprovalsReviewerRE  = regexp.MustCompile(`^\s*approvals_reviewer\s*=`)
 	topLevelSandboxModeRE        = regexp.MustCompile(`^\s*sandbox_mode\s*=`)
 	execPermissionApprovalsRE    = regexp.MustCompile(`^\s*exec_permission_approvals\s*=`)
-	agentMaxThreadsRE            = regexp.MustCompile(`^\s*max_threads\s*=`)
+	// Matches the current key and its legacy alias so the installer migrates max_threads.
+	agentMaxThreadsRE = regexp.MustCompile(`^\s*(max_concurrent_threads_per_session|max_threads)\s*=`)
 )
 
 type Result struct {
@@ -257,7 +259,8 @@ func repoManagedApprovalsReviewer(line string) bool {
 }
 
 func upsertAgentMaxThreads(text string) string {
-	block := fmt.Sprintf("[agents]\nmax_threads = %d", AgentMaxThreads)
+	setting := fmt.Sprintf("%s = %d", agentMaxThreadsKey, AgentMaxThreads)
+	block := "[agents]\n" + setting
 	lines := strings.Split(strings.TrimRight(text, "\n"), "\n")
 	if len(lines) == 1 && lines[0] == "" {
 		return block + "\n"
@@ -278,14 +281,25 @@ func upsertAgentMaxThreads(text string) string {
 	}
 
 	if agentsStart != -1 {
+		updated := append([]string{}, lines[:agentsStart+1]...)
+		replaced := false
 		for index := agentsStart + 1; index < agentsEnd; index++ {
-			if agentMaxThreadsRE.MatchString(strings.TrimSpace(lines[index])) {
-				lines[index] = fmt.Sprintf("max_threads = %d", AgentMaxThreads)
-				return strings.TrimRight(strings.Join(lines, "\n"), "\n") + "\n"
+			if !agentMaxThreadsRE.MatchString(strings.TrimSpace(lines[index])) {
+				updated = append(updated, lines[index])
+				continue
+			}
+			// Keep one setting; drop a duplicate current-or-legacy key.
+			if !replaced {
+				updated = append(updated, setting)
+				replaced = true
 			}
 		}
-		updated := append([]string{}, lines[:agentsStart+1]...)
-		updated = append(updated, fmt.Sprintf("max_threads = %d", AgentMaxThreads))
+		if replaced {
+			updated = append(updated, lines[agentsEnd:]...)
+			return strings.TrimRight(strings.Join(updated, "\n"), "\n") + "\n"
+		}
+		updated = append([]string{}, lines[:agentsStart+1]...)
+		updated = append(updated, setting)
 		updated = append(updated, lines[agentsStart+1:]...)
 		return strings.TrimRight(strings.Join(updated, "\n"), "\n") + "\n"
 	}

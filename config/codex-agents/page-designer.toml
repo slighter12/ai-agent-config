@@ -1,6 +1,0 @@
-# Codex Agent Role Configuration: page-designer
-name = "page-designer"
-description = "UI/UX and frontend component specialist with runtime visual verification."
-tier = "balanced"
-instructions_path = "agents/page-designer.md"
-respect_project_precedence = true
