@@ -22,6 +22,14 @@ func TestParseRetiredSkillsRequiresCanonicalDocument(t *testing.T) {
 		{name: "invalid name", raw: `{"retired_skills": ["Bad"]}`, want: "lowercase"},
 		{name: "duplicate", raw: `{"retired_skills": ["demo", "demo"]}`, want: "duplicate"},
 		{name: "unsorted", raw: `{"retired_skills": ["zulu", "alpha"]}`, want: "sorted"},
+		{name: "mixed v1 and v2", raw: `{"retired_skills": [], "schemaVersion": 2}`, want: "cannot be mixed"},
+		{name: "v2 wrong schema version", raw: `{"schemaVersion": 1, "updatedAt": "2026-10-18", "retiredSkills": []}`, want: "schemaVersion 2"},
+		{name: "v2 missing updatedAt", raw: `{"schemaVersion": 2, "retiredSkills": []}`, want: "updatedAt"},
+		{name: "v2 missing entry key", raw: `{"schemaVersion": 2, "updatedAt": "x", "retiredSkills": [{"name": "demo", "retiredIn": "v1", "reason": "r"}]}`, want: `missing "replacedBy"`},
+		{name: "v2 unknown entry key", raw: `{"schemaVersion": 2, "updatedAt": "x", "retiredSkills": [{"name": "demo", "retiredIn": "v1", "replacedBy": null, "reason": "r", "extra": 1}]}`, want: "unknown field"},
+		{name: "v2 empty reason", raw: `{"schemaVersion": 2, "updatedAt": "x", "retiredSkills": [{"name": "demo", "retiredIn": "v1", "replacedBy": null, "reason": " "}]}`, want: "non-empty"},
+		{name: "v2 invalid replacement", raw: `{"schemaVersion": 2, "updatedAt": "x", "retiredSkills": [{"name": "demo", "retiredIn": "v1", "replacedBy": "Bad", "reason": "r"}]}`, want: "lowercase"},
+		{name: "v2 unsorted", raw: `{"schemaVersion": 2, "updatedAt": "x", "retiredSkills": [{"name": "zulu", "retiredIn": "v1", "replacedBy": null, "reason": "r"}, {"name": "alpha", "retiredIn": "v1", "replacedBy": "zulu", "reason": "r"}]}`, want: "sorted"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -32,6 +40,12 @@ func TestParseRetiredSkillsRequiresCanonicalDocument(t *testing.T) {
 	}
 	if got, err := ParseRetiredSkills([]byte(`{"retired_skills": []}`)); err != nil || len(got) != 0 {
 		t.Fatalf("empty retired list = %#v, %v", got, err)
+	}
+	v2 := `{"schemaVersion": 2, "updatedAt": "2026-10-18", "retiredSkills": [
+		{"name": "alpha", "retiredIn": "v1", "replacedBy": "omega", "reason": "merged"},
+		{"name": "beta", "retiredIn": "v1", "replacedBy": null, "reason": "dropped"}]}`
+	if got, err := ParseRetiredSkills([]byte(v2)); err != nil || strings.Join(got, ",") != "alpha,beta" {
+		t.Fatalf("v2 retired list = %#v, %v", got, err)
 	}
 }
 

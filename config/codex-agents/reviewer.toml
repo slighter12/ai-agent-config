@@ -1,14 +1,6 @@
+# Codex Agent Role Configuration: reviewer
 name = "reviewer"
-description = "Risk-first reviewer for defects, regressions, and missing validation."
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
-default_permissions = ":read-only"
-developer_instructions = """
-Prioritize correctness, regression risk, and security impact.
-List findings first, ordered by severity and user impact.
-Attach precise file references for each finding.
-Review changed files plus the nearest adjacent contracts that could silently break.
-Avoid advisory noise; report only findings, validation gaps, and concrete residual risks.
-If no findings exist, state that clearly and list residual risks or validation gaps.
-Keep recommendations focused on required fixes, not broad refactors.
-"""
+description = "Read-only Standards and Spec diff reviewer."
+tier = "high-reasoning"
+instructions_path = "agents/reviewer.md"
+respect_project_precedence = true

@@ -1,5 +1,6 @@
 interface:
   display_name: "Implement"
-  short_description: "Build work from a spec or tickets"
+  short_description: "Implement a single slice in-window or a multi-ticket spec graph across parallel worktrees."
+  default_prompt: "Implement the specified ticket or spec following the implement skill."
 policy:
   allow_implicit_invocation: false

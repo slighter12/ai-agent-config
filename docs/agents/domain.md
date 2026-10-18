@@ -1,17 +1,5 @@
-# Domain Docs
+# Domain Documentation Layout
 
-## Before exploring
-
-- Read root `CONTEXT.md`, or root `CONTEXT-MAP.md` and every context relevant to the task.
-- Read ADRs under `docs/adr/` that affect the area. In a multi-context repo, also inspect context-local `docs/adr/` directories.
-- Proceed silently when these files do not exist. `domain-modeling` creates them lazily only when a term or decision is resolved and the request authorizes documentation changes.
-
-## Layout
-
-A single-context repo uses root `CONTEXT.md` and `docs/adr/`. A multi-context repo uses root `CONTEXT-MAP.md`, which points to each context's `CONTEXT.md`; system-wide ADRs remain under root `docs/adr/`, while context-specific ADRs live beside that context.
-
-## Consumer rules
-
-- Use the glossary's canonical terms and avoid listed synonyms.
-- Reconsider invented terminology before adding it; use `domain-modeling` only for a real domain gap.
-- Surface conflicts with existing ADRs instead of silently overriding them.
+* **Ubiquitous Language Glossary**: `GLOSSARY.md` at the repository root (or routed via `GLOSSARY-MAP.md` in multi-context monorepos). *(Note: Renamed from `CONTEXT.md` in upstream v1.3.1).*
+* **Architectural Decision Records (ADRs)**: `docs/adr/NNNN-<slug>.md`.
+* **Precedence Rule**: Settled ADRs in `docs/adr/` and terms in `GLOSSARY.md` constitute **Tier 2 Project Law**. When an ADR marks an existing codebase pattern as deprecated, agents must pause at the Pre-Flight Agency Gate and ask the user whether to follow the local legacy file, Sprout at the seam, or migrate the touched module.

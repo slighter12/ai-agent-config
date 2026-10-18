@@ -11,8 +11,7 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `triage` | Move issues and external PRs through triage roles. | upstream |
 | `improve-codebase-architecture` | Survey active code for deepening opportunities. | upstream |
 | `setup-matt-pocock-skills` | Configure tracker, triage labels, and domain docs. | upstream |
-| `to-spec` | Publish the current conversation as a spec. | upstream |
-| `to-tickets` | Split work into tracer-bullet tickets and blocking edges. | upstream |
+| `to-spec` | Publish settled decisions as a spec plus a tracer-bullet ticket graph. | upstream |
 | `implement` | Build a spec or ticket with TDD and review. | upstream |
 | `wayfinder` | Plan a multi-session effort as a shared decision map. | upstream |
 | `grill-me` | Run a stateless requirements interview. | upstream |
@@ -20,6 +19,7 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `teach` | Teach a concept in a stateful workspace. | upstream |
 | `to-questionnaire` | Gather decisions from another person asynchronously. | upstream |
 | `wait-what` | Re-pitch the last message with missing context. | upstream |
+| `retro` | Graduate session friction into checks, standards, and project rules. | upstream |
 | `mcp-builder-go` | Design a current-protocol MCP server in Go with project-fit dependencies. | local extension |
 
 ## Model-invoked
@@ -33,7 +33,7 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `domain-modeling` | Sharpen domain language and durable decisions. | upstream |
 | `codebase-design` | Design deep modules and clean seams. | upstream |
 | `code-review` | Review a diff on Standards and Spec axes. | upstream |
-| `resolving-merge-conflicts` | Resolve and stage conflicts by intent; finish only when requested. | upstream |
 | `wizard` | Generate an interactive Bash workflow for human-only steps. | upstream |
 | `grilling` | Interview by design-tree frontier rounds. | upstream |
 | `writing-for-agents` | Write predictable documents agents consume. | upstream |
+| `pr` | Format a PR body with summary, evidence, and merge danger. | upstream |

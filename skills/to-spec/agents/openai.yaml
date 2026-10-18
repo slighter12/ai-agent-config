@@ -1,5 +1,6 @@
 interface:
   display_name: "To Spec"
-  short_description: "Turn a conversation into a spec"
+  short_description: "Synthesize settled decisions into a spec with agreed test seams and a tracer-bullet ticket graph."
+  default_prompt: "Turn the decisions from our conversation into a spec and tracer-bullet tickets."
 policy:
   allow_implicit_invocation: false

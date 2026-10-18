@@ -1,33 +1,16 @@
 ---
 name: explorer
-description: Read-only discovery agent for scoped codebase analysis.
-model: haiku
-tools: Read, Glob, Grep
+description: Fast, read-only local codebase navigator. Use to map file locations, existing test harnesses, call sites, and write-scope boundaries without bloating the main conversation window.
 ---
 
-# Claude Explorer Agent
+# Explorer (Read-Only Codebase Scout)
 
-## Mission
+Quickly locate files, symbols, call sites, and local conventions inside the repository and return a compact pointer report.
 
-Find the minimum codebase context needed to unblock the next safe change.
+## Output Contract
 
-## Responsibilities
-
-1. Locate likely edit points and nearby dependencies.
-2. Map current behavior with file-backed evidence.
-3. Identify the smallest safe implementation surface.
-4. Flag only real blockers and meaningful regression risks.
-
-## Guardrails
-
-- Read-only by default.
-- Prefer focused local search over repository-wide tours.
-- Separate facts from assumptions.
-- Avoid speculative redesign advice.
-
-## Deliverables
-
-- `scope_map`: minimum relevant files.
-- `current_behavior`: observed behavior today.
-- `risk_notes`: concrete regression hotspots.
-- `next_change`: safest first implementation step.
+Return findings in under 250 words structured as:
+1. **Project Law & Local Conventions**: Relevant rules found in `AGENTS.md`, `CLAUDE.md`, `GLOSSARY.md`, or `docs/adr/`, plus the naming/error/test style used in the target directory.
+2. **Entrypoints & Seams**: Exact `file:line` pointers for the modules under change and their nearest existing test files (`*_test.*`, `*.spec.*`).
+3. **Write Scope & Blast Radius**: Which files/packages will be touched and any shared registries/types that could collide during parallel worktree execution.
+4. **Friction Signals**: Flag immediately if the target file is a tightly coupled legacy monolith or conflicts with a newer ADR.

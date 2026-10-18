@@ -1,84 +1,82 @@
 {
-  "mcp_servers": [
-    {
-      "name": "context7",
-      "command": "bunx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {
-        "DEFAULT_MINIMUM_TOKENS": "40000"
-      }
-    },
-    {
-      "name": "sequential-thinking",
-      "command": "bunx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    {
-      "name": "clickup",
-      "command": "bunx",
-      "args": ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"],
-      "enabled_tools": [
-        "clickup_search",
-        "clickup_filter_tasks",
-        "clickup_get_task",
-        "clickup_get_task_comments",
-        "clickup_get_threaded_comments",
-        "clickup_get_task_time_in_status",
-        "clickup_get_bulk_tasks_time_in_status",
-        "clickup_get_workspace_hierarchy",
-        "clickup_get_list",
-        "clickup_get_folder",
-        "clickup_find_member_by_name",
-        "clickup_resolve_assignees",
-        "clickup_update_task",
-        "clickup_create_comment"
-      ]
-    }
-  ],
-  "skill_groups": {
-    "figma-design": [
-      "{{CODEX_HOME}}/skills/figma-implement-design"
-    ],
-    "mcp-builder-go": [
-      "{{AGENTS_HOME}}/skills/mcp-builder-go",
-      "{{REPO_ROOT}}/skills/mcp-builder-go"
-    ],
-    "system-skill-installer": [
-      "{{CODEX_HOME}}/skills/.system/skill-installer"
-    ]
+  "schemaVersion": 2,
+  "updatedAt": "2026-10-18",
+  "defaultExecutionMode": "single-window-smart-zone",
+  "escalationPolicy": {
+    "level0_singleWindow": "Default for single-slice features, bug fixes, grilling, and to-spec.",
+    "level1_readOnlySubagent": "Use explorer, librarian, oracle, reviewer, or test-runner only when raw search/review/test output would pollute the main context window.",
+    "level2_parallelWorktree": "Use orchestrator or /implement (Mode B) with builder subagents only when a multi-ticket spec graph has explicit Blocked-by edges and non-overlapping Write scopes."
   },
   "roles": {
-    "builder": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["system-skill-installer"]
-    },
-    "explorer": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["figma-design", "system-skill-installer"]
-    },
-    "page-designer": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["mcp-builder-go", "system-skill-installer"]
-    },
-    "librarian": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["mcp-builder-go", "figma-design", "system-skill-installer"]
+    "orchestrator": {
+      "source": "agents/orchestrator.md",
+      "tier": "high-reasoning",
+      "mode": "primary-or-coordinator",
+      "recommendedSkills": [
+        "implement",
+        "to-spec",
+        "code-review",
+        "pr",
+        "retro"
+      ]
     },
     "oracle": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["figma-design", "system-skill-installer"]
+      "source": "agents/oracle.md",
+      "tier": "high-reasoning",
+      "mode": "read-only-subagent",
+      "recommendedSkills": [
+        "codebase-design",
+        "diagnosing-bugs",
+        "grilling"
+      ]
     },
-    "orchestrator": {
-      "allowed_mcp_servers": ["sequential-thinking", "clickup"],
-      "disabled_skill_groups": []
+    "explorer": {
+      "source": "agents/explorer.md",
+      "tier": "fast-code",
+      "mode": "read-only-subagent",
+      "recommendedSkills": []
+    },
+    "librarian": {
+      "source": "agents/librarian.md",
+      "tier": "fast-code",
+      "mode": "read-only-subagent",
+      "recommendedSkills": []
+    },
+    "builder": {
+      "source": "agents/builder.md",
+      "tier": "fast-code",
+      "mode": "execution-subagent",
+      "recommendedSkills": [
+        "tdd",
+        "implement",
+        "codebase-design"
+      ]
+    },
+    "page-designer": {
+      "source": "agents/page-designer.md",
+      "tier": "balanced",
+      "mode": "execution-subagent",
+      "recommendedSkills": [
+        "implement",
+        "pr"
+      ]
     },
     "reviewer": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["figma-design", "system-skill-installer"]
+      "source": "agents/reviewer.md",
+      "tier": "high-reasoning",
+      "mode": "read-only-subagent",
+      "recommendedSkills": [
+        "code-review",
+        "codebase-design"
+      ]
     },
     "test-runner": {
-      "allowed_mcp_servers": [],
-      "disabled_skill_groups": ["mcp-builder-go", "figma-design", "system-skill-installer"]
+      "source": "agents/test-runner.md",
+      "tier": "fast-code",
+      "mode": "read-only-subagent",
+      "recommendedSkills": [
+        "tdd"
+      ]
     }
   }
 }

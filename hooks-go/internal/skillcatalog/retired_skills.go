@@ -32,11 +32,25 @@ func RetiredSkillsPath(repoRoot string) string {
 	return filepath.Join(repoRoot, "config", retiredSkillsFile)
 }
 
+// retiredSkillEntry is one schema-v2 manifest record. Only Name feeds
+// validation; the other fields are required provenance for maintainers.
+type retiredSkillEntry struct {
+	Name       string  `json:"name"`
+	RetiredIn  string  `json:"retiredIn"`
+	ReplacedBy *string `json:"replacedBy"`
+	Reason     string  `json:"reason"`
+}
+
 // ParseRetiredSkills parses the canonical retired-skills JSON document.
 //
-// The document is intentionally strict: it has exactly one top-level field,
-// the field is an array (an empty array is valid), and names are canonicalized
-// by requiring valid syntax, uniqueness, and lexicographic order.
+// The document is intentionally strict and has one of two shapes:
+//
+//   - v1: exactly one top-level field, `retired_skills`, an array of names.
+//   - v2: exactly `schemaVersion` (2), `updatedAt`, and `retiredSkills`, an
+//     array of {name, retiredIn, replacedBy, reason} records with no other keys.
+//
+// An empty array is valid in either shape, and names are canonicalized by
+// requiring valid syntax, uniqueness, and lexicographic order.
 func ParseRetiredSkills(raw []byte) ([]string, error) {
 	if len(raw) > maxRetiredSkillsManifestBytes {
 		return nil, fmt.Errorf("parse retired skills: manifest exceeds 64 KiB limit (%d bytes)", len(raw))
@@ -53,6 +67,9 @@ func ParseRetiredSkills(raw []byte) ([]string, error) {
 
 	fields := make(map[string]struct{})
 	var retiredSkills *[]string
+	var v2Entries *[]json.RawMessage
+	var schemaVersion *int
+	var updatedAt *string
 	for decoder.More() {
 		token, err := decoder.Token()
 		if err != nil {
@@ -66,10 +83,20 @@ func ParseRetiredSkills(raw []byte) ([]string, error) {
 			return nil, fmt.Errorf("parse retired skills: duplicate top-level field %q", field)
 		}
 		fields[field] = struct{}{}
-		if field != "retired_skills" {
+		var target any
+		switch field {
+		case "retired_skills":
+			target = &retiredSkills
+		case "schemaVersion":
+			target = &schemaVersion
+		case "updatedAt":
+			target = &updatedAt
+		case "retiredSkills":
+			target = &v2Entries
+		default:
 			return nil, fmt.Errorf("parse retired skills: unknown field %q", field)
 		}
-		if err := decoder.Decode(&retiredSkills); err != nil {
+		if err := decoder.Decode(target); err != nil {
 			return nil, fmt.Errorf("parse retired skills: %w", err)
 		}
 	}
@@ -81,9 +108,6 @@ func ParseRetiredSkills(raw []byte) ([]string, error) {
 	if delimiter, ok := token.(json.Delim); !ok || delimiter != '}' {
 		return nil, errors.New("parse retired skills: expected top-level object")
 	}
-	if len(fields) == 0 || retiredSkills == nil {
-		return nil, errors.New("parse retired skills: missing retired_skills array")
-	}
 	var trailing any
 	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
 		if err == nil {
@@ -92,10 +116,67 @@ func ParseRetiredSkills(raw []byte) ([]string, error) {
 		return nil, fmt.Errorf("parse retired skills: trailing JSON is not allowed: %w", err)
 	}
 
-	if err := ValidateRetiredSkillNames(*retiredSkills); err != nil {
+	var names []string
+	switch {
+	case retiredSkills != nil:
+		if len(fields) != 1 {
+			return nil, errors.New("parse retired skills: retired_skills cannot be mixed with schema v2 fields")
+		}
+		names = *retiredSkills
+	case v2Entries != nil:
+		parsed, err := parseRetiredSkillsV2(schemaVersion, updatedAt, *v2Entries)
+		if err != nil {
+			return nil, err
+		}
+		names = parsed
+	default:
+		return nil, errors.New("parse retired skills: missing retired_skills array")
+	}
+
+	if err := ValidateRetiredSkillNames(names); err != nil {
 		return nil, err
 	}
-	return *retiredSkills, nil
+	return names, nil
+}
+
+func parseRetiredSkillsV2(schemaVersion *int, updatedAt *string, entries []json.RawMessage) ([]string, error) {
+	if schemaVersion == nil || *schemaVersion != 2 {
+		return nil, errors.New("parse retired skills: retiredSkills requires schemaVersion 2")
+	}
+	if updatedAt == nil || strings.TrimSpace(*updatedAt) == "" {
+		return nil, errors.New("parse retired skills: retiredSkills requires a non-empty updatedAt")
+	}
+	if len(entries) > maxRetiredSkillNames {
+		return nil, fmt.Errorf("retired_skills contains %d names, exceeds %d-name limit", len(entries), maxRetiredSkillNames)
+	}
+	names := make([]string, 0, len(entries))
+	for index, raw := range entries {
+		var keys map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &keys); err != nil {
+			return nil, fmt.Errorf("parse retired skills: retiredSkills[%d]: %w", index, err)
+		}
+		for _, required := range []string{"name", "retiredIn", "replacedBy", "reason"} {
+			if _, ok := keys[required]; !ok {
+				return nil, fmt.Errorf("parse retired skills: retiredSkills[%d] is missing %q", index, required)
+			}
+		}
+		entryDecoder := json.NewDecoder(bytes.NewReader(raw))
+		entryDecoder.DisallowUnknownFields()
+		var entry retiredSkillEntry
+		if err := entryDecoder.Decode(&entry); err != nil {
+			return nil, fmt.Errorf("parse retired skills: retiredSkills[%d]: %w", index, err)
+		}
+		if strings.TrimSpace(entry.RetiredIn) == "" || strings.TrimSpace(entry.Reason) == "" {
+			return nil, fmt.Errorf("parse retired skills: retiredSkills[%d] %q needs non-empty retiredIn and reason", index, entry.Name)
+		}
+		if entry.ReplacedBy != nil {
+			if err := ValidateSkillName(*entry.ReplacedBy); err != nil {
+				return nil, fmt.Errorf("parse retired skills: retiredSkills[%d] %q replacedBy %q: %w", index, entry.Name, *entry.ReplacedBy, err)
+			}
+		}
+		names = append(names, entry.Name)
+	}
+	return names, nil
 }
 
 // LoadRetiredSkills reads and parses a canonical retired-skills JSON file.

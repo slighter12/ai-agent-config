@@ -1,9 +1,96 @@
 {
-  "retired_skills": [
-    "ask-skills",
-    "conventional-git-flow",
-    "design-art-direction",
-    "setup-skills",
-    "writing-great-skills"
+  "schemaVersion": 2,
+  "updatedAt": "2026-10-18",
+  "retiredSkills": [
+    {
+      "name": "ask-skills",
+      "retiredIn": "pre-schema-v2 (v1 manifest)",
+      "replacedBy": "ask-matt",
+      "reason": "Carried over from the v1 retired_skills manifest."
+    },
+    {
+      "name": "batch-grill-me",
+      "retiredIn": "upstream v1.1.0",
+      "replacedBy": "grilling",
+      "reason": "Round-based frontier questioning moved into the core grilling skill."
+    },
+    {
+      "name": "conventional-git-flow",
+      "retiredIn": "pre-schema-v2 (v1 manifest)",
+      "replacedBy": null,
+      "reason": "Carried over from the v1 retired_skills manifest."
+    },
+    {
+      "name": "decision-mapping",
+      "retiredIn": "upstream v1.1.0",
+      "replacedBy": "wayfinder",
+      "reason": "Renamed to wayfinder."
+    },
+    {
+      "name": "design-an-interface",
+      "retiredIn": "upstream v1.0.0",
+      "replacedBy": "codebase-design",
+      "reason": "Absorbed into codebase-design (DESIGN-IT-TWICE.md)."
+    },
+    {
+      "name": "design-art-direction",
+      "retiredIn": "pre-schema-v2 (v1 manifest)",
+      "replacedBy": null,
+      "reason": "Carried over from the v1 retired_skills manifest."
+    },
+    {
+      "name": "implement-spec",
+      "retiredIn": "v2.0.0-local (upstream v1.3.1)",
+      "replacedBy": "implement",
+      "reason": "Merged into implement, which now dispatches automatically by input shape (in-window single slice vs. parallel git worktree task graph)."
+    },
+    {
+      "name": "qa",
+      "retiredIn": "upstream v1.0.0",
+      "replacedBy": "code-review",
+      "reason": "Replaced by two-axis code-review and runtime verification."
+    },
+    {
+      "name": "request-refactor-plan",
+      "retiredIn": "upstream v1.0.0",
+      "replacedBy": "improve-codebase-architecture",
+      "reason": "Absorbed into improve-codebase-architecture."
+    },
+    {
+      "name": "resolving-merge-conflicts",
+      "retiredIn": "upstream v1.3.0",
+      "replacedBy": null,
+      "reason": "Retired upstream; merge conflict resolution is handled natively by the coding harness."
+    },
+    {
+      "name": "setup-skills",
+      "retiredIn": "pre-schema-v2 (v1 manifest)",
+      "replacedBy": "setup-matt-pocock-skills",
+      "reason": "Carried over from the v1 retired_skills manifest."
+    },
+    {
+      "name": "to-prd",
+      "retiredIn": "upstream v1.1.0",
+      "replacedBy": "to-spec",
+      "reason": "Renamed to to-spec."
+    },
+    {
+      "name": "to-tickets",
+      "retiredIn": "v2.0.0-local (upstream v1.3.1)",
+      "replacedBy": "to-spec",
+      "reason": "Merged into to-spec to eliminate double-compression context drift and generate the shared spec contract and tracer-bullet ticket graph in a single pass."
+    },
+    {
+      "name": "ubiquitous-language",
+      "retiredIn": "upstream v1.0.0",
+      "replacedBy": "domain-modeling",
+      "reason": "Absorbed into domain-modeling and grill-with-docs."
+    },
+    {
+      "name": "writing-great-skills",
+      "retiredIn": "pre-schema-v2 (v1 manifest)",
+      "replacedBy": "writing-for-agents",
+      "reason": "Carried over from the v1 retired_skills manifest."
+    }
   ]
 }

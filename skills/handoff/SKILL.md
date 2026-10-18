@@ -1,19 +1,33 @@
 ---
 name: handoff
-description: Compact the current conversation into a handoff document for another agent to pick up.
-argument-hint: "What will the next session be used for?"
+description: Compact the current conversation into a portable, stage-agnostic handoff document in the OS temp directory so a fresh session can resume without context loss.
+argument-hint: What will the next session focus on?
 disable-model-invocation: true
 metadata:
   invocation: user
   opencode/autoinvoke: "false"
 ---
 
-Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the temporary directory of the user's OS - not the current workspace.
+# Handoff (Stage-Agnostic Context Transfer)
 
-Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
+Write a self-contained handoff document summarizing the current conversation so a fresh agent session (in a new window, worktree, or harness) can continue the work seamlessly at **any** point in a workflow (mid-grilling, post-spec, mid-implementation, or mid-debugging).
 
-Do not duplicate content already captured in other artifacts (specs, plans, ADRs, issues, commits, diffs). Reference them by path or URL instead.
+## Output Location
+Save the handoff file to the OS temporary directory (`$TMPDIR`, falling back to `/tmp` or `%TEMP%` on Windows) as `handoff-<timestamp>-<slug>.md` (or `.html` if the user requests browser viewing) — **never** inside the repository workspace. Print the exact file path so the user can pass it to the next window.
 
-Redact any sensitive information, such as API keys, passwords, or personally identifiable information.
+## Required Handoff Structure
 
-If the user passed arguments, treat them as a description of what the next session will focus on and tailor the doc accordingly.
+1. **Current Stage & Next Immediate Action**:
+   * State the exact current state (e.g., `"Grilling in progress — 2 branches settled, 1 open"`, `"Spec settled — ready for Ticket 02"`, or `"Debugging repro loop built, testing Hypothesis 2"`).
+   * If the user passed arguments to `/handoff`, tailor the next session's focus to those arguments.
+2. **Context Pointers (Never Duplicate Artifacts)**:
+   * Link by exact file path, commit SHA, branch name, or issue number to existing specs, tickets, `GLOSSARY.md`, `docs/adr/`, and modified files instead of pasting their contents.
+3. **Settled Decisions & User Agency Choices**:
+   * Record every constraint or architectural choice the user already approved in this window (including any **Pre-Flight Agency Gate** choices on style drift, ADR migration, or Legacy Sprout strategy) so the next session never re-asks settled questions.
+4. **Verified Facts vs. Unverified Assumptions (Anti-Hallucination Guard)**:
+   * **Verified**: Facts confirmed by reading specific `file:line` locations or running commands (cite the command/file).
+   * **Unverified / Open**: Hypotheses or claims that the resuming agent MUST verify before acting on.
+5. **Suggested Skill for the Next Window**:
+   * Name the single skill (if any) the resuming agent should load first (e.g., `grilling`, `to-spec`, `implement`, `tdd`, `diagnosing-bugs`, `code-review`).
+6. **Redaction**:
+   * Redact all API keys, tokens, credentials, and secrets (`<REDACTED>`).

@@ -7,4 +7,12 @@ metadata:
   opencode/autoinvoke: "false"
 ---
 
-Wait — I don't understand where you've got to here. Re-pitch that: give me a little bit of context, talk in ASD-STE100 Simplified Technical English, and use the ubiquitous language from `CONTEXT.md`.
+# Wait, What?
+
+The user found the previous explanation too dense, abstract, or jargon-heavy.
+
+1. Check `GLOSSARY-MAP.md` / `GLOSSARY.md` if present so project terms stay accurate.
+2. Rewrite the explanation in **plain, concrete language**:
+   * Replace abstract labels with a concrete before/after example from the actual files or data structures in front of you.
+   * State the single practical trade-off or consequence in 2–4 sentences.
+   * If a decision is needed, end with one clear binary or multiple-choice question.

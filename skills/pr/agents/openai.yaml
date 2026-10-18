@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Body"
+  short_description: "Format a high-signal pull request body with Visual Summary, Evidence, and Merge Danger."
+  default_prompt: "Write a pull request description for the current branch using the pr skill."

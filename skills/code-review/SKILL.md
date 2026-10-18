@@ -55,7 +55,21 @@ Look for the originating spec in this order:
 
 ### 3. Identify standards
 
-Find repository documents that describe how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`. Standards always carry the smell baseline below. A documented repo standard overrides a baseline heuristic, and tooling-enforced matters are skipped.
+Find repository documents that describe how code should be written: `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `GLOSSARY.md`, and `docs/adr/` in the touched directories. Standards always carry the smell baseline below. A documented repo standard overrides a baseline heuristic, and tooling-enforced matters are skipped.
+
+**Architecture & seam smells**
+
+- **Single-Caller Test Helper** — an internal step split out of an already-testable module into a function with only 1 production caller solely so a test can import it. → inline it and test through the caller's seam. Do not flag a **Brownfield Sprout** (a function/module chosen at the Agency Gate to isolate new logic from an untestable legacy monolith), even with one caller.
+- **Leaky or Pass-Through Layer** — a middle-man function or interface adds surface area without hiding complexity. → inline it.
+- **Local Style Clash** — a second cosmetic convention (naming, formatting, file layout) inside an existing file. Structural contracts (error types, state transitions, I/O seams) follow Project Law instead: flag code that copies a legacy structural pattern an ADR has replaced, unless the spec records Agency Gate option (a) Local minimal edit.
+
+**Test suite smells**
+
+- **Call-Only Mock Assertions** — a test configures >2 mocks/stubs or only asserts `mock.calledWith` without checking a returned value, state transition, or error. → assert outcomes or test at a higher seam.
+- **Unpruned Same-Branch Duplicates** — several new test cases walk the exact same conditional branch with different normal inputs. → keep one happy path plus one case per boundary or error branch.
+- **Normalized-Input Vacuity** — a replayed bug-fix test stripped the triggering flag or precondition, or a tautological assertion recomputes the expected value with production logic. → replay the real input; use literal or spec-derived expectations.
+
+**Fowler baseline (judgement calls)**
 
 - **Mysterious Name** — a name does not reveal what it holds or does. → rename it.
 - **Duplicated Code** — the same logic shape appears in more than one hunk or file. → extract the shared shape.
@@ -74,7 +88,7 @@ Find repository documents that describe how code should be written, such as `COD
 
 Run every required axis independently. Use provider-native sub-agents in parallel when their isolation or parallelism justifies the coordination cost; otherwise run the same passes sequentially in the current session. For WIP batches, give every batch to each required axis, and add a separate read-only Security pass when the conditional Security mode is triggered. Keep each pass's inputs and findings separate.
 
-**Standards pass prompt** — include the diff command, commit list, safe contents, and bounded skipped-candidate manifest or discovery summary. Report every documented-standard breach (with source and rule) and every baseline smell (a labelled judgement call), per file/hunk where relevant. Keep the report under 400 words.
+**Standards pass prompt** — include the diff command, commit list, safe contents, and bounded skipped-candidate manifest or discovery summary. Report every documented-standard breach (with source and rule) and every baseline smell (a labelled judgement call), per file/hunk where relevant, one entry per finding as `[File:Line] Severity (Hard Violation | Judgement Call) — Issue & Concrete Fix`. Keep the report under 400 words.
 
 **Spec pass prompt** — include the same diff inputs and the originating spec path or contents. Report missing or partial requirements, scope creep, and implementations that look wrong, quoting the spec for each finding. Keep the report under 400 words.
 
@@ -83,5 +97,7 @@ Run every required axis independently. Use provider-native sub-agents in paralle
 For WIP, include the safe contents, bounded skipped-candidate manifest or aggregate summary, and every batch's results. Do not call the review complete until every batch has completed all required passes. If only skipped candidates exist, still run the review and report each unreviewed path, reason, and aggregate summary as residual risk.
 
 Present reports under `## Standards` and `## Spec`; add `## Correctness`, `## Release readiness`, and/or `## Security` only when triggered. Do not merge or rerank findings across axes. End each rendered axis with a one-line finding count and worst issue, including every triggered optional axis. A Release readiness report cannot conclude that the change is ready without evidence for every required criterion.
+
+**Bounded repair rule (when called inside `/implement`)**: after one repair pass fixes the reported findings, verify only the repaired hunks and affected tests; do not start a second broad review loop.
 
 The axes stay separate because a change can follow every standard while implementing the wrong thing, or satisfy the spec while violating a documented standard.

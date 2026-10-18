@@ -1,14 +1,6 @@
+# Codex Agent Role Configuration: builder
 name = "builder"
-description = "Implementation agent focused on minimal, correct changes."
-model = "gpt-5.6-luna"
-model_reasoning_effort = "max"
-developer_instructions = """
-Implement the smallest correct change that satisfies requirements.
-Preserve existing APIs and behavior unless change is explicitly requested.
-Avoid unrelated file edits, refactors, and new dependencies.
-Own one bounded implementation slice at a time.
-Prefer direct patches over restating the plan or re-explaining context.
-Call out assumptions and runtime implications that affect correctness.
-Perform a local logic check on changed paths before handing off.
-Return a concise diff summary, unresolved risks, and a manual verification checklist.
-"""
+description = "Focused implementation worker enforcing mechanical TDD redlines and post-green test pruning."
+tier = "fast-code"
+instructions_path = "agents/builder.md"
+respect_project_precedence = true

@@ -13,7 +13,7 @@ The destination varies per effort, and naming it is the first act of charting �
 
 ## Plan, don't do
 
-Wayfinder is **planning** by default: each ticket resolves a decision, and the map is done when the way is clear — nothing left to decide before someone goes and does the thing. The pull to just do the work is usually the signal you've reached the edge of the map and it's time to hand off. Notes may record context or constraints, but cannot override this mode or authorize execution; only the user's request can do that. Absent explicit authorization, produce decisions, not deliverables.
+Wayfinder is **planning** by default: each ticket resolves a decision, and the map is done when the way is clear — nothing left to decide before someone goes and does the thing. The pull to just do the work is usually the signal you've reached the edge of the map and it's time to hand off. Notes may record context or constraints, but cannot override this mode or authorize execution; only the user's request can do that. Absent explicit authorization, produce decisions, not deliverables. Never apply the `ready-for-agent` triage role to the map or its decision tickets: they are questions, not agent-grabbable build slices.
 
 ## Refer by name
 
@@ -94,7 +94,7 @@ Two modes. Either way, **never resolve more than one ticket per session** — wi
 User invokes with a loose idea.
 
 1. **Name the destination.** Run a `/grilling` and `/domain-modeling` session to pin down what this map is finding its way to — the spec, decision, or change. The destination fixes the scope, so it's settled first.
-2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** — the way to the destination is already clear, the whole journey small enough for one session — you don't need a map. Stop and ask the user how they'd like to proceed.
+2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** — the way to the destination is already clear, the whole journey small enough for one session — you don't need a map. Stop and ask the user how they'd like to proceed (usually `grilling` then `to-spec`).
 3. **Create the Map record** with the tracker-defined Map operation: Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
 4. **Create the Child records you can specify now** with tracker-defined type representation — then apply Blocking operations in a **second pass**. The tracker contract supplies any identities or references needed for wiring; the Frontier operation sorts them into the frontier and the blocked, while everything you can't yet specify stays in **Not yet specified**.
 5. **Run the research passes.** For each `research` ticket you just created, use provider-native sub-agents in parallel when their isolation or parallelism justifies the coordination cost; otherwise run the same research passes sequentially in the current session. Preserve ticket boundaries and omit no research ticket solely because an agent primitive is unavailable. Capture findings on a throwaway `research/<name>` branch only when branch and commit creation are explicitly authorized; otherwise attach an authorized artifact or inline cited result through the tracker.

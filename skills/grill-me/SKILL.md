@@ -1,10 +1,10 @@
 ---
 name: grill-me
-description: A relentless interview to sharpen a plan or design.
+description: Stress-test an idea, plan, or decision through a structured design-tree interview.
 disable-model-invocation: true
 metadata:
   invocation: user
   opencode/autoinvoke: "false"
 ---
 
-Run a `/grilling` session.
+Load and follow the `grilling` skill (call the `Skill` tool with `"grilling"` if your harness provides it; otherwise read and follow `../grilling/SKILL.md` relative to this skill directory).

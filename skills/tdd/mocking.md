@@ -1,59 +1,13 @@
-# When to Mock
+# Seam Isolation & Mocking Discipline (Language-Agnostic)
 
-Mock at **system boundaries** only:
+## When to Isolate or Fake a Dependency
 
-- External APIs (payment, email, etc.)
-- Databases (sometimes - prefer test DB)
-- Time/randomness
-- File system (sometimes)
+Isolate dependencies only at genuine **I/O or non-deterministic boundaries**:
+* External network APIs (payment providers, third-party services, LLM APIs)
+* Persistence / storage boundaries (via an in-memory fake repository, test DB, or narrow boundary interface/port)
+* Non-deterministic primitives (system clock, timers, RNG, OS process signals)
 
-Don't mock:
+## Never Mock Internal Collaborators
 
-- Your own classes/modules
-- Internal collaborators
-- Anything you control
-
-## Designing for Mockability
-
-At system boundaries, design interfaces that are easy to mock:
-
-**1. Use dependency injection**
-
-Pass external dependencies in rather than creating them internally:
-
-```typescript
-// Easy to mock
-function processPayment(order, paymentClient) {
-  return paymentClient.charge(order.total);
-}
-
-// Hard to mock
-function processPayment(order) {
-  const client = new StripeClient(process.env.STRIPE_KEY);
-  return client.charge(order.total);
-}
-```
-
-**2. Prefer SDK-style interfaces over generic fetchers**
-
-Create specific functions for each external operation instead of one generic function with conditional logic:
-
-```typescript
-// GOOD: Each function is independently mockable
-const api = {
-  getUser: (id) => fetch(`/users/${id}`),
-  getOrders: (userId) => fetch(`/users/${userId}/orders`),
-  createOrder: (data) => fetch('/orders', { method: 'POST', body: data }),
-};
-
-// BAD: Mocking requires conditional logic inside the mock
-const api = {
-  fetch: (endpoint, options) => fetch(endpoint, options),
-};
-```
-
-The SDK approach means:
-- Each mock returns one specific shape
-- No conditional logic in test setup
-- Easier to see which endpoints a test exercises
-- Type safety per endpoint
+* Never mock pure domain functions, state calculators, or internal helper modules you own within the same layer.
+* **The >2 Mocks Smell**: If a unit test requires setting up more than 2 mocks/stubs, or only asserts that a mock was called with certain arguments (`mock.calledWith`) without asserting a returned value, state mutation, or error outcome, you are testing wiring rather than behavior. Delete the unit test and verify the wiring via runtime execution (`Prove It Works`).

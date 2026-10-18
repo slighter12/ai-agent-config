@@ -7,7 +7,7 @@ metadata:
 
 # Domain Modeling
 
-Actively build and sharpen the project's domain model as you design. This is the *active* discipline — challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely *reading* `CONTEXT.md` for vocabulary is not this skill — that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)
+Actively build and sharpen the project's domain model as you design. This is the *active* discipline — challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely *reading* `GLOSSARY.md` for vocabulary is not this skill — that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)
 
 ## File structure
 
@@ -15,7 +15,7 @@ Most repos have a single context:
 
 ```
 /
-├── CONTEXT.md
+├── GLOSSARY.md
 ├── docs/
 │   └── adr/
 │       ├── 0001-event-sourced-orders.md
@@ -23,23 +23,25 @@ Most repos have a single context:
 └── src/
 ```
 
-If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The map points to where each one lives:
+If a `GLOSSARY-MAP.md` exists at the root, the repo has multiple contexts. The map points to where each one lives:
 
 ```
 /
-├── CONTEXT-MAP.md
+├── GLOSSARY-MAP.md
 ├── docs/
 │   └── adr/                          ← system-wide decisions
 ├── src/
 │   ├── ordering/
-│   │   ├── CONTEXT.md
+│   │   ├── GLOSSARY.md
 │   │   └── docs/adr/                 ← context-specific decisions
 │   └── billing/
-│       ├── CONTEXT.md
+│       ├── GLOSSARY.md
 │       └── docs/adr/
 ```
 
-When documentation changes are authorized, create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+If a legacy `CONTEXT.md` or `CONTEXT-MAP.md` exists, treat it as the predecessor of `GLOSSARY.md` / `GLOSSARY-MAP.md` and propose renaming it (`git mv CONTEXT.md GLOSSARY.md`); rename only when documentation changes are authorized.
+
+When documentation changes are authorized, create files lazily — only when you have something to write. If no `GLOSSARY.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
 Update these files only when the enclosing request authorizes documentation changes, including an explicit `/grill-with-docs` request. Otherwise propose the exact glossary or ADR update without writing it.
 
@@ -47,7 +49,7 @@ Update these files only when the enclosing request authorizes documentation chan
 
 ### Challenge against the glossary
 
-When the user uses a term that conflicts with the existing language in `CONTEXT.md`, call it out immediately. "Your glossary defines 'cancellation' as X, but you seem to mean Y — which is it?"
+When the user uses a term that conflicts with the existing language in `GLOSSARY.md`, call it out immediately. "Your glossary defines 'cancellation' as X, but you seem to mean Y — which is it?"
 
 ### Sharpen fuzzy language
 
@@ -63,11 +65,11 @@ When the user states how something works, check whether the code agrees. If you 
 
 ### Record authorized domain docs inline
 
-When a term or decision is resolved, update the relevant `CONTEXT.md` or ADR right there only when the enclosing request authorizes documentation changes. Don't batch authorized updates — capture them as they happen. Use the format in [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) or [ADR-FORMAT.md](./ADR-FORMAT.md).
+When a term or decision is resolved, update the relevant `GLOSSARY.md` or ADR right there only when the enclosing request authorizes documentation changes. Don't batch authorized updates — capture them as they happen. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md) or [ADR-FORMAT.md](./ADR-FORMAT.md).
 
 When documentation changes are not authorized, do not write the domain docs. Give the user an exact proposal instead: name the target path, identify the section to change, and provide the proposed glossary or ADR text for approval.
 
-`CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
+`GLOSSARY.md` should be totally devoid of implementation details. Do not treat `GLOSSARY.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
 ### Offer ADRs sparingly
 

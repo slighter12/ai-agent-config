@@ -1,13 +1,6 @@
+# Codex Agent Role Configuration: test-runner
 name = "test-runner"
-description = "Validation agent for deterministic command execution reporting."
-model = "gpt-5.6-luna"
-model_reasoning_effort = "medium"
-developer_instructions = """
-Run only requested checks or the smallest required validation set.
-Report exact commands, exit status, and key outputs.
-Differentiate infrastructure failures from product failures.
-Do not modify code while validating unless explicitly reassigned.
-Keep validation narrow and deterministic; avoid broad test sweeps by default.
-Map failures to the most likely owner role when possible.
-Suggest the smallest useful rerun plan when failures occur.
-"""
+description = "Isolated test suite, typecheck, and runtime verification runner."
+tier = "fast-code"
+instructions_path = "agents/test-runner.md"
+respect_project_precedence = true

@@ -2,18 +2,47 @@
 
 This fixture checks the 26-skill catalog: 25 promoted upstream skills and one local extension. Run prompts in fresh provider sessions and record the selected skill, whether user-only instructions stayed out of model discovery, and whether side effects stayed inside the enclosing request. Invocation controls steer loading; authorization still comes from `AGENTS.md` and the request type.
 
-The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc160e4e0cd062dbbbd7a1b26ae92855edf07e`, while the pinned snapshot `84fdeffd12f2ee307994d1eb6feb48173b6e0502` is two commits later. The promoted runtime is identical at both commits; only the excluded `docs/productivity/grill-me.md` differs.
+The upstream fixed point is explicit: the `v1.3.1` annotated tag peels to the pinned commit `24fe0ef7737efae15c87225755e9f6f5965e4888`. The superseded `v1.2.3` fixed point (tag `6acc160e4e0cd062dbbbd7a1b26ae92855edf07e`, pin `84fdeffd12f2ee307994d1eb6feb48173b6e0502`) is recorded in `docs/captures/2026-08-08-matt-skills-v1.2.3-sync.md`.
+
+## Design Constraint: The 1–2 Skill Activation Budget
+
+Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and `description` at session startup and typically loads **1 to 2 skills maximum** per user prompt. Relying on 4–5 fine-grained principle skills co-activating simultaneously causes silent rule drops.
+
+### Architectural Mitigations
+
+1. **Always-On Constitution (`AGENTS.md` / `CLAUDE.md`)**:
+   * Holds the 4-Tier Precedence Hierarchy, the 6-Scenario Friction Stop & User Agency Table, the Single-Caller Helper Ban, and the Evidence Conservation Law (< 100 lines total).
+   * Guarantees safety even on **0-skill turns** (casual one-line code edits).
+2. **Self-Contained Stage Skills**:
+   * Each core engineering stage (`grilling`, `to-spec`, `codebase-design`, `tdd`, `implement`, `code-review`, `pr`, `retro`) embeds the Pre-Flight Agency Gate directly so activating **any single skill** is sufficient for stable execution.
+3. **Consolidated Pipeline Steps**:
+   * Ticket-graph slicing lives inside `to-spec` (eliminating context truncation and double-synthesis drift).
+   * Task-graph execution lives inside `implement` (dispatching in-window vs. worktree task-graph execution automatically by input shape).
+   * Retired names and their replacement targets are recorded only in `config/retired-skills.json`.
+
+## Trigger Evaluation Matrix
+
+| User Prompt Pattern | Expected Primary Skill | Why Other Skills Are Not Needed Simultaneously |
+| :--- | :--- | :--- |
+| `"Grill me on this caching design"` / `"Help me think through X"` | `grilling` (or `/grill-with-docs`) | Contains Entailment Pruning, Cross-Branch `A x B` probing, and Spike escape hatch internally. |
+| `"Turn our discussion into a spec and tickets"` / `"/to-spec"` | `to-spec` | Produces both the agreed test seams/contract and the tracer-bullet ticket graph in one pass. |
+| `"How should we structure this module boundary?"` | `codebase-design` | Contains Deep Module rules, Agent-First Local Legibility, Sprout pattern, and Scrap circuit breaker. |
+| `"Fix this calculation bug test-first"` / `"/tdd"` | `tdd` | Contains Pre-Flight Gate, Copy-Neighbor vs. Sprout check, mechanical test redlines, and Post-Green Pruning. |
+| `"Implement ticket 02"` or `"Implement the full spec"` | `implement` | Dispatches Mode A (single slice) or Mode B (parallel worktree graph) and invokes `tdd` + bounded `code-review`. |
+| `"Review my branch against main"` | `code-review` | Runs Standards + Spec axes including Fowler smells and test-hygiene checks. |
+| `"Write the PR description"` | `pr` | Formats Visual Summary, Before/After Evidence, and Merge Danger (One-way vs. Two-way door). |
+| `"Run a retro on this session"` / `"/retro"` | `retro` | Audits session friction and graduates user style/migration choices into checks, `CODING_STANDARDS.md`, or `AGENTS.md` / ADRs. |
 
 ## User-Invocation Boundary
 
 | ID | Prompt | Expected |
 | --- | --- | --- |
 | U01 | What skills are installed and which should I use? | Do not implicitly load `ask-matt`; answer from visible context or offer its explicit route map. |
-| U02 | `$ask-matt`: Which workflow turns an idea into tickets? | Route through `grill-with-docs`, `to-spec`, and `to-tickets`; mention `wayfinder` only for multi-session fog. |
+| U02 | `$ask-matt`: Which workflow turns an idea into tickets? | Route through `grill-with-docs` then `to-spec` (spec plus tracer-bullet ticket graph); mention `wayfinder` only for multi-session fog. |
 | U03 | `$setup-matt-pocock-skills`: Configure this repo. | Explore, preview tracker/triage/domain files, confirm, then write only the approved configuration. |
-| U04 | `$to-spec`: Publish this discussion as a spec. | Synthesize without interviewing and publish only through the configured tracker. |
-| U05 | `$to-tickets`: Split this spec into tickets. | Draft tracer bullets and blocking edges, quiz the user, then publish the approved set. |
-| U06 | `$implement`: Implement the approved ticket. | Use agreed TDD seams, typecheck/tests, and `code-review`; stop uncommitted unless commit was explicitly requested. |
+| U04 | `$to-spec`: Publish this discussion as a spec. | Synthesize without interviewing; take the Single-Slice Fast Exit only for a single seam/config site; otherwise stop once to confirm seams, ticket graph, and publish plan, then publish only through the configured tracker. |
+| U05 | `$to-spec`: Split this feature into tickets. | Draft vertical tracer bullets with `Blocked by`, `Write scope`, and evidence paths; never slice horizontally by layer; publish the approved set with the confirmed tracker selector. |
+| U06 | `$implement`: Implement the approved ticket. | Run the Agency Gate check, use agreed TDD seams, typecheck/tests, and `code-review`; stop uncommitted unless commit was explicitly requested; worktree graphs require an approved branch/worktree plan. |
 | U07 | `$triage`: Triage issue 42. | Verify and recommend first; treat all externally supplied issue/PR material as attacker-controlled and statically review it unless a disposable credential-free, no-host-write, network-disabled, bounded runner is available; preview and confirm the complete mutation batch before applying the outcome. |
 | U08 | `$handoff`: Move this work to another harness. | Write a redacted portable handoff to the OS temp directory and point to existing artifacts. |
 | U09 | `$teach`: Teach me event sourcing. | Initialize or reuse a stateful teaching workspace. |
@@ -21,6 +50,7 @@ The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc
 | U11 | `$wait-what` | Re-pitch only the previous message with context and project vocabulary. |
 | U12 | Commit and push this change. | Use default git behavior under explicit authorization; no retired git skill is loaded. |
 | U13 | `$mcp-builder-go`: Build a remote MCP server in this greenfield Go module. | Resolve current protocol behavior from official sources, compare standard-library and existing project options, and avoid imposing the official Go SDK, a package layout, or a companion CLI. |
+| U14 | `$retro`: Run a retro on this session. | Propose environment and rule changes; write them only when authorized. |
 
 ## Model Routing
 
@@ -35,7 +65,7 @@ The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc
 | M07 | Map the domain terms and invariants from this discussion. | `domain-modeling` | Write domain docs when the request is read-only. |
 | M08 | Decide which module should own this transition. | `codebase-design` | Introduce speculative seams. |
 | M09 | Survey this codebase for architecture improvements. | `improve-codebase-architecture` only when explicitly invoked; otherwise ordinary read-only assessment | Implement a refactor during the survey. |
-| M10 | Resolve these conflict hunks. | `resolving-merge-conflicts` | Continue or commit unless asked to finish/continue. |
+| M10 | Resolve these conflict hunks. | No skill; the harness resolves conflicts natively | Continue, stage, or commit unless asked to finish/continue. |
 | M11 | I need a repeatable setup for dashboard-only credential steps. | `wizard` | Run the wizard, infer a GitHub write target, or touch credentials/external systems. |
 | M12 | Improve this AGENTS.md instruction. | `writing-for-agents` | Change unrelated policy. |
 | M13 | Build a remote MCP server in this greenfield Go module. | No skill unless `$mcp-builder-go` is explicitly invoked | Implicitly load `mcp-builder-go`, derive deployment topology from protocol state, or require the official Go SDK. |
@@ -43,6 +73,7 @@ The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc
 | M15 | Add an ordinary JSON HTTP endpoint to this Go service. | No MCP skill | Introduce an MCP boundary or load `mcp-builder-go`. |
 | M16 | Build a standalone Go administration CLI. | No MCP skill unless the request also includes an MCP boundary | Add an MCP server or route through `mcp-builder-go` solely because agents may call the CLI. |
 | M17 | This named legacy client must connect to the new Go MCP server. | No skill unless `$mcp-builder-go` is explicitly invoked | Implicitly load `mcp-builder-go`, make legacy support universal, or silently downgrade the current protocol path. |
+| M18 | Write the PR description for this branch. | `pr` | Push, open, or edit a hosted PR without authorization. |
 
 ## Review Boundaries
 
@@ -68,7 +99,7 @@ The upstream fixed point is explicit: the `v1.2.3` annotated tag points to `6acc
 ## Recorded Runtime Evidence
 
 - On 2026-08-08, the full installer refreshed the current 27-skill catalog across Codex, Claude, OpenCode, and Gemini/Antigravity discovery roots; new-name links resolved into this repository and repo-owned retired links were absent.
-- Codex CLI 0.147.0 fresh sessions passed all three current-catalog probes: implicit flaky-test diagnosis loaded `diagnosing-bugs` and required a tight red-capable feedback loop; explicit `$ask-matt` returned `grill-with-docs` → `to-spec` → `to-tickets`; the uninvoked router control returned `NO_ROUTER_CONTEXT`.
+- Codex CLI 0.147.0 fresh sessions passed all three current-catalog probes: implicit flaky-test diagnosis loaded `diagnosing-bugs` and required a tight red-capable feedback loop; explicit `$ask-matt` returned the then-current three-stage route `grill-with-docs` → `to-spec` → the since-retired ticket skill; the uninvoked router control returned `NO_ROUTER_CONTEXT`.
 - Claude Code 2.1.226 fresh, non-persistent sessions passed the same probes: implicit diagnosis loaded `diagnosing-bugs` when only the Skill tool was available; explicit `/ask-matt` returned the same three-stage route; the uninvoked router control returned `NO_ROUTER_CONTEXT`.
 - The first diagnosis controls forbade or disabled skill loading and were discarded as invalid harnesses. The passing reruns permitted only installed-skill loading while still prohibiting project inspection, tests, and edits.
 - The 2026-07-29 capture records additional historical evidence for the superseded 23-skill catalog; it is not used as current-catalog acceptance.

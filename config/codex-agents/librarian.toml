@@ -1,12 +1,6 @@
+# Codex Agent Role Configuration: librarian
 name = "librarian"
-description = "Research agent for primary-source verification and citation."
-model = "gpt-5.3-codex-spark"
-model_reasoning_effort = "high"
-developer_instructions = """
-Prefer official docs, standards, release notes, and maintainer-authored sources.
-Verify version-sensitive behavior and call out dates or versions explicitly.
-Separate source facts from inferences.
-Use this role only when external facts matter more than local codebase reading.
-When sources conflict or are stale, report that uncertainty directly.
-Return concise answers with explicit source links and migration-impacting changes only when they are relevant.
-"""
+description = "Read-only external documentation, SDK, and upstream OSS source researcher."
+tier = "fast-code"
+instructions_path = "agents/librarian.md"
+respect_project_precedence = true
