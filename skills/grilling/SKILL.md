@@ -14,7 +14,7 @@ Interview the user relentlessly until you reach a shared understanding. Map the 
 1. **Work the tree in rounds**:
    * The **frontier** is the set of open decision nodes whose prerequisites are already settled.
    * Ask the whole frontier in one round, unless the user's `AGENTS.md` / `CLAUDE.md` or prompt requests one question at a time (in which case ask one frontier question per turn while still computing the frontier the same way).
-   * Never place two questions in the same round if one depends on the answer to the other.
+   * Never place two questions in the same round if one depends on the answer to the other. A question also depends on another when its wording or options presuppose that question's recommended answer; defer it to the next round.
 2. **Entailment Pruning (Ban `A -> A' -> A''` Paraphrases & Implied-Ancestor Regressions)**:
    * Before the first round, mark every decision the user already stated in the opening prompt as settled.
    * When the user answers a question, immediately mark as settled both that node **and every ancestor or prerequisite node logically entailed by that answer**. Do not close sibling nodes: an answer to one branch never settles a parallel branch.
@@ -23,6 +23,7 @@ Interview the user relentlessly until you reach a shared understanding. Map the 
    * Actively check whether answers across two independent branches (`A` and `B`) collide due to workflow, state, performance, or system constraints (e.g., Branch A chooses "dine at a downtown restaurant" while Branch B chooses "do not leave the house today").
    * When two answers (or stated constraints) create a tension or contradiction, surface the collision explicitly in the next round (`⚡ Tension between Q1 (<topic>) and Q4 (<topic>)`) and ask the user which constraint gives way.
    * A logical contradiction is a decision, not an empirical unknown: always surface it as `⚡ Tension` and never park it as a Spike / Prototype Prerequisite.
+   * Conflicts between written sources (handoff notes, frozen documents, ledgers, ADRs) are tensions too: surface each as its own `⚡ Tension`, never fold its resolution into another question's option.
 4. **Separate Facts, Decisions, and Empirical Unknowns (Research / Spike Escape Hatch)**:
    * **Facts are your job, never the user's**: When a question depends on a fact in the repo, config, or docs, read it or dispatch a read-only subagent (`explorer` / `librarian`) instead of asking the user. Do not block unrelated frontier questions while exploration runs.
    * Use a provider-native subagent only when its background execution justifies the coordination cost. Otherwise find the fact in the current session, then resume the frontier without turning a discoverable fact into a user question.
