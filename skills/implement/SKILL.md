@@ -27,6 +27,8 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
      * **(d) Migrate** — move the touched module/function to the new ADR standard.
    * **Multi-Author Style Drift**: For in-place edits, match the touched file's cosmetic conventions. When creating a new module in a repo with 2+ competing conventions, **ask the user** which style to use.
    * Structural contracts (error types, state transitions, I/O seams, public interfaces) follow Project Law, never local file gravity.
+4. **Treat Spec Deviations as Design Signals (Both Modes)**:
+   * When implementation needs a parameter, dependency, or cross-seam call the spec or ticket did not anticipate, stop and surface it: was the spec wrong, was a requirement missed, or is the implementation overreaching? Never absorb it with a silent workaround. Two deviations of the same shape are a `codebase-design` Scrap Signal.
 
 ## Step 2: Dispatch by Input Shape
 
@@ -62,11 +64,12 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
 
 1. **Build the Live Task Graph & Check Write-Scope Collisions**:
    * Read the spec and all child tickets. Track ticket completion state **in your own session memory** as branches merge into the integration branch (do not rely on external issue tracker `blocked-by` counters updating mid-run).
-   * **Collision Guard**: Compare the `Write scope` of all currently unblocked frontier tickets, including shared migration numbers, lockfiles, codegen outputs, and registries. If two frontier tickets share any of these, **add a sequential dependency edge between them** so they never run concurrently in separate worktrees.
+   * **Collision Guard**: Compare the `Write scope` of all currently unblocked frontier tickets, including shared migration numbers, lockfiles, codegen outputs, and registries. If two frontier tickets share any of these, first check whether the sharing can be removed (for example, each ticket registers in its own file that a generated index reads); if so, propose that split in the Step 2 run plan. Otherwise **add a sequential dependency edge between them** so they never run concurrently in separate worktrees.
 2. **Get Approval for the Run Plan**:
    * Present the integration branch name, the first frontier wave, the worktrees to create, the merge policy (rebase + test, then fast-forward), and any tracker updates. Proceed only on explicit approval.
 3. **(Optional) Shared Read-Only Exploration**:
    * If tickets require shared codebase discovery, run one read-only `explorer` subagent upfront and save its concise pointer notes to `.scratch/<feature-slug>/notes.md` outside the worktrees so builders do not repeat exploration.
+   * Start an append-only decision trail at `.scratch/<feature-slug>/decisions.tsv` with the header `ts	phase	decision	why	evidence	result`. Append one single-line row whenever a slice merges, a pivot or revert happens, or a gate resolves. `evidence` is a pointer (commit SHA, `file:line`, or a command and its verdict), never prose. A wrong row is superseded by a new row, never edited or deleted. Strip tabs and newlines from every cell, and prefix a cell that starts with `=`, `+`, `-`, or `@` with a single quote so a spreadsheet never evaluates it. The trail stays an uncommitted working file unless the user asks to keep it. Before the final report, walk the rows against what actually happened and supersede any that are wrong.
 4. **Create the Integration Branch**:
    * Create or check out the approved integration branch (`feat/<feature-slug>` or as named by the user).
 5. **Dispatch Frontier `builder` Subagents in Git Worktrees**:
@@ -80,11 +83,17 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
      5. Report `git diff --name-only <integration-tip>...HEAD` alongside its declared `Write scope`.
    * **Note on Untracked Fixtures**: If a ticket's verification depends on `.gitignore`d local DBs or `.env` files absent from a fresh worktree, run its final verification check in the main checkout after merging.
 6. **Verify Scope, Fast-Forward Merge & Advance the Frontier**:
+   * A builder's report is a claim, not evidence: read the actual `git diff` and re-run the ticket's verification command on the rebased branch. An unmet acceptance criterion (missing scope) and an unrequested change (out-of-scope extra) are both defects.
    * Compare the builder's `git diff --name-only` against its declared `Write scope`. Any file outside the scope (or touching another in-flight ticket's scope) blocks the merge until resolved: re-sequence the affected tickets or ask the user.
+   * After two failed attempts on one ticket, change the slice boundary or the approach (and say which) instead of re-dispatching a longer version of the same prompt. If the run reaches about twice its expected effort, stop and re-plan with the user. Security and money/data-correctness defects are never deferred to a later pass.
    * Merge only by fast-forward (`git merge --ff-only`) after the branch is rebased onto the current integration tip and its tests pass there. If the tip moved, the builder rebases and re-tests again.
    * Mark the ticket merged in your local graph tracker, recompute the newly unblocked frontier, and dispatch the next wave until all tickets are merged.
 7. **Single Integration `code-review` & Bounded 1-Round Closeout**:
    * Once **all** tickets have landed on the integration branch (never mid-graph, or unbuilt tickets will be flagged as missing requirements), run `code-review` once across `base...integration-branch`.
-   * If issues are found, dispatch **one** `builder` repair pass to resolve them, run focused verification checks on the repaired files, and **stop** (never launch a second broad review loop).
+   * If issues are found, dispatch **one** fresh `builder` subagent as the repair pass, with consolidated scope: the ticket, every later directive, the review findings, and the prior builder's report and branch. Resume an existing builder only when the repair strictly needs state that lives in it and is costly to move (uncommitted changes in its worktree, or a process it still runs). Run focused verification checks on the repaired files, and **stop** (never launch a second broad review loop).
 8. **Cleanup**:
    * Remove the temporary worktrees (`git worktree remove`), update ticket statuses per `docs/agents/issue-tracker.md` only as approved in Step 2, and report the integration branch summary and verification evidence.
+
+## Final Report (Both Modes)
+
+Report each acceptance criterion as **Verified** (with the command and its result), **Not verified**, or **Inconclusive**. A proxy (it compiles, a file's mtime, a builder's self-report), an inconclusive run, or a check on a different surface than the claim is not Verified. Reuse an earlier check's result only while its code, inputs, environment, and state are unchanged.

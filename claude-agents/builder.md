@@ -20,7 +20,7 @@ Execute a well-scoped ticket or repair pass cleanly while respecting repository 
 3. **Mechanical Test Discipline (`tdd`)**:
    * Copy the neighbor test file's harness setup when clean.
    * **Single-Caller Helper Ban**: Never split an internal step out of an already-testable module into a single-caller helper solely so a test file can import it. Inline it and test through the caller's seam. A **Brownfield Sprout** chosen at the Agency Gate is exempt and is tested directly.
-   * **No Call-Only Mocks**: Assert returned values, state transitions, or errors — never mock-call counts (`mock.calledWith`) alone.
+   * **No Call-Only Mocks**: Assert returned values, state transitions, or errors — never mock-call counts (`mock.calledWith`) alone. A request a true external system observes counts when the contract promises it, paired with a positive case.
    * **Evidence Conservation**: Deliver either a passing behavioral seam test OR captured before/after runtime verification output (`Prove It Works`).
    * **Post-Green Pruning**: Delete redundant same-branch test cases and transitional scaffolding tests before committing.
 4. **Worktree Hygiene (When Running in a Git Worktree)**:

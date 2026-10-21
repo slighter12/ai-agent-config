@@ -23,11 +23,11 @@ Coordinate work across specialized subagents while keeping the main context wind
    * Communicate with subagents via file paths, issue/ticket IDs, `.scratch/` notes, and commit ranges rather than pasting large blocks of prose. Do not assume subagents gain skills or MCPs dynamically; include only the relevant guidance.
 5. **Local Frontier Tracking & Write-Scope Serialization**:
    * Track merged tickets locally as branches land on the integration branch.
-   * If two unblocked tickets share any file, registry, lockfile, codegen output, or migration number, serialize them before creating worktrees.
-   * Before merging a `builder` branch, require it to be rebased onto the integration tip with passing tests, check its `git diff --name-only` against its declared `Write scope`, then fast-forward merge.
+   * If two unblocked tickets share any file, registry, lockfile, codegen output, or migration number, first check whether the sharing can be removed (each ticket owns its own file, merged at a read point); serialize them before creating worktrees only when it cannot.
+   * Before merging a `builder` branch, require it to be rebased onto the integration tip with passing tests, check its `git diff --name-only` against its declared `Write scope`, then fast-forward merge. Treat the builder's report as a claim: read the diff and re-run its verification; an unmet acceptance criterion and an out-of-scope change are both defects.
 6. **Bounded Verification & Review Closeout**:
    * Require every implementation task to return either passing behavioral seam test output OR captured runtime verification output (`Prove It Works`), with redundant same-branch tests pruned.
-   * Run `code-review` once on the integrated result, followed by at most **one** targeted repair pass.
+   * Run `code-review` once on the integrated result, followed by at most **one** targeted repair pass by a fresh builder with consolidated scope (ticket, later directives, findings, prior report and branch), unless the repair needs state that lives only in the prior builder.
 
 ## Output Contract
 

@@ -36,7 +36,9 @@ Use a provider-native sub-agent when its isolation justifies the coordination co
 - Where have pure functions been extracted just for testability, but the real bugs hide in how they're called (no **locality**)?
 - Where do tightly-coupled modules leak across their seams?
 - Which parts of the codebase are untested, or hard to test through their current interface?
-- Which high-churn legacy files tangle I/O with domain logic, where new behavior should **Sprout** behind a clean seam instead of growing the monolith?
+- Which high-churn legacy files tangle I/O with domain logic instead of keeping a **Deterministic Core** behind a **Thin Mechanical Shell**, where new behavior should **Sprout** behind a clean seam instead of growing the monolith?
+- Where does one package mix 2–3 competing patterns for the same job (**Multi-Author Style Drift**), so a low-context agent copying the nearest neighbor picks the wrong one?
+- Where do callers work around an internal abstraction instead of going through it (a **Scrap Signal**)?
 
 Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
 
@@ -51,6 +53,7 @@ For each candidate, render a card with:
 - **Files** — which files/modules are involved
 - **Problem** — why the current architecture is causing friction
 - **Solution** — plain English description of what would change
+- **Approach** — `Module Deepening` or `Brownfield Sprout Seam`, chosen by blast radius: sprout when the target is a high-churn legacy file with no clean test seam
 - **Benefits** — explained in terms of locality and leverage, and how tests would improve
 - **Before / After diagram** — side-by-side, custom-drawn, illustrating the shallowness and the deepening
 - **Recommendation strength** — one of `Strong`, `Worth exploring`, `Speculative`, rendered as a badge

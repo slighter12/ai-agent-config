@@ -21,6 +21,7 @@ Only include these when they add genuine value. Most ADRs won't need them.
 - **Status** frontmatter (`proposed | accepted | deprecated | superseded by ADR-NNNN`) — useful when decisions are revisited
 - **Considered Options** — only when the rejected alternatives are worth remembering
 - **Consequences** — only when non-obvious downstream effects need to be called out
+- **Brownfield / Migration Strategy** — only when the decision introduces a standard that existing code violates: name which path existing code takes — (a) Local minimal edit, (b) Sprout at the seam, (c) Characterization check + local tidy first, or (d) Migrate the touched module — and where that choice applies
 
 ## Numbering
 

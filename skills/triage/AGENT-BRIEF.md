@@ -15,6 +15,7 @@ The issue may sit in `ready-for-agent` for days or weeks. The codebase will chan
 - **Don't** reference file paths — they go stale
 - **Don't** reference line numbers
 - **Don't** assume the current implementation structure will remain the same
+- **Exception, Write scope:** name module, package, or directory areas (never single files or line numbers); the implementing agent re-verifies them at pickup
 
 ### Behavioral, not procedural
 
@@ -57,6 +58,10 @@ Be specific about edge cases and error conditions.
 - `functionName()` return type — what it currently returns vs what it should return
 - Config shape — any new configuration options needed
 
+**Evidence path:** `Seam TDD` at <named seam> / `Runtime Verification` with <command and expected output>
+**Write scope:** module, package, or directory areas the change may touch (re-verify at pickup)
+**Project-law friction:** none, or the ADR vs. legacy pattern found during verification and the maintainer's chosen Agency Gate option (a)–(d). If friction exists and no option is chosen, the state is `ready-for-human`, not `ready-for-agent`.
+
 **Acceptance criteria:**
 - [ ] Specific, testable criterion 1
 - [ ] Specific, testable criterion 2
@@ -91,6 +96,11 @@ and append "..." to indicate truncation.
   but the validation/processing logic that populates it needs to respect
   word boundaries
 - Any function that reads SKILL.md frontmatter and extracts the description
+
+**Evidence path:** `Seam TDD` at the description-processing function, replaying
+a real 1100-character description as-is
+**Write scope:** the skill frontmatter parsing module and its tests
+**Project-law friction:** none
 
 **Acceptance criteria:**
 - [ ] Descriptions under 1024 chars are unchanged
@@ -130,6 +140,11 @@ checked for matches.
   and a `**Prior requests:**` list with issue links
 - The triage workflow should read all `.out-of-scope/*.md` files early
   and match incoming issues against them by concept similarity
+
+**Evidence path:** `Seam TDD` at the out-of-scope matching function, plus
+`Runtime Verification` of one wontfix triage run producing the file
+**Write scope:** the triage workflow module and the `.out-of-scope/` directory
+**Project-law friction:** none
 
 **Acceptance criteria:**
 - [ ] Closing a feature as wontfix creates/updates a file in `.out-of-scope/`
@@ -171,6 +186,10 @@ is untouched when the flag is absent.
   instead of the plain-text error
 - Reuse the existing serializer the PR already added; don't introduce a second
 
+**Evidence path:** `Seam TDD` at the command's output layer (the test below)
+**Write scope:** the `triage list` command module and its tests
+**Project-law friction:** none
+
 **Acceptance criteria:**
 - [ ] `triage list --json` emits valid JSON for both success and error cases
 - [ ] Exit codes match the non-JSON command
@@ -203,5 +222,6 @@ This is bad because:
 - Vague description ("the triage thing is broken")
 - References file paths and line numbers that will go stale
 - No acceptance criteria
+- No evidence path or write scope
 - No scope boundaries
 - No description of current vs desired behavior

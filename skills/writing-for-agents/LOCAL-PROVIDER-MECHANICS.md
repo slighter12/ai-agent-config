@@ -6,3 +6,4 @@ This repository keeps one flat, editable skill source and links it into Codex, C
 - User-invoked skills also set `disable-model-invocation: true`, `metadata["opencode/autoinvoke"]: "false"`, and `agents/openai.yaml` with `policy.allow_implicit_invocation: false`.
 - Use the repository's `agent-config` CLI to initialize, validate, and package skills; use absolute skill paths because commands run from `hooks-go`.
 - Keep source directories flat as `skills/<skill-name>`; the installer owns provider symlinks.
+- When retiring or merging a skill, add an entry to `config/retired-skills.json` (schema v2: `schemaVersion`, `updatedAt`, `retiredSkills[]` with `name`, `retiredIn`, `replacedBy`, `reason`) and record the divergence in `skills/UPSTREAM.md` without naming the retired skill.

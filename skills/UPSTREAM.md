@@ -27,6 +27,8 @@ These changes come from the pinned `v1.3.1` commit above and were reapplied toge
 4. **Retired the upstream merge-conflict skill**: Removed per upstream v1.3.0; its name, version, and reason live in `config/retired-skills.json` (retired names never appear on routing surfaces).
 5. **Harness-Portable Skill Loading**: Updated wrapper skills (`grill-me`, `grill-with-docs`, etc.) to load dependencies via the `Skill` tool when available or by directly reading the sibling `SKILL.md` path on harnesses like Codex CLI (resolving upstream `#1123`).
 
+6. **Smaller v1.3.1 corrections**: `diagnosing-bugs` Phase 6 is cleanup-only (the post-mortem handoff moved to `/retro`), `domain-modeling` uses the v1.3.1 trigger description, and `to-spec`, `triage`, and `wayfinder` tell the user to run `/setup-matt-pocock-skills` instead of running it.
+
 ## Intentional Local Divergences (Do Not Overwrite on Upstream Sync)
 
 1. **Single-Skill Self-Sufficiency & Embedded Pre-Flight Gate**:
@@ -44,6 +46,15 @@ These changes come from the pinned `v1.3.1` commit above and were reapplied toge
    * **Descriptive Back-References**: Requires `Q3 (<short topic>)` when referencing prior questions in later rounds (upstream `#1115`).
 5. **Language-Agnostic Mechanical `skills/tdd/SKILL.md` & `skills/codebase-design/SKILL.md`**:
    * Removes TypeScript/JS-specific coupling and adds concrete mechanical redlines (`Single-Caller Helper Ban`, `No Call-Only Mock Assertions`, `Evidence Conservation Law`, `Brownfield Sprout Pattern`, `Scrap Circuit Breaker`, and `Post-Green Same-Branch Test Pruning`).
+
+## Post-pin cherry-picks
+
+These upstream `main` commits landed after the pinned `v1.3.1` commit. They are folded in as local overlays; the pin above does not include them.
+
+- `f3fc563` (`diagnosing-bugs`): before trusting a forced red, `diff` the mutated code or fixture against a pristine copy to prove the mutation landed.
+- `8295b8e` (`wayfinder`): cross-references use real tracker references (never a placeholder `#<n>`), research branches never get a pull request, and a ticket is resolved by its tracker-defined type rather than its body. The local overlay already kept triage roles such as `ready-for-agent` off maps and decision tickets.
+- `954ee7f` (`ask-matt`): read a skill's `SKILL.md` before stating what it does or recommending a step be skipped. Already present locally.
+- `4f4e943`, `0f5e033` (`handoff`): resolve the temp directory from `$TMPDIR`, then `/tmp`, then `%TEMP%` on Windows. Already present locally.
 
 ## Local extensions
 

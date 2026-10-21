@@ -34,11 +34,11 @@ Choose from evidence rather than imposing a framework:
 
 - Resolve protocol state from the current official contract, separately from process lifetime and deployment topology.
 - Use `stdio` when the host launches the server as a local subprocess; otherwise use the transport required by the target host and clients.
-- Follow an existing MCP stack when the repository already owns one.
+- Follow an existing MCP stack when the repository already owns one. When that stack conflicts with the project's `AGENTS.md` or `docs/adr/`, or has no clean test seam, stop and present the Agency Gate menu (a)–(d) before choosing.
 - In greenfield Go, compare the standard library with the official Go SDK and add the SDK only when it materially reduces implementation or maintenance risk.
 - Add legacy compatibility only for a confirmed client or migration requirement.
 
-Let the repository decide package names, directories, interfaces, and wiring. Keep protocol parsing, transport concerns, and domain behavior testable without prescribing their physical layout. Build only the MCP entrypoint unless the request explicitly includes an independent CLI.
+Let the repository decide package names, directories, interfaces, and wiring. Apply **Deterministic Core / Thin Shell**: protocol parsing and each tool's domain behavior form a pure core that takes values and returns values or errors; stdio, HTTP, and SDK wiring form a thin shell around it. The repository still decides the physical layout. Build only the MCP entrypoint unless the request explicitly includes an independent CLI.
 
 **Done when:** the transport, dependency strategy, compatibility range, and entrypoint are justified by repository or user evidence.
 
@@ -57,7 +57,7 @@ Keep cross-call application state explicit in tool contracts when the resolved p
 
 ## 5. Verify the contract
 
-Derive tests from the resolved protocol matrix and claimed capabilities. Exercise the real entrypoint, representative calls, invalid input, upstream failures, bounded results, mutation safety, cancellation, concurrency, and every compatibility branch the implementation claims.
+Derive tests from the resolved protocol matrix and claimed capabilities. Test the core through its public seam with Seam TDD, asserting returned results and error outcomes. Verify entrypoint and transport wiring with `Prove It Works`: drive the real entrypoint and capture before/after output. A test that configures `> 2` mocks or only asserts that the SDK was called gets replaced by one of those two. Exercise the real entrypoint, representative calls, invalid input, upstream failures, bounded results, mutation safety, cancellation, concurrency, and every compatibility branch the implementation claims.
 
 Use raw transport fixtures for wire-level assertions. Add the official conformance suite, MCP Inspector, or an official SDK client as an interoperability check when available; these complement focused automated tests rather than replacing them.
 

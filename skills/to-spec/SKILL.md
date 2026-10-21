@@ -13,7 +13,7 @@ Turn the decisions already settled in the conversation (or a cleared `/wayfinder
 
 Do not re-interview the user on product scope. `to-spec` synthesizes decisions already made and stops **exactly once**, at the Step 3 checkpoint (or at the Fast-Exit summary), to confirm everything that needs the user.
 
-The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
+The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
 
 ## Tracker Safety Contract (Applies to Every Read and Write)
 
@@ -61,6 +61,8 @@ Before writing full prose, identify the verification strategy for the work:
   * **Domain / State / Calculation logic**: Behavioral tests at the module's public seam (`Seam TDD`).
   * **Thin Wiring / Glue / CLI / UI / Config**: Runtime verification (`Prove It Works` command/output diff) rather than mock-heavy unit tests.
   * **Legacy Monolith**: `Sprout Seam TDD` on the newly extracted function/module + runtime smoke check on the legacy caller.
+* **Frame the claim before the path**: For each slice, state the claim (the behavior that must become true and what must stay true) and the failure mode that would make a confident conclusion wrong. Then choose the evidence path, and name a weaker fallback or stronger alternative in case the preferred one proves unavailable or too indirect.
+* **Plan a Verification Affordance when no direct observation point exists**: If a slice's decisive state cannot be observed or repeated directly, add the smallest capability that makes it observable (a CLI diagnostic flag, a state dump, an in-memory fake at the seam, or a baseline snapshot script) to that slice's Evidence path, and mark it *durable* (committed) or *temporary* (removed before the PR). A dependency, persistent diagnostic surface, or structural change whose only purpose is evidence gathering needs the user's approval: list it in the Step 3 checkpoint.
 
 ## Step 2: Draft Tracer-Bullet Vertical Slices (For Multi-Slice Work)
 
@@ -68,10 +70,10 @@ Break multi-session work into tracer-bullet tickets:
 
 * **Vertical Slices Only**: Slice by end-to-end behavior, never horizontally by layer. Each ticket cuts a narrow path through every layer it needs (for example schema + domain + CLI for one behavior), so it can be demoed or verified on its own as soon as it lands. "Schema ticket → domain ticket → CLI ticket" is a horizontal split and is forbidden.
 * **Size**: Each slice fits in a single fresh context window.
-* **Prefactoring First**: If a local structural tidy ("make the change easy, then make the easy change") is needed, place it as Ticket `01` blocking the feature slices.
+* **Prefactoring, Baseline & Riskiest Unknown First**: Place a needed local structural tidy ("make the change easy, then make the easy change"), a baseline capture (the old value to compare against the new one), and the slice that settles the riskiest unknown as the earliest tickets, blocking the feature slices that depend on them.
 * **Wide-Refactor Exception (Expand-Contract)**: If one mechanical change (renaming a core symbol or schema column) fans across the codebase so no vertical slice can land green, sequence it as:
   1. `01-expand`: Add the new interface/shape alongside the old so CI stays green.
-  2. `02..N-migrate`: Migrate callers in bounded directory/package batches (each blocked by `01-expand`).
+  2. `02..N-migrate`: Migrate callers in bounded directory/package batches (each blocked by `01-expand`). When the migration is mechanical, the first migrate ticket does one unit by hand, then builds a codemod or script and proves it by rerunning it on that unit and diffing against the hand edit; later batches run the script.
   3. `final-contract`: Remove the old shape once zero callers remain (blocked by every migrate batch).
 * **Explicit Blocking Edges, Write Scope & Evidence**: For every ticket, declare:
   * `Blocked by`: Which ticket IDs must land first (`None` for initial frontier tickets).
@@ -84,7 +86,7 @@ Present one concise preview containing:
 
 1. **Agency Gate Menu** (only if Step 0.2 detected friction): the four options with your recommendation, noting which slices change if the user picks differently.
 2. **Frozen Constraints & Out of Scope**: Key implementation decisions carried over from the conversation and what is explicitly excluded.
-3. **Agreed Seams & Evidence Paths**: Where tests will sit (and which glue/wiring paths use runtime verification instead).
+3. **Agreed Seams & Evidence Paths**: Where tests will sit (and which glue/wiring paths use runtime verification instead), plus any evidence-only dependency or diagnostic surface that needs approval.
 4. **Proposed Ticket Graph**: Numbered list showing `Title`, `Blocked by`, `Write scope`, and `What it delivers (Demoable outcome)`.
 5. **Publish Plan**: The exact tracker target and the files/issues that will be created.
 
@@ -123,13 +125,17 @@ The problem the user is facing, from the user's perspective.
 
 The solution, from the user's perspective.
 
+## User Stories
+
+A numbered list with one story per distinct actor and behavior: `As an <actor>, I want <capability>, so that <benefit>`. For a purely architectural spec, write one entry per affected caller or invariant instead. Each entry is something the Spec review pass can check against the diff.
+
 ## Implementation Decisions
 
 The settled decisions: modules built or modified, their interfaces, architectural decisions (including the chosen Agency Gate option), schema changes, API contracts, and specific interactions.
 
 ## Testing Decisions / Agreed Seams
 
-The agreed seam(s), the evidence path for each slice (Seam TDD vs. `Prove It Works`), what makes a good test here (external behavior only), and prior art in the codebase.
+The agreed seam(s), the claim and evidence path for each slice (Seam TDD vs. `Prove It Works`), what makes a good test here (external behavior only), and prior art in the codebase. Each path closes with a verdict: **Verified** (stating what remains outside the evidence's reach), **Not verified**, or **Inconclusive**.
 
 ## Out of Scope
 

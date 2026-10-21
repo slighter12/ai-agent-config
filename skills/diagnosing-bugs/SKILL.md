@@ -99,6 +99,12 @@ Each hypothesis must be **falsifiable**: state the prediction it makes.
 
 If you cannot state the prediction, the hypothesis is a vibe — discard or sharpen it.
 
+**Check the fence before you move it.** When a hypothesis blames legacy logic that looks wrong or redundant, read why it exists first — `git log -S '<snippet>'`, `git blame`, and `docs/adr/` — and fold the constraint it was guarding into that hypothesis's prediction. These are read-only history queries.
+
+**Ask whether the triggering state is legitimate.** If the system may be in that state, the code that broke on it is the root cause and handling the state there is the fix. If the state should never exist, a check where it broke hides the bug: rank a hypothesis about what *produced* the state. Guards, retries, swallowed errors, clamped values, and discarded state are the usual ways a bug gets hidden. When the failure appears only after a restart, rank persisted state first (config files, caches, lock files, serialized state).
+
+**Attack the premise.** If two fixes that share one premise fail the same check, write that premise as one sentence and test it directly before writing another fix: find an observation that would differ if the premise were false, and look at how the failures are distributed, not only how large they are.
+
 **Show the ranked list to the user before testing.** They often have domain knowledge that re-ranks instantly ("we just deployed a change to #3"), or know hypotheses they've already ruled out. Cheap checkpoint, big time saver. Don't block on it — proceed with your ranking if the user is AFK.
 
 ## Phase 4 — Instrument
@@ -113,11 +119,13 @@ Tool preference:
 
 **Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at the end becomes a single grep. Untagged logs survive; tagged logs die.
 
-**Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
+**Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second. Vet the baseline and every later number with [PERF.md](PERF.md), and try its fix order cheapest first.
 
 ## Phase 5 — Fix + regression test
 
 Enter this phase only when the enclosing request authorizes a fix. Otherwise stop after the evidence identifies the root cause, report confidence and the smallest credible fix direction, and leave the workspace unchanged.
+
+Ship only what the evidence justifies. A belt-and-suspenders change that "might help" is an untested hypothesis, not a fix, and does not ship. When evidence refutes a hypothesis, revert every change it motivated.
 
 Write the regression test **before the fix** — but only if there is a **correct seam** for it.
 
@@ -127,20 +135,23 @@ A correct seam is one where the test exercises the **real bug pattern** as it oc
 
 If a correct seam exists:
 
-1. Turn the minimised repro into a failing test at that seam.
-2. Watch it fail.
+1. Turn the minimised repro into a failing test at that seam. Replay the real triggering input: never strip the flag, path, or precondition that triggers the bug just to make the fixture easier to build (the `tdd` No Normalized Bug Inputs rule).
+2. Watch it fail. If you forced the red by mutating code or a fixture, `diff` against a pristine copy to prove the mutation landed before you trust it.
 3. Apply the fix.
 4. Watch it pass.
-5. Re-run the Phase 1 feedback loop against the original (un-minimised) scenario.
+5. Re-run the Phase 1 feedback loop against the original (un-minimised) scenario, on the same surface where the user saw the symptom. An inconclusive run or a different surface is not a pass; say so. Unit tests show branch behavior, not bug absence.
+6. When the request authorizes commits, commit the failing regression test before the fix, so history shows red then green.
 
-## Phase 6 — Cleanup + post-mortem
+## Phase 6 — Cleanup
 
 Required before declaring done:
 
 - [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
 - [ ] Regression test passes (or absence of seam is documented)
 - [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
+- [ ] Changes motivated by refuted hypotheses are reverted
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
-
-**Then ask: what would have prevented this bug?** If the answer involves architectural change (no good test seam, tangled callers, hidden coupling) hand off to the `/improve-codebase-architecture` skill with the specifics. Make the recommendation **after** the fix is in, not before — you have more information now than when you started.
+- [ ] Sibling instances of the same bug pattern are searched for in the module and repo and listed; fix them only when the request authorizes that wider scope
+- [ ] The summary names the cheapest layer that would have blocked this bug class — a type, a linter/compiler check, or a test seam — or a Brownfield Sprout when the legacy file has no clean seam
+- [ ] If the deciding fact took a deep dig to find, the summary proposes the cheap, always-on signal (a log line, metric, or assertion) that would have shown it at first look

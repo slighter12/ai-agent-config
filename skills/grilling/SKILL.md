@@ -25,6 +25,7 @@ Interview the user relentlessly until you reach a shared understanding. Map the 
    * A logical contradiction is a decision, not an empirical unknown: always surface it as `⚡ Tension` and never park it as a Spike / Prototype Prerequisite.
    * Conflicts between written sources (handoff notes, frozen documents, ledgers, ADRs) are tensions too: surface each as its own `⚡ Tension`, never fold its resolution into another question's option.
 4. **Separate Facts, Decisions, and Empirical Unknowns (Research / Spike Escape Hatch)**:
+   * **Classify before you ask**: Before any "which approach / how should this work" question, sort it into one of three forks: (1) a repo or doc fact: look it up; (2) an observable runtime, performance, or behavior fact that a quick read-only or nondestructive command, test run, or probe can settle: observe it yourself, or tag it as a Spike / Prototype Prerequisite when observing it would need writes or side effects; (3) a genuine product, trade-off, or one-way-door preference: only this fork becomes a `❓` question.
    * **Facts are your job, never the user's**: When a question depends on a fact in the repo, config, or docs, read it or dispatch a read-only subagent (`explorer` / `librarian`) instead of asking the user. Do not block unrelated frontier questions while exploration runs.
    * Use a provider-native subagent only when its background execution justifies the coordination cost. Otherwise find the fact in the current session, then resume the frontier without turning a discoverable fact into a user question.
    * **Empirical unknowns are not grillable** (runtime facts only, never logical tensions): If the user says "I don't know yet" or the answer depends on runtime behavior, benchmark numbers, or UX feel in a research/exploratory project, **stop re-asking the question in different words**. Mark that branch as a **Spike / Prototype Prerequisite** (to resolve via `/prototype` or a quick experiment) and move on to the remaining branches.
@@ -33,6 +34,7 @@ Interview the user relentlessly until you reach a shared understanding. Map the 
 
 * Use plain outcome language in question titles and options unless the user already introduced specific implementation jargon.
 * Word every question so replying `"yes"` accepts your `➡️` recommendation.
+* A recommendation is a judgment, not a validation. When a user-proposed scope item or abstraction does not earn its complexity, recommend against it candidly (`"This doesn't earn its place because..."`); agreement is not the default.
 * When referring back to an earlier question from a previous round, **always include its short topic label** alongside the number (e.g., `Q2 (token expiry policy)`), never a bare `Q2`.
 
 Format each round like this:

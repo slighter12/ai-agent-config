@@ -23,11 +23,14 @@ Save the handoff file to the OS temporary directory (`$TMPDIR`, falling back to 
 2. **Context Pointers (Never Duplicate Artifacts)**:
    * Link by exact file path, commit SHA, branch name, or issue number to existing specs, tickets, `GLOSSARY.md`, `docs/adr/`, and modified files instead of pasting their contents.
 3. **Settled Decisions & User Agency Choices**:
-   * Record every constraint or architectural choice the user already approved in this window (including any **Pre-Flight Agency Gate** choices on style drift, ADR migration, or Legacy Sprout strategy) so the next session never re-asks settled questions.
+   * Record every constraint or architectural choice the user already approved in this window so the next session never re-asks settled questions:
+     * settled `grilling` branches, plus any open `⚡ Tension` items and **Spike / Prototype Prerequisites**;
+     * the Agency Gate option — (a) Local minimal edit, (b) Sprout at the seam, (c) Characterization check + local tidy first, or (d) Migrate — chosen for each target;
+     * the agreed test seams and Evidence Path (`Seam TDD` or `Runtime Verification`) for each slice.
 4. **Verified Facts vs. Unverified Assumptions (Anti-Hallucination Guard)**:
    * **Verified**: Facts confirmed by reading specific `file:line` locations or running commands (cite the command/file).
    * **Unverified / Open**: Hypotheses or claims that the resuming agent MUST verify before acting on.
 5. **Suggested Skill for the Next Window**:
    * Name the single skill (if any) the resuming agent should load first (e.g., `grilling`, `to-spec`, `implement`, `tdd`, `diagnosing-bugs`, `code-review`).
 6. **Redaction**:
-   * Redact all API keys, tokens, credentials, and secrets (`<REDACTED>`).
+   * Redact all API keys, tokens, passwords, credentials, secrets, and personally identifiable information (`<REDACTED>`).

@@ -16,14 +16,16 @@ Review these criteria:
 
 - **Defects** — incorrect control flow, state transitions, data handling, error handling, boundary behavior, concurrency, timing, resource cleanup, or failure recovery.
 - **Regressions** — changed behavior that breaks existing callers, workflows, persisted data, CLI/API contracts, or previously supported happy and failure paths.
-- **Missing validation** — absent or inadequate tests, assertions, input validation, error checks, or runtime safeguards where the diff and surrounding code show they are needed.
+- **Missing validation** — absent or inadequate tests, assertions, input validation, error checks, or runtime safeguards where the diff and surrounding code show they are needed. A test that cannot fail (call-only mocks, a normalized input that skips the triggering condition, a tautological expectation) counts as missing validation, not coverage. Checking a proxy (file mtime, cached state, a delegated worker's self-report) instead of the real value is also missing validation.
 - **Compatibility** — public APIs, schemas, wire formats, configuration, versions, platforms, and deployment/runtime assumptions across supported producers and consumers; include forward and backward compatibility where relevant.
+- **Root cause vs. symptom** — a guard clause masking an invariant violation, retry logic hiding a broken contract, a cast silencing a modeling error, or a fix in module A that belongs in module B's contract. Read callers, callees, and types beyond the diff before judging which layer the fix belongs in.
+- **Idempotency and partial failure** — what happens if the operation runs twice, or a previous run crashed halfway. If the answer depends on what state was left behind, a reconciliation step is missing.
 
 For every finding, provide severity, file and location, concrete evidence, impact, and a feasible correction. Distinguish an observed defect from a risk that remains unverified. Keep findings scoped to this axis; if the same hunk also violates Standards or Spec, report the independent reason under that axis rather than merging findings.
 
 ### Correctness pass prompt
 
-> Run the Correctness pass on the selected diff and its runtime context. Check defects, regressions, missing validation, and compatibility across normal, boundary, failure, upgrade, and rollback-relevant paths. Trace affected callers, data, and configuration far enough to support each claim. Report each finding with severity, location, evidence, impact, and feasible correction; label unverified risks separately. End with the Correctness finding count and worst issue.
+> Run the Correctness pass on the selected diff and its runtime context. Check defects, regressions, missing validation, compatibility, root cause vs. symptom, and idempotency across normal, boundary, failure, upgrade, and rollback-relevant paths. Trace affected callers, data, and configuration far enough to support each claim; for every bug claim, show the call chain that produces the bad state rather than "this could be nil". Report each finding with severity, location, evidence, impact, and feasible correction; label unverified risks separately. End with the Correctness finding count and worst issue.
 
 The Correctness pass is complete only after each changed behavior has been checked against its callers, state/data paths, failure paths, and supported compatibility surface, or the unverified gap is recorded as residual risk.
 
