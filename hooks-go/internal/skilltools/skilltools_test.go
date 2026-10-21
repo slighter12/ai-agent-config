@@ -244,7 +244,7 @@ func TestValidateSkillsAcceptsRepositoryCatalog(t *testing.T) {
 	if !valid {
 		t.Fatalf("expected repository catalog to be valid:\n%s", message)
 	}
-	mustContain(t, message, "28 skills (11 model, 17 user)")
+	mustContain(t, message, "30 skills (11 model, 19 user)")
 	mustContain(t, message, "repo model name/description contribution characters")
 }
 

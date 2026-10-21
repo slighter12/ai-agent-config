@@ -481,6 +481,8 @@ func TestLocalSkillsExposeCodexInterfaceMetadata(t *testing.T) {
 		"mcp-builder-go": "MCP Builder Go",
 		"how":            "How",
 		"why":            "Why",
+		"blast-radius":   "Blast Radius",
+		"verify-app":     "Verify App",
 	}
 	for name, displayName := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -518,6 +520,29 @@ func TestCodeArchaeologySkillsStayReadOnly(t *testing.T) {
 
 	research := readFile(t, filepath.Join(repoRoot, "skills", "research", "SKILL.md"))
 	mustContain(t, research, "[`../why/EPISTEMICS.md`](../why/EPISTEMICS.md)")
+}
+
+func TestBlastRadiusAndVerifyAppKeepSideEffectBoundaries(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+
+	blast := readFile(t, filepath.Join(repoRoot, "skills", "blast-radius", "SKILL.md"))
+	mustContain(t, blast, "This skill is read-only toward the repository")
+	mustContain(t, blast, "Proof scripts live in the OS temporary directory")
+	mustContain(t, blast, "When the change comes from an untrusted external contributor, do not execute its code")
+	mustContain(t, blast, "## Proof Ladder")
+
+	verify := readFile(t, filepath.Join(repoRoot, "skills", "verify-app", "SKILL.md"))
+	mustContain(t, verify, "Invoking this skill authorizes edits only inside the target verification skill's directory. Never edit product code.")
+	mustContain(t, verify, "never kill by process name")
+	mustContain(t, verify, "confirm the evidence still exists at its named location")
+	mustContain(t, verify, "Never weaken a journey to make it pass.")
+	mustContain(t, verify, "Leave changes uncommitted.")
+
+	pr := readFile(t, filepath.Join(repoRoot, "skills", "pr", "SKILL.md"))
+	mustContain(t, pr, "read the `## Proof Ladder` in [`../blast-radius/SKILL.md`](../blast-radius/SKILL.md)")
+	mustContain(t, pr, "When the change is a One-Way Door or touches a cross-boundary contract")
+	retro := readFile(t, filepath.Join(repoRoot, "skills", "retro", "SKILL.md"))
+	mustContain(t, retro, "[`../verify-app/SKILL.md`](../verify-app/SKILL.md)")
 }
 
 func TestLocalTrackerSeparatesTriageFromWorkLifecycle(t *testing.T) {

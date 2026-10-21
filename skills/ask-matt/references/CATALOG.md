@@ -23,6 +23,8 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `mcp-builder-go` | Design a current-protocol MCP server in Go with project-fit dependencies. | local extension |
 | `how` | Explain how a code path works, with `file:line` references. | local extension |
 | `why` | Trace why code has its current shape from repository history, with tiered confidence. | local extension |
+| `blast-radius` | Find what a change breaks beyond its diff and prove the fact it is safe because of. | local extension |
+| `verify-app` | Create or maintain a project-local skill that proves app behavior end to end. | local extension |
 
 ## Model-invoked
 

@@ -38,10 +38,10 @@ Route every proposed improvement to the lowest layer that can enforce it, keepin
 | **Missing Domain Term or Ambiguous Noun** | **Domain Glossary (`GLOSSARY.md`)**: Record the canonical term and definition. |
 | **Expensive Tool Call**<br>(Repeated broad searches, token-inefficient CLI/MCP output) | **Tool Economy**: Propose a narrower command, a script that filters output, or a pointer to the cheaper tool. |
 | **Missing Information Access**<br>(Dev server logs, runtime state, third-party data the agent could not see) | **Information Access**: Propose teeing logs to a readable file or granting read-only access, so the next session can look instead of guess. |
-| **Hard-Won Build / Boot / Verify Steps** | **Verification Recipe Capture**: Record the exact commands in `AGENTS.md` (1-line pointer), a project script, or a project-local verification skill, so `Prove It Works` is one lookup next time. |
+| **Hard-Won Build / Boot / Verify Steps** | **Verification Recipe Capture**: Record the exact commands in `AGENTS.md` (1-line pointer) or a project script, or propose `/verify-app` to build or repair a project-local verification skill, so `Prove It Works` is one lookup next time. |
 | **Bloated or No-Op Lines in `AGENTS.md` / `CLAUDE.md`** | **Pruning**: Propose deleting instructions the model already obeys by default or moving long procedures out into on-demand skills. |
 
-**Verification Recipe shape**: Launch (the exact start command from an empty data dir; ready means usable, not merely answering), Doctor (one read-only "is this instance worth driving?" check), Drive (stable handles such as labels, routes, or prompt strings, not coordinates), Evidence (what proves the behavior and where it lands), and Cleanup (stop only what you started, never by process name, and keep the evidence). Run the recipe end to end once before recording it.
+**Verification Recipe shape**: Before recording a recipe, read the Launch, Doctor, Drive, Evidence, and Cleanup definitions in [`../verify-app/SKILL.md`](../verify-app/SKILL.md) (`### 2. Write the Skill`) and follow them. Run the recipe end to end once before recording it.
 
 ### Make the Mistake Impossible
 

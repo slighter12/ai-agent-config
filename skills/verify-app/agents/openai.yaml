@@ -1,0 +1,5 @@
+interface:
+  display_name: "Verify App"
+  short_description: "Create or maintain a project-local skill that proves app behavior end to end"
+policy:
+  allow_implicit_invocation: false

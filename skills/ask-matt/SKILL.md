@@ -32,6 +32,8 @@ Before stating what any skill does or recommending that a step be skipped, **rea
 * **Incoming raw bug reports / external PRs**: `/triage`
 * **Hard bug or performance regression**: `/diagnosing-bugs` -> `/retro`
 * **Before changing unfamiliar code**: `/how` (what it does and where it lives), then `/why` (why it is shaped this way, ending in Preserve / Change / Avoid / Risk). Use `/research` instead for external docs, SDKs, or specs.
+* **Risky or untrusted change before merge**: `/blast-radius` (breakage beyond the diff, with the safety fact proven), alongside `/code-review` for standards and spec.
+* **No scripted way to prove app behavior**: `/verify-app` (create or maintain a project-local verification skill).
 * **Multi-session foggy effort**: `/wayfinder` (resolves decision tickets, then hands off to `/to-spec`)
 * **Architectural survey & module deepening**: `/improve-codebase-architecture` + `/codebase-design`
 
