@@ -31,6 +31,7 @@ Before stating what any skill does or recommending that a step be skipped, **rea
 
 * **Incoming raw bug reports / external PRs**: `/triage`
 * **Hard bug or performance regression**: `/diagnosing-bugs` -> `/retro`
+* **Before changing unfamiliar code**: `/how` (what it does and where it lives), then `/why` (why it is shaped this way, ending in Preserve / Change / Avoid / Risk). Use `/research` instead for external docs, SDKs, or specs.
 * **Multi-session foggy effort**: `/wayfinder` (resolves decision tickets, then hands off to `/to-spec`)
 * **Architectural survey & module deepening**: `/improve-codebase-architecture` + `/codebase-design`
 

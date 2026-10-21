@@ -14,8 +14,13 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 
 ## Architectural influences
 
-* [`cursor/plugins/pstack`](https://github.com/cursor/plugins/tree/main/pstack/skills) (`@poteto` / Lauren Tan): Agent-First Local Legibility, Boundary Discipline (Deterministic Core / Thin Effectful Shell), Task-Proportional Verification (`Prove It Works`), and 5 Layers of Correction.
-* [`alvinunreal/oh-my-opencode-slim`](https://github.com/alvinunreal/oh-my-opencode-slim): Lightweight role boundaries, Evidence Paths (`verification-planning`), and Surgical Changes.
+* [`cursor/plugins/pstack`](https://github.com/cursor/plugins/tree/main/pstack/skills) (`@poteto` / Lauren Tan; read at `d457567332aa6989e753ea289f30ea2bfbc80bc0`; license `LICENSES/pstack-MIT.txt`): Agent-First Local Legibility, Boundary Discipline (Deterministic Core / Thin Effectful Shell), Task-Proportional Verification (`Prove It Works`), and 5 Layers of Correction.
+* [`alvinunreal/oh-my-opencode-slim`](https://github.com/alvinunreal/oh-my-opencode-slim) (read at `e0a513368ff55b4ea7a25e148d75945c4d34a434`; license `LICENSES/oh-my-opencode-slim-MIT.txt`): Lightweight role boundaries, Evidence Paths (`verification-planning`), and Surgical Changes.
+
+Files adapted from these sources (rewritten, not vendored):
+
+- From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), and `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`).
+- From oh-my-opencode-slim: overlay rules in `to-spec`, `implement`, `codebase-design`, `retro`, and the agent definitions (`verification-planning`, `simplify`, `step-back`, `deepwork`, `reflect`, and the orchestrator prompt).
 
 ## Upstream v1.3.1 Changes Adopted
 
@@ -59,15 +64,17 @@ These upstream `main` commits landed after the pinned `v1.3.1` commit. They are 
 ## Local extensions
 
 - `mcp-builder-go`
+- `how`
+- `why`
 
-This remains outside the upstream set and is marked `local extension` in the canonical catalog.
-It carries local `agents/openai.yaml` interface metadata so Codex presents a human-readable name and description.
+These remain outside the upstream set and are marked `local extension` in the canonical catalog.
+Each carries local `agents/openai.yaml` interface metadata so Codex presents a human-readable name and description.
 
 ## Required overlays
 
 - Every skill carries `metadata.invocation`; user-invoked skills also carry Claude, Codex, and OpenCode implicit-invocation controls.
 - `validate-skills` resolves repository directories through one filesystem-identity helper and requires the requested catalog to be this repository's `skills/` directory before loading the repository-owned retirement manifest and routing evidence. Active and retired names share one canonical syntax validator. Core skill validation, retirement manifest reads, and routing reads share one `internal/securepath` opener. On Unix targets it holds a directory descriptor and walks each component with `openat` and `O_NOFOLLOW`, so the kernel never resolves a complete caller-supplied path; Solaris fails closed because its `syscall` package exposes no `openat` bridge. On Windows, Plan 9, JS, and WASI the same API validates every component with `Lstat` and rejects symlinks before a pathname open, which is best-effort: it leaves a same-user time-of-check to time-of-use window the descriptor-relative path does not have. Both paths reject symlink and non-regular inputs. Only caller-supplied trust anchors are canonicalized -- the repository root and the requested catalog directory -- so `config` and the manifest leaf stay under component-wise no-follow and a symlinked `config` is rejected instead of redirecting the read outside the repository. Validation fails closed above 1,024 catalog entries, 1 MiB per validator file, or 8 MiB aggregate validator content, and separately above a 64 KiB manifest, 128 retired names, 1,024 routing files, 1 MiB per routing surface, or 8 MiB aggregate routing content; this file is an active routing surface.
-- `ask-matt` links the canonical catalog and routes the local extension.
+- `ask-matt` links the canonical catalog and routes the local extensions.
 - `code-review` is always read-only and keeps the upstream Standards and Spec axes as its default. The local security checklist remains conditional on sensitive changes; an explicit correctness review adds Correctness, while an explicit full review or release-readiness request adds Correctness and Release readiness through `code-review/references/FULL_REVIEW.md`.
 - The former always-on local `code-review` full-review gate and `research` large-work gate deliberately yield to upstream delegation. `research` uses a provider-native background agent whenever that primitive is available so the main session can continue while it reads; an unavailable primitive or failed dispatch falls back to the same complete pass in the current session. `code-review` keeps independent required and explicitly triggered review passes and uses target-aware committed-range or complete WIP diffs, including selected untracked content; `wayfinder` keeps independent research passes. Those passes, plus `improve-codebase-architecture`, `codebase-design`, and `grilling`, use provider-native sub-agents when their isolation or parallelism justifies coordination cost and otherwise complete the same work in the current session.
 - `code-review` resolves the fixed point to a full commit ID and runs Git through sanitized argument arrays with pagers, external diff helpers, and text conversion disabled. Diffs, filenames, untracked contents, and modified instruction files remain hostile evidence, are byte-escaped in length-delimited frames, and cannot become workflow authority; fixed-point instruction copies remain authoritative. WIP discovery uses NUL-safe listing, caps matching candidates at 128 and path metadata at 64 KiB (over-cap reads zero content and records a bounded summary with a provider-neutral narrower-pathspec retry), then reads through a held repository descriptor with component-wise no-follow opens, fd identity checks, and a 256 KiB bounded reader; unsafe swaps and growth fail closed without blocking or external bytes. Safe included content remains capped at 1 MiB total with four automatic batches of at most 32 files and 256 KiB each, and skipped candidates retain one bounded path/reason.

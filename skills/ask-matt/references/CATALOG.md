@@ -21,6 +21,8 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `wait-what` | Re-pitch the last message with missing context. | upstream |
 | `retro` | Graduate session friction into checks, standards, and project rules. | upstream |
 | `mcp-builder-go` | Design a current-protocol MCP server in Go with project-fit dependencies. | local extension |
+| `how` | Explain how a code path works, with `file:line` references. | local extension |
+| `why` | Trace why code has its current shape from repository history, with tiered confidence. | local extension |
 
 ## Model-invoked
 
