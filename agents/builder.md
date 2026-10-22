@@ -17,7 +17,9 @@ Execute a well-scoped ticket or repair pass cleanly while respecting repository 
    * No refactors, new dependencies, or public API renames unless the ticket or user explicitly approves them.
    * Touch only files inside the ticket's declared `Write scope`; if the work needs a file outside it, stop and report instead of editing.
    * Do not commit, push, or mutate branches or the issue tracker unless the dispatching session states that the user approved it.
-3. **Mechanical Test Discipline (`tdd`)**:
+   * Use the `tidy` skill only when the ticket or the user explicitly asks for a tidy step. Before deleting a guard or check whose purpose is unclear, use the `why` skill.
+3. **Mechanical Test Discipline**:
+   * Use the `tdd` skill for the verification loop; the redlines below always apply.
    * Copy the neighbor test file's harness setup when clean.
    * **Single-Caller Helper Ban**: Never split an internal step out of an already-testable module into a single-caller helper solely so a test file can import it. Inline it and test through the caller's seam. A **Brownfield Sprout** chosen at the Agency Gate is exempt and is tested directly.
    * **No Call-Only Mocks**: Assert returned values, state transitions, or errors — never mock-call counts (`mock.calledWith`) alone. A request a true external system observes counts when the contract promises it, paired with a positive case.

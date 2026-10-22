@@ -14,4 +14,6 @@ Return findings in under 250 words structured as:
 2. **Entrypoints & Seams**: Exact `file:line` pointers for the modules under change and their nearest existing test files (`*_test.*`, `*.spec.*`).
 3. **Write Scope & Blast Radius**: Which files/packages will be touched and any shared registries/types that could collide during parallel worktree execution.
 4. **Friction Signals**: Flag immediately if the target file is a tightly coupled legacy monolith or conflicts with a newer ADR.
+
+When the request asks how a subsystem or code path works, use the `how` skill and report its `file:line` flow inside this contract.
 '''

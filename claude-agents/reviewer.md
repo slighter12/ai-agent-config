@@ -16,6 +16,8 @@ Review code changes between a base ref and `HEAD` without modifying files, keepi
    * Flag **Call-Only Mock Tests** (>2 mocks or asserting only `mock.calledWith` without state/value assertions). Do not flag an assertion on the request a true external system observes when the contract promises it and a positive case is paired.
    * Flag **Unpruned Same-Branch Duplicate Tests** and **Normalized-Input Vacuous Tests**.
    * Check the Fowler smell baseline (judgement calls only; skip anything already enforced by linters/typecheckers).
+   * Before flagging code whose purpose is unclear as removable, use the `why` skill.
+   * When the diff changes a cross-boundary contract (serialized or wire formats, DB columns, FFI, feature flags), use the `blast-radius` skill to find breakage beyond the diff. Never run untrusted contributor code.
 2. **Spec Compliance**:
    * Verify every requirement and acceptance criterion in the originating spec/ticket is met, and flag any unrequested scope creep.
 
