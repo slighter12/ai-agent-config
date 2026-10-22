@@ -72,8 +72,8 @@ test("createUser makes user retrievable", async () => {
 
 ## Four Anti-Patterns to Reject Immediately
 
-1. **Single-Caller Helper Extraction**: Splitting an internal step out of an already-testable module into a function with only `1` caller in production code solely so a test file can import and test it directly. Inline it back and test through the caller. (Exempt: a **Brownfield Sprout** chosen at the Agency Gate to isolate new logic from an untestable legacy monolith — test it directly.)
-2. **Tautological Assertions**: Computing the expected value in the test by copying the exact formula or logic from the production implementation. Expected values must be concrete literals or spec-derived fixtures.
+1. **Single-Caller Helper Extraction**: apply the Single-Caller Helper Ban in Step 2 of [SKILL.md](SKILL.md), including its Brownfield Sprout exemption.
+2. **Tautological Assertions**: the rule is No Tautological Expected Values in Step 2 of [SKILL.md](SKILL.md). It looks like this:
 
    ```typescript
    // BAD: Expected value is recomputed the way the code computes it
@@ -83,5 +83,5 @@ test("createUser makes user retrievable", async () => {
    // GOOD: Expected value is an independent, known literal
    expect(calculateTotal([{ price: 10 }, { price: 5 }])).toBe(15);
    ```
-3. **Normalized-Input Tests**: Taking a real failing production input/command and stripping out the flag, path, or precondition that actually triggers the bug just to make the test fixture easier to run. (The tell: removing the production fix does not turn the test red.)
-4. **Same-Branch Bloat (Prune Before Commit)**: Keeping multiple test cases that walk the exact same conditional branch (`if/else/switch`) with different normal inputs. Keep 1 happy-path case plus 1 case per distinct edge, boundary (`0`, empty, nil, max), or error branch.
+3. **Normalized-Input Tests**: apply No Normalized Bug Inputs in Step 2 of [SKILL.md](SKILL.md).
+4. **Same-Branch Bloat (Prune Before Commit)**: apply Same-Branch Duplicates in Step 4 of [SKILL.md](SKILL.md).

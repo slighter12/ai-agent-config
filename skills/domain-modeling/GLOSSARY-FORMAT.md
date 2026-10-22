@@ -57,4 +57,4 @@ The skill infers which structure applies:
 - If only a root `GLOSSARY.md` exists, single context
 - If neither exists and documentation changes are authorized, create a root `GLOSSARY.md` lazily when the first term is resolved; otherwise propose the exact path, section, and text without writing
 
-When multiple contexts exist, infer which one the current topic relates to. If unclear, ask.
+When multiple contexts exist, infer which one the current topic relates to. If the topic matches no context in `GLOSSARY-MAP.md`, or more than one, ask.

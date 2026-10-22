@@ -34,7 +34,7 @@ Choose from evidence rather than imposing a framework:
 
 - Resolve protocol state from the current official contract, separately from process lifetime and deployment topology.
 - Use `stdio` when the host launches the server as a local subprocess; otherwise use the transport required by the target host and clients.
-- Follow an existing MCP stack when the repository already owns one. When that stack conflicts with the project's `AGENTS.md` or `docs/adr/`, or has no clean test seam, stop and present the Agency Gate menu (a)–(d) before choosing.
+- Follow an existing MCP stack when the repository already owns one. When that stack conflicts with the project's `AGENTS.md` or `docs/adr/`, or has no clean test seam, stop, use the `codebase-design` skill, and present its Agency Gate Menu before choosing.
 - In greenfield Go, compare the standard library with the official Go SDK and add the SDK only when it materially reduces implementation or maintenance risk.
 - Add legacy compatibility only for a confirmed client or migration requirement.
 

@@ -3,6 +3,7 @@ package integration_test
 import (
 	"bytes"
 	"io/fs"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -612,7 +613,7 @@ func TestStepBackStaysReadOnlyAndWaitsForTheUser(t *testing.T) {
 func TestSkillsGateLoadsOnObservableConditions(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	skillsRoot := filepath.Join(repoRoot, "skills")
-	vague := []string{"if needed", "as needed", "if necessary", "as necessary", "in doubt", "when appropriate", "as appropriate", "where appropriate", "if relevant", "if you feel"}
+	vague := []string{"if needed", "as needed", "if necessary", "as necessary", "in doubt", "when appropriate", "as appropriate", "where appropriate", "if relevant", "if you feel", "if possible", "if applicable", "if unclear"}
 	err := filepath.WalkDir(skillsRoot, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -730,4 +731,108 @@ func TestSetupCreatesMissingTriageLabelsOnlyAfterApproval(t *testing.T) {
 	mustNotContain(t, github, "authorAssociation")
 	gitlab := readFile(t, filepath.Join(setupDir, "issue-tracker-gitlab.md"))
 	mustContain(t, gitlab, "glab issue list -O json")
+}
+
+// The Agency Gate menu has one copy in AGENTS.md and one in codebase-design;
+// every other skill presents it from codebase-design.
+func TestAgencyGateMenuHasOneCanonicalCopy(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	menu := func(text string) []string {
+		var options []string
+		for _, line := range strings.Split(text, "\n") {
+			trimmed := strings.TrimSpace(line)
+			for _, label := range []string{"(a)", "(b)", "(c)", "(d)"} {
+				if strings.HasPrefix(trimmed, "* **"+label+" ") {
+					options = append(options, trimmed)
+				}
+			}
+		}
+		return options
+	}
+	canonical := menu(readFile(t, filepath.Join(repoRoot, "AGENTS.md")))
+	design := menu(readFile(t, filepath.Join(repoRoot, "skills", "codebase-design", "SKILL.md")))
+	if len(canonical) != 4 || strings.Join(canonical, "\n") != strings.Join(design, "\n") {
+		t.Fatalf("codebase-design Agency Gate menu must match AGENTS.md word for word:\nAGENTS.md:\n%s\ncodebase-design:\n%s", strings.Join(canonical, "\n"), strings.Join(design, "\n"))
+	}
+
+	skillsRoot := filepath.Join(repoRoot, "skills")
+	err := filepath.WalkDir(skillsRoot, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || filepath.Ext(path) != ".md" || strings.HasSuffix(filepath.ToSlash(path), "codebase-design/SKILL.md") {
+			return nil
+		}
+		if options := menu(readFile(t, path)); len(options) > 0 {
+			t.Errorf("%s copies the Agency Gate menu; use the `codebase-design` skill and present its menu", path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"tdd", "implement", "to-spec", "mcp-builder-go"} {
+		skill := readFile(t, filepath.Join(skillsRoot, name, "SKILL.md"))
+		mustContain(t, skill, "use the `codebase-design` skill")
+		mustContain(t, skill, "Agency Gate Menu")
+	}
+}
+
+// The ask-matt router writes /name only for skills a user must invoke.
+func TestAskMattWritesSlashFormOnlyForUserInvokedSkills(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	skillsRoot := filepath.Join(repoRoot, "skills")
+	entries, err := os.ReadDir(skillsRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	router := readFile(t, filepath.Join(skillsRoot, "ask-matt", "SKILL.md"))
+	modelSkills := 0
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		skill, err := os.ReadFile(filepath.Join(skillsRoot, entry.Name(), "SKILL.md"))
+		if err != nil {
+			continue
+		}
+		if strings.Contains(string(skill), "\n  invocation: model\n") {
+			modelSkills++
+			mustNotContain(t, router, "`/"+entry.Name()+"`")
+		}
+	}
+	if modelSkills == 0 {
+		t.Fatal("no model-invoked skills found")
+	}
+	mustContain(t, router, "`/step-back`")
+	mustContain(t, router, "with the `tdd` skill")
+}
+
+// Reference files and callers point at the single source instead of
+// restating it, so the copies cannot drift.
+func TestCallersPointAtReferenceFilesInsteadOfCopies(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	read := func(parts ...string) string {
+		return readFile(t, filepath.Join(append([]string{repoRoot, "skills"}, parts...)...))
+	}
+	domain := read("domain-modeling", "SKILL.md")
+	mustContain(t, domain, "read \"When to offer an ADR\" in [ADR-FORMAT.md](./ADR-FORMAT.md)")
+	mustNotContain(t, domain, "**Hard to reverse**")
+	adr := read("domain-modeling", "ADR-FORMAT.md")
+	mustContain(t, adr, "**Hard to reverse**")
+	mustNotContain(t, adr, "genuine value")
+	mustNotContain(t, read("tdd", "tests.md"), "only `1` caller in production code")
+	mustNotContain(t, read("tdd", "mocking.md"), "more than 2 mocks/stubs")
+	mustNotContain(t, read("codebase-design", "DEEPENING.md"), "One adapter means a hypothetical seam")
+	mustNotContain(t, read("code-review", "references", "FULL_REVIEW.md"), "coordination cost")
+	mustNotContain(t, read("code-review", "references", "WIP_INPUTS.md"), "tokens, secrets, PII, or log exposure")
+	mustNotContain(t, read("prototype", "SKILL.md"), "obey whatever routing convention")
+	mustNotContain(t, read("implement", "SKILL.md"), "to delete same-branch duplicate tests")
+	mustNotContain(t, read("diagnosing-bugs", "SKILL.md"), "never strip the flag, path, or precondition")
+	mustNotContain(t, read("retro", "SKILL.md"), "Launch, Doctor, Drive, Evidence, and Cleanup structure")
+	mustNotContain(t, read("pr", "SKILL.md"), "Below level 4, write **unproven**")
+	architecture := read("improve-codebase-architecture", "SKILL.md")
+	mustNotContain(t, architecture, "a good stretch")
+	mustNotContain(t, architecture, "real enough to warrant")
+	mustNotContain(t, read("teach", "LEARNING-RECORD-FORMAT.md"), "genuine understanding")
 }

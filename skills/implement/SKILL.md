@@ -20,11 +20,7 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
 2. **Read Project Law**:
    * Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md`, and any `docs/adr/` covering the touched modules.
 3. **Run the 6-Scenario Friction Check on Target Files**:
-   * **Active Migration Conflict** (Project Law mandates a newer pattern than the target file uses) and/or **Legacy Monolith ("Shit Mountain")** (deeply coupled legacy code without clean test seams): unless the spec/ticket already records the chosen option, **STOP and present the canonical Agency Gate Menu** once, with your recommendation:
-     * **(a) Local minimal edit** — follow the legacy file's pattern for a minimal diff, verified by a runtime check.
-     * **(b) Sprout at the seam** — new behavior in a clean function/module that follows the ADR, tested with Seam TDD, leaving a 1–3 line call site in the legacy file.
-     * **(c) Characterization check + local tidy first** — lock current behavior with a characterization test, tidy locally, then change.
-     * **(d) Migrate** — move the touched module/function to the new ADR standard.
+   * **Active Migration Conflict** (Project Law mandates a newer pattern than the target file uses) and/or **Legacy Monolith ("Shit Mountain")** (deeply coupled legacy code without clean test seams): unless the spec/ticket already records the chosen option, **STOP**, use the `codebase-design` skill, and present its Agency Gate Menu once, with your recommendation.
    * **Multi-Author Style Drift**: For in-place edits, match the touched file's cosmetic conventions. When creating a new module in a repo with 2+ competing conventions, **ask the user** which style to use.
    * Structural contracts (error types, state transitions, I/O seams, public interfaces) follow Project Law, never local file gravity.
 4. **Treat Spec Deviations as Design Signals (Both Modes)**:
@@ -42,10 +38,10 @@ Inspect whether the input is a **Single Slice** (one ticket, one bug, or a direc
 ## Mode A: Single-Slice Build (In-Window)
 
 1. **Execute via Task-Proportional Verification**:
-   * Use the `tdd` skill; it picks Seam-Level TDD or Runtime Verification (`Prove It Works`) for the slice.
+   * Use the `tdd` skill for the slice.
 2. **Continuous Feedback & Post-Green Pruning**:
    * Run typechecking, linters, and the single affected test file regularly during implementation.
-   * Run the **Post-Green Test Pruning Gate** (`tdd` Step 4) to delete same-branch duplicate tests and scaffolding tests.
+   * After green, run the Post-Green Test Pruning Gate from the `tdd` skill (Step 4).
    * Run the full relevant test suite once at the end.
 3. **Bounded Review, Then Commit Only If Approved**:
    * Use the `code-review` skill on the changes.

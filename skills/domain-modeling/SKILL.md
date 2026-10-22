@@ -73,10 +73,4 @@ When documentation changes are not authorized, do not write the domain docs. Giv
 
 ### Offer ADRs sparingly
 
-Only offer to create an ADR when all three are true:
-
-1. **Hard to reverse** — the cost of changing your mind later is meaningful
-2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
-3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
-
-If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
+Before offering an ADR, read "When to offer an ADR" in [ADR-FORMAT.md](./ADR-FORMAT.md). Offer one only when all three of its criteria hold; if any is missing, skip the ADR. Write it in the format from the same file.

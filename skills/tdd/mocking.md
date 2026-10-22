@@ -10,8 +10,8 @@ Isolate dependencies only at genuine **I/O or non-deterministic edges**:
 ## Never Mock Internal Collaborators
 
 * Never mock pure domain functions, state calculators, or internal helper modules you own within the same layer.
-* **The >2 Mocks Smell**: If a unit test requires setting up more than 2 mocks/stubs, or only asserts that a mock was called with certain arguments (`mock.calledWith`) without asserting a returned value, state mutation, or error outcome, you are testing wiring rather than behavior. Delete the unit test and verify the wiring via runtime execution (`Prove It Works`).
-  The exception is a true external system from the list above: the request or payload it receives is behavior when the contract promises it (see [tests.md](tests.md)), so assert it through a recording fake, paired with a positive case.
+* **The >2 Mocks Smell**: apply the No Call-Only / Mock-Heavy Assertions redline in Step 2 of [SKILL.md](SKILL.md).
+  For a true external system from the list above, read "The contract decides, not the assertion shape" in [tests.md](tests.md#what-makes-a-durable-behavioral-test) before asserting the request it receives.
 
 ## Designing for Mockability
 

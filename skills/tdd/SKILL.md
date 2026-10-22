@@ -19,11 +19,7 @@ Before writing any test or production code:
    * Check `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md`, and `docs/adr/` for project testing rules.
    * Open 1–2 existing test files in the same directory or package to observe the established test harness, assertion style, and boundary setup.
 2. **Evaluate Project State & Yield Agency on Friction**:
-   * **Active Migration Conflict** (a project ADR defines a new testing/architecture pattern while the target or its test file uses a deprecated one) and/or **Legacy Monolith ("Shit Mountain")** (the target has no tests and tightly couples I/O with logic): **stop and present the canonical Agency Gate Menu** once, with your recommendation:
-     * **(a) Local minimal edit** — follow the legacy file's pattern for a minimal diff, verified by a runtime check (`Prove It Works`).
-     * **(b) Sprout at the seam** — new behavior in a clean function/module that follows the ADR, run this loop on the Sprout, leave a 1–3 line call site.
-     * **(c) Characterization check + local tidy first** — lock current behavior with a characterization test, tidy locally, then change.
-     * **(d) Migrate** — move the touched module/function to the new ADR standard.
+   * **Active Migration Conflict** (a project ADR defines a new testing/architecture pattern while the target or its test file uses a deprecated one) and/or **Legacy Monolith ("Shit Mountain")** (the target has no tests and tightly couples I/O with logic): **stop**, use the `codebase-design` skill, and present its Agency Gate Menu once, with your recommendation. Under option (b), run this loop on the Sprout.
 3. **Route by Task & Architectural Layer (When to Use TDD vs. Runtime Verification)**:
 
 | Layer / Task Type | Required Verification Path | Why |

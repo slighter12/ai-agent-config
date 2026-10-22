@@ -6,7 +6,7 @@ Read this reference only after the main skill has selected an explicit optional 
 - An explicit **full review** or **release readiness** adds both `Correctness` and `Release readiness`.
 - `Security` remains conditional on the sensitive diff triggers in the main skill and uses `SECURITY_CHECKLIST.md`.
 
-Use provider-native reviewers in parallel when their isolation or parallelism justifies the coordination cost. If that facility is unavailable, run the same passes sequentially in the current session. Preserve the selected axes and keep their evidence and findings separate.
+Run the passes as step 4 of the main skill describes. Preserve the selected axes and keep their evidence and findings separate.
 
 ## Correctness
 

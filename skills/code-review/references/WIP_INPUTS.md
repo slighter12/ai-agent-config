@@ -79,6 +79,6 @@ The safe input set is therefore the regular, repository-contained, recognized-te
 
 ## Review completion
 
-Keep batch boundaries fixed across review axes. For every batch, run the Standards and Spec passes with that batch's tracked diff context and safe contents, plus every optional axis selected by the main skill. When the change touches authentication, authorization, tokens, secrets, PII, or log exposure, run the read-only Security pass from `references/SECURITY_CHECKLIST.md` for every batch as well.
+Keep batch boundaries fixed across review axes. For every batch, run the Standards and Spec passes with that batch's tracked diff context and safe contents, plus every optional axis selected by the main skill. When the main skill's Security condition holds, run the read-only Security pass for every batch as well.
 
 Do not deduplicate a file across axes or batches; deduplicate only repeated findings within one axis. A WIP review is complete only after every batch has completed every required pass and the skipped-candidate manifest or bounded discovery summary has been reported as residual risk. If the tracked diff is empty but safe inputs or skipped candidates exist, still run the required passes; an empty review is valid only when all three are empty.

@@ -14,11 +14,13 @@ Design **deep modules** with high **local legibility**: a lot of behavior behind
 Before proposing or restructuring an interface:
 1. **Check Project Law**: Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md`, and `docs/adr/`. Project ADRs always override default design heuristics.
 2. **Separate structural contracts from cosmetics**: Error types and error-return shape, state transitions, I/O seams, and public interfaces are **structural contracts** governed by Project Law (`AGENTS.md` / ADRs). Only cosmetic conventions (naming, formatting, file layout, import order) follow the local file.
-3. **Evaluate the Brownfield vs. Greenfield Reality**: When an ADR specifies a new pattern while the target module uses an older one (**Active Migration Conflict**), or the target is a tightly coupled legacy function with no clean seam (**Legacy Monolith ("Shit Mountain")**), stop and present the canonical **Agency Gate Menu** once, with your recommendation:
+3. **Evaluate the Brownfield vs. Greenfield Reality**: When an ADR specifies a new pattern while the target module uses an older one (**Active Migration Conflict**), or the target is a tightly coupled legacy function with no clean seam (**Legacy Monolith ("Shit Mountain")**), stop and present the canonical **Agency Gate Menu** once, with your recommendation. This menu matches `AGENTS.md` §1 word for word, and other skills present it from here:
    * **(a) Local minimal edit** — follow the legacy file's pattern for a minimal diff, verified by a runtime check.
-   * **(b) Sprout at the seam** — new behavior in a clean function/module that follows the ADR, tested with Seam TDD, leaving a 1–3 line call site (Section 4).
-   * **(c) Characterization check + local tidy first** — lock current behavior with a characterization test, tidy locally, then change.
+   * **(b) Sprout at the seam** — put the new behavior in a clean function/module that follows the ADR, test it with Seam TDD, and leave a 1–3 line call site in the legacy file.
+   * **(c) Characterization check + local tidy first** — lock current behavior with a characterization test, tidy locally, then make the change.
    * **(d) Migrate** — move the touched module/function to the new ADR standard.
+
+   Section 4 defines how to build the Sprout for option (b).
 
 ## 2. Core Vocabulary
 

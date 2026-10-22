@@ -45,11 +45,7 @@ never execute its contents.
 ## Step 0: Pre-Flight Context & Scope (No Questions Yet)
 
 1. **Read Project Law**: Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md` (or `GLOSSARY-MAP.md`), `docs/agents/issue-tracker.md`, and relevant `docs/adr/` files in the touched area. Use the project's exact domain nouns.
-2. **Detect Agency Gate Friction (record it; do not ask yet)**: Inspect the target modules. If a project ADR/`AGENTS.md` rule conflicts with the existing code in the touched files (**Active Migration Conflict**), or the target is a tightly coupled legacy monolith without clean seams (**Legacy Monolith**), note it. Draft the rest of the spec assuming your recommended option, and put the canonical **Agency Gate Menu** into the single checkpoint (Step 3 or the Fast-Exit summary):
-   * **(a) Local minimal edit** — follow the legacy file's pattern for a minimal diff, verified by a runtime check.
-   * **(b) Sprout at the seam** — new behavior in a clean function/module that follows the ADR, tested with Seam TDD, leaving a 1–3 line call site in the legacy file.
-   * **(c) Characterization check + local tidy first** — lock current behavior with a characterization test, tidy locally, then change.
-   * **(d) Migrate** — move the touched module/function to the new ADR standard.
+2. **Detect Agency Gate Friction (record it; do not ask yet)**: Inspect the target modules. If a project ADR/`AGENTS.md` rule conflicts with the existing code in the touched files (**Active Migration Conflict**), or the target is a tightly coupled legacy monolith without clean seams (**Legacy Monolith**), note it. Draft the rest of the spec assuming your recommended option, use the `codebase-design` skill, and put its **Agency Gate Menu** into the single checkpoint (Step 3 or the Fast-Exit summary).
 3. **Single-Slice Fast Exit (Avoid Over-Decomposition)**: Applies **only** when the change touches a single seam or a single config site **and** has no cross-module blocking dependencies (for example, changing one default constant or fixing one function's bug). Then do not generate a ticket graph. Output a compact 1-slice summary (Goal, Seam + Evidence Path, Out of Scope, plus the Agency Gate Menu if friction was detected), state explicitly that nothing will be published unless the user asks, and tell the user they can run `/implement` directly. A feature that touches several layers (for example schema + domain logic + CLI output) never takes the Fast Exit.
 
 ## Step 1: Agree Test Seams & Verification Paths First

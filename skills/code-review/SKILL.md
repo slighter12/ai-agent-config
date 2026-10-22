@@ -22,7 +22,7 @@ Always run `Standards` and `Spec`. Add optional axes only when the user explicit
 - An explicit **full review** or **release readiness** adds `Correctness` and `Release readiness`.
 - **Security** remains conditional. When the diff touches authentication, authorization, tokens, secrets, PII, or log exposure, also run the read-only Security pass from [`references/SECURITY_CHECKLIST.md`](references/SECURITY_CHECKLIST.md).
 
-When an optional mode is triggered, read [`references/FULL_REVIEW.md`](references/FULL_REVIEW.md) before running its axes. It contains the detailed Correctness and Release readiness criteria and prompts. If a provider-native reviewer is unavailable, run the same passes sequentially in the current session.
+When an optional mode is triggered, read [`references/FULL_REVIEW.md`](references/FULL_REVIEW.md) before running its axes. It contains the detailed Correctness and Release readiness criteria and prompts. Run its axes as step 4 describes.
 
 ## Input, authority, and command boundaries
 

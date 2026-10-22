@@ -56,7 +56,7 @@ A lesson should be **beautiful** — clean, readable typography and layout — s
 
 The lesson should be short, and completable very quickly. Learners' working memory is very small, and we need to stay within it. But each lesson should give the user a single tangible win that they can build on. It should be directly tied to the mission, and should be in the user's zone of proximal development.
 
-If possible, open the lesson file for the user by running a CLI command.
+Open the lesson file for the user with a CLI command (`open` on macOS, `xdg-open` on Linux, `start` on Windows); if the command fails, print the path.
 
 Each lesson should link via HTML anchors to other lessons and reference documents.
 
@@ -111,7 +111,7 @@ For skill acquisition, difficulty is the tool. Effortful retrieval is what build
 
 Each of these should be based on a **feedback loop**, where the user receives feedback on their performance. This feedback loop should be as tight as possible, giving feedback immediately - and ideally automatically.
 
-For quizzes, each answer should be exactly the same number of words (and characters, if possible). Vary which position holds the correct answer across questions. Don't give the user any clues about the answer through formatting or order.
+For quizzes, each answer should be exactly the same number of words and within 2 characters of the same length. Vary which position holds the correct answer across questions. Don't give the user any clues about the answer through formatting or order.
 
 ## Acquiring Wisdom
 

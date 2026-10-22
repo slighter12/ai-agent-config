@@ -15,30 +15,30 @@ Before stating what any skill does or recommending that a step be skipped, **rea
 
 1. **`/grill-with-docs` (or `/grill-me` outside a repo)**:
    * Relentless design-tree interview with Entailment Pruning (no `A -> A' -> A''` repeats) and Cross-Branch Tension probing (`A x B` conflicts). Records domain terms in `GLOSSARY.md` and architectural constraints in `docs/adr/`.
-   * *Empirical detour*: If a question cannot be settled by talking, run `/prototype` (for runnable UI/state experiments) or `/research` (for primary-source doc/SDK investigation).
+   * *Empirical detour*: If a question cannot be settled by talking, run `prototype` (for runnable UI/state experiments) or `research` (for primary-source doc/SDK investigation).
 2. **Single-Slice vs. Multi-Slice Branch**:
    * **Fits in one session (Single Slice)**: Skip `/to-spec` and run `/implement` directly in the current window.
    * **Spans multiple slices/sessions**: Run `/to-spec`, which synthesizes both the **Spec (with Agreed Test Seams)** and the **Tracer-Bullet Ticket Graph (`Blocked by` + `Write scope`)** in a single pass.
 3. **`/implement` (Unified Builder)**:
-   * **Mode A** — pass a single ticket (`/implement 01`) to build one slice in-window with `/tdd` (or `Prove It Works` runtime verification for thin wiring) and `/code-review`.
+   * **Mode A** — pass a single ticket (`/implement 01`) to build one slice in-window with the `tdd` skill (or `Prove It Works` runtime verification for thin wiring) and the `code-review` skill.
    * **Mode B** — pass a whole multi-ticket spec (`/implement <spec>`) to orchestrate parallel `builder` subagents in isolated git worktrees across the unblocked frontier onto a single integration branch.
-4. **`/code-review` -> `/pr` -> `/retro`**:
-   * `/code-review` checks Standards + Spec compliance in parallel.
-   * `/pr` formats the pull request body (Visual Summary, Before/After Evidence, One-way/Two-way Door Merge Danger).
+4. **`code-review` -> `pr` -> `/retro`**:
+   * `code-review` checks Standards + Spec compliance in parallel.
+   * `pr` formats the pull request body (Visual Summary, Before/After Evidence, One-way/Two-way Door Merge Danger).
    * `/retro` inspects session friction and graduates user style/migration decisions into linters, `CODING_STANDARDS.md`, or `AGENTS.md` / ADRs.
 
 ## On-Ramps & Codebase Health
 
 * **Incoming raw bug reports / external PRs**: `/triage`
-* **Hard bug or performance regression**: `/diagnosing-bugs` -> `/retro`
-* **Before changing unfamiliar code**: `/how` (what it does and where it lives), then `/why` (why it is shaped this way, ending in Preserve / Change / Avoid / Risk). Use `/research` instead for external docs, SDKs, or specs.
-* **Risky or untrusted change before merge**: `/blast-radius` (breakage beyond the diff, with the safety fact proven), alongside `/code-review` for standards and spec.
-* **No scripted way to prove app behavior**: `/verify-app` (create or maintain a project-local verification skill).
-* **Green but heavier than needed**: `/tidy` (behavior-preserving simplification of the recent diff or a named module).
-* **Prose before it ships** (README, docs, commit message, PR body): `/unslop`.
+* **Hard bug or performance regression**: `diagnosing-bugs` -> `/retro`
+* **Before changing unfamiliar code**: `how` (what it does and where it lives), then `why` (why it is shaped this way, ending in Preserve / Change / Avoid / Risk). Use `research` instead for external docs, SDKs, or specs.
+* **Risky or untrusted change before merge**: `blast-radius` (breakage beyond the diff, with the safety fact proven), alongside `code-review` for standards and spec.
+* **No scripted way to prove app behavior**: `verify-app` (create or maintain a project-local verification skill).
+* **Green but heavier than needed**: `tidy` (behavior-preserving simplification of the recent diff or a named module).
+* **Prose before it ships** (README, docs, commit message, PR body): `unslop`.
 * **Patches keep stacking on one task**: `/step-back` (test the shared premise, compare a fresh design, then you choose).
 * **Multi-session foggy effort**: `/wayfinder` (resolves decision tickets, then hands off to `/to-spec`)
-* **Architectural survey & module deepening**: `/improve-codebase-architecture` + `/codebase-design`
+* **Architectural survey & module deepening**: `/improve-codebase-architecture` + `codebase-design`
 
 ## Phase Boundaries
 
