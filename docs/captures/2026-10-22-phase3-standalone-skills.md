@@ -61,13 +61,20 @@ Run on this capture's commit:
 - Retired-name scan: the only hit is the intended `mustNotContain` at `hooks-go/integration/catalog_contracts_test.go:293`.
 - Each new assertion was mutated, observed failing, restored, and observed passing.
 
+After the commit, the full installer (`./install.sh`) linked `step-back` into the Claude Code, Codex (`~/.agents/skills`), OpenCode, and Antigravity discovery roots.
+
+Fresh-session probes ran from an empty directory with only installed-skill loading allowed:
+
+- Claude Code 2.1.308 (non-persistent, `Skill` as the only tool): each of six prompts loaded the matching skill through the `Skill` tool (`why`, `how`, `blast-radius`, `verify-app`, `tidy`, `unslop`). Explicit `/step-back` returned its five H2 headings; the equivalent plain request returned `NO_STEP_BACK_CONTEXT` and made no `Skill` call.
+- Codex CLI 0.163.0 (`codex exec --ephemeral`, read-only sandbox): the same six prompts each read the matching `skills/<name>/SKILL.md` and named it. Explicit `$step-back` returned its five H2 headings; the plain request returned `NO_STEP_BACK_CONTEXT`.
+
 Not verified:
 
-- Fresh-session routing probes per provider for the new model-invoked skills and the `step-back` user-only boundary.
-- An installer rerun that links `step-back` into provider discovery roots.
+- OpenCode 1.19.3: every run, including a bare "Reply with exactly OK." control, failed before routing because the local Magic Context plugin build supports database migrations through v91 while its database is at v95. Routing stays unverified until that plugin is upgraded.
+- Gemini: no compatible CLI is installed.
 
 ## Follow-ups
 
-- Provider routing probes and the installer rerun each need separate approval.
+- Re-run the OpenCode probes after upgrading its Magic Context plugin.
 - Delete `/tmp/cursor-plugins` and `/tmp/oh-my-opencode-slim` only after the user confirms.
 - Hand-synced reference copies (`domain-modeling` formats, `tdd` `tests.md` and `mocking.md`, `DEEPENING.md`, triage role definitions) are left for a later batch.
