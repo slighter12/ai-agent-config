@@ -132,6 +132,8 @@ The block:
 
 Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.md`, only when `triage` is installed and Section B ran. When it isn't, both are omitted.
 
+When Section B ran on GitHub or GitLab, list the tracker's labels through the confirmed selector, show the user each configured label it lacks, and create those labels (`gh label create` / `glab label create`, always with the recorded selector) only after the user approves that exact list. Creating labels is a hosted write: never infer the target from the cwd, and never create a label the draft did not show.
+
 Then write the docs files using the seed templates in this skill folder as a starting point:
 
 - [issue-tracker-github.md](./issue-tracker-github.md) — GitHub issue tracker

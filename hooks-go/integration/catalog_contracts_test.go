@@ -716,3 +716,18 @@ func TestLocalTrackerSeparatesTriageFromWorkLifecycle(t *testing.T) {
 	mustContain(t, localTemplate, "Triage: ready-for-agent")
 	mustContain(t, localTemplate, "Status: open")
 }
+
+func TestSetupCreatesMissingTriageLabelsOnlyAfterApproval(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	setupDir := filepath.Join(repoRoot, "skills", "setup-matt-pocock-skills")
+	setup := strings.Join(strings.Fields(readFile(t, filepath.Join(setupDir, "SKILL.md"))), " ")
+	mustContain(t, setup, "always with the recorded selector")
+	mustContain(t, setup, "only after the user approves that exact list")
+	mustContain(t, setup, "never create a label the draft did not show")
+
+	github := strings.Join(strings.Fields(readFile(t, filepath.Join(setupDir, "issue-tracker-github.md"))), " ")
+	mustContain(t, github, "`author_association`")
+	mustNotContain(t, github, "authorAssociation")
+	gitlab := readFile(t, filepath.Join(setupDir, "issue-tracker-gitlab.md"))
+	mustContain(t, gitlab, "glab issue list -O json")
+}

@@ -14,8 +14,8 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 
 ## Architectural influences
 
-* [`cursor/plugins/pstack`](https://github.com/cursor/plugins/tree/main/pstack/skills) (`@poteto` / Lauren Tan; read at `d457567332aa6989e753ea289f30ea2bfbc80bc0`; license `LICENSES/pstack-MIT.txt`): Agent-First Local Legibility, Boundary Discipline (Deterministic Core / Thin Effectful Shell), Task-Proportional Verification (`Prove It Works`), and 5 Layers of Correction.
-* [`alvinunreal/oh-my-opencode-slim`](https://github.com/alvinunreal/oh-my-opencode-slim) (read at `e0a513368ff55b4ea7a25e148d75945c4d34a434`; license `LICENSES/oh-my-opencode-slim-MIT.txt`): Lightweight role boundaries, Evidence Paths (`verification-planning`), and Surgical Changes.
+* [`cursor/plugins/pstack`](https://github.com/cursor/plugins/tree/main/pstack/skills) (`@poteto` / Lauren Tan; read at `d457567332aa6989e753ea289f30ea2bfbc80bc0`; license `LICENSES/pstack-MIT.txt`; later commits reviewed through `eb4db2b` on 2026-10-22 with nothing adopted, since none touched these sources): Agent-First Local Legibility, Boundary Discipline (Deterministic Core / Thin Effectful Shell), Task-Proportional Verification (`Prove It Works`), and 5 Layers of Correction.
+* [`alvinunreal/oh-my-opencode-slim`](https://github.com/alvinunreal/oh-my-opencode-slim) (read at `e0a513368ff55b4ea7a25e148d75945c4d34a434`; license `LICENSES/oh-my-opencode-slim-MIT.txt`; later commits reviewed through `a598a26` on 2026-10-22 with nothing adopted, since `src/skills/` was unchanged): Lightweight role boundaries, Evidence Paths (`verification-planning`), and Surgical Changes.
 
 Files adapted from these sources (rewritten, not vendored):
 
@@ -66,6 +66,10 @@ These upstream `main` commits landed after the pinned `v1.3.1` commit. They are 
 - `8295b8e` (`wayfinder`): cross-references use real tracker references (never a placeholder `#<n>`), research branches never get a pull request, and a ticket is resolved by its tracker-defined type rather than its body. The local overlay already kept triage roles such as `ready-for-agent` off maps and decision tickets.
 - `954ee7f` (`ask-matt`): read a skill's `SKILL.md` before stating what it does or recommending a step be skipped. Already present locally.
 - `4f4e943`, `0f5e033` (`handoff`): resolve the temp directory from `$TMPDIR`, then `/tmp`, then `%TEMP%` on Windows. Already present locally.
+- `3f59913` (`tdd`): give each proposed test seam one line on what it catches and what it misses.
+- `ad5400b` (`teach`): workspace paths resolve from the directory `/teach` was run in, only the `*-FORMAT.md` links resolve from the skill folder, and quiz answers vary the position of the correct one.
+- `5b7cade`, `e0efb6e`, `8e67db2`, `93497a8` (`setup-matt-pocock-skills`): create the configured triage labels a GitHub or GitLab tracker lacks, list external PRs through the REST pulls endpoint's `author_association`, and request `glab` JSON with `-O json`. Local overlay: label creation is a hosted write that uses the confirmed selector and needs the user's approval of the exact label list; the issue-read and sub-issue command changes were not taken because the local contracts already differ.
+- `868c4cf`, `49dd158` (`wizard`): `ask` and `ask_secret` fail at EOF with no input, `_clear` falls back to ANSI when `tput clear` fails, `open_url` reports a missing opener outside its silenced block, and stages run inside `run_wizard` so bash parses the whole file before the first prompt. Not taken: the `write_env` rewrite that writes through a symlink, which conflicts with the `wizard/template.sh` symlink rejection under Required overlays, and the Readline prompts, quote decoding, and `RED` removal.
 
 ## Local extensions
 

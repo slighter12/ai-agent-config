@@ -35,7 +35,8 @@ _WIZARD_CAPTURED_VALUE="" # fixed return channel for the most recent capture
 # output isn't a terminal, so piped logs stay readable.
 _clear() {
   [[ -t 1 ]] || return 0
-  if command -v tput >/dev/null 2>&1; then tput clear; else printf '\033[2J\033[3J\033[H'; fi
+  if command -v tput >/dev/null 2>&1 && tput clear 2>/dev/null; then return 0; fi
+  printf '\033[2J\033[3J\033[H'
 }
 
 # _dotenv_key_is_reserved — keep captured values away from shell/library state.
@@ -223,7 +224,7 @@ open_url() {
     elif command -v explorer.exe >/dev/null 2>&1; then explorer.exe "$url"
     elif command -v xdg-open    >/dev/null 2>&1; then xdg-open "$url"
     elif command -v open        >/dev/null 2>&1; then open "$url"
-    else warn "couldn't open a browser — visit it manually: $url"; fi
+    else false; fi
   } >/dev/null 2>&1 || warn "couldn't open a browser — visit it manually: $url"
 }
 
@@ -263,9 +264,10 @@ _existing() {
 }
 
 # ask KEY "Prompt" — read a value into $KEY. Offers the existing .env value as
-# a default on re-runs (Enter keeps it). Visible input (non-secret).
+# a default on re-runs (Enter keeps it). Visible input (non-secret). Fails at
+# EOF with no input.
 ask() {
-  local key="$1" prompt="$2" current input existing_status
+  local key="$1" prompt="$2" current input existing_status rc=0
   _dotenv_key_is_safe "$key" || {
     if _dotenv_key_is_reserved "$key"; then
       warn "refusing reserved dotenv key: $key"
@@ -287,7 +289,8 @@ ask() {
   else
     printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
   fi
-  read -r input || true
+  read -r input || rc=1
+  if (( rc )) && [[ -z "$input" ]]; then return 1; fi
   [[ -z "$input" && -n "$current" ]] && input="$current"
   _WIZARD_CAPTURED_VALUE="$input"
   # Keep the historical ask KEY API for valid, non-reserved dotenv keys. The
@@ -298,7 +301,7 @@ ask() {
 
 # ask_secret KEY "Prompt" — like ask, but input is hidden.
 ask_secret() {
-  local key="$1" prompt="$2" current input existing_status
+  local key="$1" prompt="$2" current input existing_status rc=0
   _dotenv_key_is_safe "$key" || {
     if _dotenv_key_is_reserved "$key"; then
       warn "refusing reserved dotenv key: $key"
@@ -320,8 +323,9 @@ ask_secret() {
   else
     printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
   fi
-  read -rs input || true
+  read -rs input || rc=1
   printf '\n'
+  if (( rc )) && [[ -z "$input" ]]; then return 1; fi
   [[ -z "$input" && -n "$current" ]] && input="$current"
   _WIZARD_CAPTURED_VALUE="$input"
   # Keep the historical ask_secret KEY API for valid, non-reserved dotenv
@@ -489,7 +493,11 @@ finish() {
 # ──────────────────────────────────────────────────────────────────────────
 # STAGES — author this section. One stage() per step the human takes.
 # Replace the example below. Set TOTAL_STAGES to match the stages you write.
+# Keep every stage inside run_wizard and the last line as is: bash then parses
+# the whole file before the first prompt, so an edit mid-run can't break it.
 # ──────────────────────────────────────────────────────────────────────────
+
+run_wizard() {
 
 TOTAL_STAGES=1
 GITHUB_REPO="" # Set exact OWNER/REPO or HOST/OWNER/REPO for GitHub writes.
@@ -510,3 +518,6 @@ set_secret STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY"   # CI needs this one
 # ──────────────────────────────────────────────────────────────────────────
 
 finish
+}
+
+run_wizard "$@"; exit

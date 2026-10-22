@@ -637,6 +637,48 @@ fi
 	})
 }
 
+func TestWizardPromptsFailAtEOFAndStagesRunAfterParse(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	template := readFile(t, filepath.Join(repoRoot, "skills", "wizard", "template.sh"))
+	library := wizardLibrary(t, template)
+
+	t.Run("ask and ask_secret fail at EOF with no input", func(t *testing.T) {
+		output, _ := runWizardLibrary(t, library, "", `
+if ask API_REGION "Region:"; then printf 'unexpected ask success\n'; else printf 'ask failed at EOF\n'; fi
+if ask_secret API_TOKEN "Token:"; then printf 'unexpected ask_secret success\n'; else printf 'ask_secret failed at EOF\n'; fi
+`, "WIZARD_TEST_CWD="+t.TempDir())
+		mustContain(t, output, "ask failed at EOF")
+		mustContain(t, output, "ask_secret failed at EOF")
+		mustNotContain(t, output, "unexpected")
+	})
+
+	t.Run("a final line without a newline is still captured", func(t *testing.T) {
+		output, _ := runWizardLibrary(t, library, "west", `
+ask API_REGION "Region:" && printf 'captured=%s\n' "$API_REGION"
+`, "WIZARD_TEST_CWD="+t.TempDir())
+		mustContain(t, output, "captured=west")
+	})
+
+	t.Run("open_url warns visibly when no opener exists", func(t *testing.T) {
+		output, _ := runWizardLibrary(t, library, "", `
+command() {
+  case "$2" in wslview|explorer.exe|xdg-open|open) return 1 ;; esac
+  builtin command "$@"
+}
+open_url "https://example.test/keys"
+`)
+		mustContain(t, output, "visit it manually: https://example.test/keys")
+	})
+
+	t.Run("stages live inside run_wizard", func(t *testing.T) {
+		stages := template[len(library)-1:]
+		mustContain(t, stages, "\nrun_wizard() {\n")
+		if !strings.HasSuffix(template, "\nrun_wizard \"$@\"; exit\n") {
+			t.Fatalf("template must end with the run_wizard call")
+		}
+	})
+}
+
 func wizardLibrary(t *testing.T, template string) string {
 	t.Helper()
 	marker := "\n# STAGES — author this section."
