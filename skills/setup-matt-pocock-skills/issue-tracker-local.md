@@ -14,7 +14,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 
 ## When a skill says "publish to the issue tracker"
 
-Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
+Create a new file under `.scratch/<feature-slug>/` (creating the directory when it does not exist).
 
 Resolve `<feature-slug>` in this order: use an explicit slug or root from the request; reuse the root of a referenced spec or ticket; use the single relevant existing root; otherwise derive lowercase kebab-case from the agreed feature name. Ask when multiple roots are plausible or the derived slug collides with a different feature. Never create the placeholder literally.
 

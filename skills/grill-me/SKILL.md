@@ -7,4 +7,4 @@ metadata:
   opencode/autoinvoke: "false"
 ---
 
-Load and follow the `grilling` skill (call the `Skill` tool with `"grilling"` if your harness provides it; otherwise read and follow `../grilling/SKILL.md` relative to this skill directory).
+Use the `grilling` skill.

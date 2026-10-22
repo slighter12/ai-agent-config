@@ -62,14 +62,8 @@ Find repository documents that describe how code should be written: `AGENTS.md`,
 **Architecture & seam smells**
 
 - **Single-Caller Test Helper** — an internal step split out of an already-testable module into a function with only 1 production caller solely so a test can import it. → inline it and test through the caller's seam. Do not flag a **Brownfield Sprout** (a function/module chosen at the Agency Gate to isolate new logic from an untestable legacy monolith), even with one caller.
-- **Leaky or Pass-Through Layer** — a middle-man function or interface adds surface area without hiding complexity. → inline it.
 - **Local Style Clash** — a second cosmetic convention (naming, formatting, file layout) inside an existing file. Structural contracts (error types, state transitions, I/O seams) follow Project Law instead: flag code that copies a legacy structural pattern an ADR has replaced, unless the spec records Agency Gate option (a) Local minimal edit.
-- **Split Ownership** — two or more modules write the same state or keep their own copy of it. → give the state one owner; other modules read it or ask the owner to change it.
-- **Two Ways to Do One Task** — the diff adds a second way to do something the codebase already does, or keeps an old API alive beside its replacement with no external consumer. → keep one way and move callers in the same change, unless the spec records an Agency Gate deferral (then the legacy way is recorded in an ADR).
-- **Importable Internals** — a caller imports another module's internals because nothing stops it. → make them unreachable from outside (Go `internal/`, unexported names, a package `exports` map).
-- **Hand-Synced List** — the diff edits the same list of items in two or more places. → derive the copies from one list, or add a check that fails when they disagree.
-
-These four follow [`../codebase-design/DESIGN-RED-FLAGS.md`](../codebase-design/DESIGN-RED-FLAGS.md); read it when a finding needs the full rationale.
+- **Design Red Flags** — when the diff adds or changes a module, an exported function or type, or stored state, use the `codebase-design` skill and read its `DESIGN-RED-FLAGS.md` before writing the Standards report. Screen the change against every flag there (Shallow Module, Information Leakage, Temporal Decomposition, Pass-Through Method, Split Ownership, Two Ways to Do One Task, Importable Internals, Hand-Synced List) and cite the reference's criteria and fix in each finding. Two Ways to Do One Task is not a finding when the spec records an Agency Gate deferral.
 
 **Test suite smells**
 
@@ -89,7 +83,7 @@ These four follow [`../codebase-design/DESIGN-RED-FLAGS.md`](../codebase-design/
 - **Divergent Change** — one module changes for unrelated reasons. → split its responsibilities.
 - **Speculative Generality** — an abstraction serves no stated requirement. → inline it until a real need exists.
 - **Message Chains** — a caller navigates a long object chain. → hide the walk behind one method.
-- **Middle Man** — a function mostly delegates. → call the real target directly.
+- **Middle Man** — a function mostly delegates. → call the real target directly, unless the layer adds policy, adaptation, or a distinct abstraction.
 - **Refused Bequest** — an implementer ignores most inherited behavior. → use composition.
 - **File Crossing 1k Lines** — the diff pushes a file from under 1,000 lines to over 1,000. → decompose first, unless a stated structural reason keeps the result clearly organized.
 - **Ad-Hoc Branch in an Unrelated Flow** — a one-off conditional, special case, or feature check inserted into a shared path. → move the logic into a dedicated function, state machine, or module.

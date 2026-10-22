@@ -42,15 +42,13 @@ Inspect whether the input is a **Single Slice** (one ticket, one bug, or a direc
 ## Mode A: Single-Slice Build (In-Window)
 
 1. **Execute via Task-Proportional Verification**:
-   * Load and follow the `tdd` skill (`../tdd/SKILL.md`).
-   * For domain/state calculations and reproducible bugs, run the **Seam-Level Red-Green loop** at the agreed seam (respecting the Single-Caller Helper Ban — Brownfield Sprouts are exempt — and No Call-Only Mock Assertions).
-   * For thin wiring, config, CLI, or UI changes where unit tests would only test mocks, execute **Runtime Verification (`Prove It Works`)** by running the real build/command/endpoint and capturing before/after output.
+   * Use the `tdd` skill; it picks Seam-Level TDD or Runtime Verification (`Prove It Works`) for the slice.
 2. **Continuous Feedback & Post-Green Pruning**:
    * Run typechecking, linters, and the single affected test file regularly during implementation.
    * Run the **Post-Green Test Pruning Gate** (`tdd` Step 4) to delete same-branch duplicate tests and scaffolding tests.
    * Run the full relevant test suite once at the end.
 3. **Bounded Review, Then Commit Only If Approved**:
-   * Load and follow the `code-review` skill (`../code-review/SKILL.md`) against the changes.
+   * Use the `code-review` skill on the changes.
    * If `code-review` surfaces defects, fix them in **one** targeted repair pass and re-run the affected tests/checks (do not loop into endless re-reviews).
    * Commit to the current branch only when the user has explicitly authorized the commit; otherwise report the verified, uncommitted state and the exact checks run.
 
@@ -67,9 +65,9 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * **Collision Guard**: Compare the `Write scope` of all currently unblocked frontier tickets, including shared migration numbers, lockfiles, codegen outputs, and registries. If two frontier tickets share any of these, first check whether the sharing can be removed (for example, each ticket registers in its own file that a generated index reads); if so, propose that split in the Step 2 run plan. Otherwise **add a sequential dependency edge between them** so they never run concurrently in separate worktrees.
 2. **Get Approval for the Run Plan**:
    * Present the integration branch name, the first frontier wave, the worktrees to create, the merge policy (rebase + test, then fast-forward), and any tracker updates. Proceed only on explicit approval.
-3. **(Optional) Shared Read-Only Exploration**:
-   * If tickets require shared codebase discovery, run one read-only `explorer` subagent upfront and save its concise pointer notes to `.scratch/<feature-slug>/notes.md` outside the worktrees so builders do not repeat exploration.
-   * Start an append-only decision trail at `.scratch/<feature-slug>/decisions.tsv` with the header `ts	phase	decision	why	evidence	result`. Append one single-line row whenever a slice merges, a pivot or revert happens, or a gate resolves. `evidence` is a pointer (commit SHA, `file:line`, or a command and its verdict), never prose. A wrong row is superseded by a new row, never edited or deleted. Strip tabs and newlines from every cell, and prefix a cell that starts with `=`, `+`, `-`, or `@` with a single quote so a spreadsheet never evaluates it. The trail stays an uncommitted working file unless the user asks to keep it. Before the final report, walk the rows against what actually happened and supersede any that are wrong.
+3. **Shared Exploration and Decision Trail**:
+   * When two or more frontier tickets touch the same module or file, run one read-only `explorer` subagent upfront and save its concise pointer notes to `.scratch/<feature-slug>/notes.md` outside the worktrees so builders do not repeat exploration.
+   * Always start an append-only decision trail at `.scratch/<feature-slug>/decisions.tsv` with the header `ts	phase	decision	why	evidence	result`. Append one single-line row whenever a slice merges, a pivot or revert happens, or a gate resolves. `evidence` is a pointer (commit SHA, `file:line`, or a command and its verdict), never prose. A wrong row is superseded by a new row, never edited or deleted. Strip tabs and newlines from every cell, and prefix a cell that starts with `=`, `+`, `-`, or `@` with a single quote so a spreadsheet never evaluates it. The trail stays an uncommitted working file unless the user asks to keep it. Before the final report, walk the rows against what actually happened and supersede any that are wrong.
 4. **Create the Integration Branch**:
    * Create or check out the approved integration branch (`feat/<feature-slug>` or as named by the user).
 5. **Dispatch Frontier `builder` Subagents in Git Worktrees**:
@@ -77,7 +75,7 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * Pass sparse context pointers (path/ID to the spec, the specific ticket, `.scratch/<feature-slug>/notes.md`, and the integration branch name).
    * Each `builder` subagent MUST:
      1. Confirm its worktree is based on the current integration branch tip before starting.
-     2. Build its ticket following `tdd` (Seam TDD + Post-Green Test Pruning, or `Prove It Works` runtime evidence for glue slices).
+     2. Build its ticket using the `tdd` skill.
      3. Write `git diff` to a backup `.patch` file in `.scratch/` before committing so pre-commit hook failures never lose work.
      4. Rebase its worktree branch onto the latest integration branch tip and verify its tests pass on the rebased branch before reporting done.
      5. Report `git diff --name-only <integration-tip>...HEAD` alongside its declared `Write scope`.
@@ -89,7 +87,7 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * Merge only by fast-forward (`git merge --ff-only`) after the branch is rebased onto the current integration tip and its tests pass there. If the tip moved, the builder rebases and re-tests again.
    * Mark the ticket merged in your local graph tracker, recompute the newly unblocked frontier, and dispatch the next wave until all tickets are merged.
 7. **Single Integration `code-review` & Bounded 1-Round Closeout**:
-   * Once **all** tickets have landed on the integration branch (never mid-graph, or unbuilt tickets will be flagged as missing requirements), run `code-review` once across `base...integration-branch`.
+   * Once **all** tickets have landed on the integration branch (never mid-graph, or unbuilt tickets will be flagged as missing requirements), use the `code-review` skill once on `base...integration-branch`.
    * If issues are found, dispatch **one** fresh `builder` subagent as the repair pass, with consolidated scope: the ticket, every later directive, the review findings, and the prior builder's report and branch. Resume an existing builder only when the repair strictly needs state that lives in it and is costly to move (uncommitted changes in its worktree, or a process it still runs). Run focused verification checks on the repaired files, and **stop** (never launch a second broad review loop).
 8. **Cleanup**:
    * Remove the temporary worktrees (`git worktree remove`), update ticket statuses per `docs/agents/issue-tracker.md` only as approved in Step 2, and report the integration branch summary and verification evidence.

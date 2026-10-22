@@ -9,7 +9,7 @@ metadata:
 
 Verify behavior through the tightest, most durable feedback loop that matches the architectural layer you are changing. Keep the test suite lean, behavioral, and 100% language-agnostic.
 
-A good test verifies behavior through a public interface and reads like a specification of a capability, so it survives refactors. See [tests.md](tests.md) for good/bad examples and [mocking.md](mocking.md) for where to fake dependencies. When the shape of the interface itself is in question (how deep the module is, where the seam belongs), consult the `codebase-design` skill (`../codebase-design/SKILL.md`) for the module, interface, depth, seam, adapter, leverage, and locality vocabulary.
+A good test verifies behavior through a public interface and reads like a specification of a capability, so it survives refactors. Before writing the first test, read [tests.md](tests.md) for good and bad examples; before adding any test double, read [mocking.md](mocking.md). When no seam was agreed before Step 3, or the test needs a new or changed exported interface, use the `codebase-design` skill to decide how deep the module is and where the seam belongs.
 
 ## Step 1: Pre-Flight Context, Agency & Layer Routing Gate
 
@@ -52,7 +52,7 @@ Apply these four low-reasoning structural checks to every test you write:
 4. **Real-Input & Tautology Guard**:
    * **No Tautological Expected Values**: Expected values in assertions must be concrete literals or spec-derived outcomes, never recomputed by copying the production formula into the test.
    * **No Normalized Bug Inputs**: When replaying a real failing input or production call, never strip out flags, paths, or preconditions just to make the fixture easier to construct. If removing your production fix does not turn the test red, the test is vacuous.
-   * **Explain the Number**: For any performance, latency, or count assertion or benchmark, state what bounds the number and rule out caching and measurement noise before trusting it (full checklist: `../diagnosing-bugs/PERF.md`).
+   * **Explain the Number**: Before writing a test or benchmark that asserts a performance, latency, throughput, or allocation target, use the `diagnosing-bugs` skill and read its `PERF.md` checklist.
 
 ## Step 3: The Red-Green Vertical Loop
 

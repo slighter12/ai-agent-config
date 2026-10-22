@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: Cut AI tells and vague phrasing from human-facing writing (READMEs, docs, commit messages, PR bodies, code comments) while preserving meaning, identifiers, and evidence. Use to edit or check prose before it ships.
+description: Cut AI tells and vague phrasing from human-facing writing (READMEs, docs, commit messages, PR bodies, code comments) while preserving meaning, identifiers, and evidence. Use when asked to tighten or plain-speak text, or when the `pr` skill calls it.
 metadata:
   invocation: model
 ---
@@ -83,6 +83,6 @@ These come from pstack's `technical-writing`.
 - **Put the condition before the instruction**: "To delete the document, click Delete."
 - **Write instructions as commands**: "Install the component", not "the component should be installed".
 - **Keep "only" and "not" next to the word they change**: "fails only on growth", not "only fails on growth".
-- **Give every "it", "they", and "this" one obvious referent**: repeat the noun when in doubt.
+- **Give every "it", "they", and "this" one obvious referent**: when a pronoun could point to two nouns, repeat the noun.
 - **Do not drop verbs**: "Phase 1 moves the converters and Phase 2 the runtime" leaves Phase 2 without one.
 - **Have a view where the text explains a tradeoff**: say what you make of it instead of listing pros and cons. Keep reference text dry.

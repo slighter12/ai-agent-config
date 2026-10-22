@@ -7,4 +7,4 @@ metadata:
   opencode/autoinvoke: "false"
 ---
 
-Load and follow both the `grilling` and `domain-modeling` skills (call the `Skill` tool for `"grilling"` and `"domain-modeling"` if your harness provides it; otherwise read and follow `../grilling/SKILL.md` and `../domain-modeling/SKILL.md` relative to this skill directory).
+Use both the `grilling` and `domain-modeling` skills.

@@ -20,7 +20,7 @@ Make code easier to read, change, and debug without changing what it does. The g
 
 ## 1. Understand Before Touching
 
-For each candidate, answer: what is its responsibility, what calls it and what does it call, what are its edge cases and error paths, which tests define its behavior, and why it might have been written this way. If you cannot answer, read more first. Before deleting or restructuring logic whose purpose is not obvious, use the `why` skill (`git log -S`, `git blame`, `docs/adr/`, linked issues) to confirm what constraint it originally guarded. Keep comments that explain an algorithmic, concurrency or ordering, or performance reason.
+For each candidate, answer: what is its responsibility, what calls it and what does it call, what are its edge cases and error paths, which tests define its behavior, and why it might have been written this way. If you cannot answer, read more first. Before deleting or restructuring logic that no test or comment explains, or any defensive guard (a null check, retry, timeout, clamp, or flag), use the `why` skill (`git log -S`, `git blame`, `docs/adr/`, linked issues) to confirm what constraint it originally guarded. Keep comments that explain an algorithmic, concurrency or ordering, or performance reason.
 
 ## 2. Establish the Baseline
 

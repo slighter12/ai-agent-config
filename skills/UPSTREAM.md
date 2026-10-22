@@ -19,8 +19,8 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 
 Files adapted from these sources (rewritten, not vendored):
 
-- From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`), `skills/unslop/` (`unslop`, `technical-writing`), and the subtraction rules `skills/tidy/` applies (`principle-laziness-protocol`, `principle-subtract-before-you-add`).
-- From oh-my-opencode-slim: `skills/tidy/` (`simplify`), and overlay rules in `to-spec`, `implement`, `codebase-design`, `retro`, and the agent definitions (`verification-planning`, `simplify`, `step-back`, `deepwork`, `reflect`, and the orchestrator prompt).
+- From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`), `skills/unslop/` (`unslop`, `technical-writing`), the subtraction rules `skills/tidy/` applies (`principle-laziness-protocol`, `principle-subtract-before-you-add`), and `skills/step-back/` (`principle-attack-the-premise`, `principle-redesign-from-first-principles`).
+- From oh-my-opencode-slim: `skills/tidy/` (`simplify`), `skills/step-back/` (`step-back`), and overlay rules in `to-spec`, `implement`, `codebase-design`, `retro`, and the agent definitions (`verification-planning`, `simplify`, `step-back`, `deepwork`, `reflect`, and the orchestrator prompt).
 
 ## Upstream v1.3.1 Changes Adopted
 
@@ -30,7 +30,7 @@ These changes come from the pinned `v1.3.1` commit above and were reapplied toge
 2. **Added `/pr` (`skills/pr/SKILL.md`)**: Standardized PR body structure with Visual Summary, Before/After Evidence, and Merge Danger (One-way vs. Two-way door + Blast Radius), enhanced to respect `.github/pull_request_template.md` when present.
 3. **Added `/retro` (`skills/retro/SKILL.md`)**: Post-session environment retrospective across 7 categories, extended with **Project Law Graduation** to persist user-selected style/migration decisions into linters, `CODING_STANDARDS.md`, or `AGENTS.md` / `docs/adr/`.
 4. **Retired the upstream merge-conflict skill**: Removed per upstream v1.3.0; its name, version, and reason live in `config/retired-skills.json` (retired names never appear on routing surfaces).
-5. **Harness-Portable Skill Loading**: Updated wrapper skills (`grill-me`, `grill-with-docs`, etc.) to load dependencies via the `Skill` tool when available or by directly reading the sibling `SKILL.md` path on harnesses like Codex CLI (resolving upstream `#1123`).
+5. **Harness-Portable Skill Loading**: Wrapper skills (`grill-me`, `grill-with-docs`) load `grilling` on every harness, resolving upstream `#1123`. The upstream sibling-path fallback is replaced locally; see Intentional Local Divergence 6.
 
 6. **Smaller v1.3.1 corrections**: `diagnosing-bugs` Phase 6 is cleanup-only (the post-mortem handoff moved to `/retro`), `domain-modeling` uses the v1.3.1 trigger description, and `to-spec`, `triage`, and `wayfinder` tell the user to run `/setup-matt-pocock-skills` instead of running it.
 
@@ -51,6 +51,12 @@ These changes come from the pinned `v1.3.1` commit above and were reapplied toge
    * **Descriptive Back-References**: Requires `Q3 (<short topic>)` when referencing prior questions in later rounds (upstream `#1115`).
 5. **Language-Agnostic Mechanical `skills/tdd/SKILL.md` & `skills/codebase-design/SKILL.md`**:
    * Removes TypeScript/JS-specific coupling and adds concrete mechanical redlines (`Single-Caller Helper Ban`, `No Call-Only Mock Assertions`, `Evidence Conservation Law`, `Brownfield Sprout Pattern`, `Scrap Circuit Breaker`, and `Post-Green Same-Branch Test Pruning`).
+6. **Call Skills by Name, Never by Relative Path**:
+   * A skill that hands off to another skill says "use the `<name>` skill" when the target is model-invocable, or tells the user to run `/<name>` when it is user-invoked. Upstream `#1123`'s `../grilling/SKILL.md` fallback is removed, because an installed skill directory has no guaranteed sibling layout.
+   * `writing-for-agents/LOCAL-PROVIDER-MECHANICS.md` records how each provider resolves a name, and a contract test rejects any parent-directory relative path in `skills/**/*.md`.
+7. **Concrete Trigger Wording**:
+   * `prototype` adds a `Use when` clause to its upstream description, and `diagnosing-bugs` writes its trigger phrases as a sentence instead of slash lists. Skill bodies gate reference files and skill calls on observable conditions rather than judgment words such as "if needed".
+   * `research` hands this repository's design rationale to the `why` skill instead of carrying its method, `DESIGN-IT-TWICE.md` produces its designs as sub-agents or sequentially under the `codebase-design` dispatch rule, and `improve-codebase-architecture` keeps its candidate card spec only in `HTML-REPORT.md`. A contract test rejects judgment phrases in skill files.
 
 ## Post-pin cherry-picks
 
@@ -70,8 +76,9 @@ These upstream `main` commits landed after the pinned `v1.3.1` commit. They are 
 - `verify-app`
 - `tidy`
 - `unslop`
+- `step-back`
 
-These remain outside the upstream set and are marked `local extension` in the canonical catalog. `mcp-builder-go` is user-invoked; the others are model-invoked so other skills can call them by name.
+These remain outside the upstream set and are marked `local extension` in the canonical catalog. `mcp-builder-go` and `step-back` are user-invoked (`step-back` is the user's explicit brake on a drifting task); the others are model-invoked so other skills can call them by name.
 Each carries local `agents/openai.yaml` interface metadata so Codex presents a human-readable name and description.
 
 ## Required overlays

@@ -31,6 +31,6 @@ Save the handoff file to the OS temporary directory (`$TMPDIR`, falling back to 
    * **Verified**: Facts confirmed by reading specific `file:line` locations or running commands (cite the command/file).
    * **Unverified / Open**: Hypotheses or claims that the resuming agent MUST verify before acting on.
 5. **Suggested Skill for the Next Window**:
-   * Name the single skill (if any) the resuming agent should load first (e.g., `grilling`, `to-spec`, `implement`, `tdd`, `diagnosing-bugs`, `code-review`).
+   * Name the single skill (if any) the resuming session should start with: a model-invoked skill the agent uses directly (e.g., `grilling`, `tdd`, `diagnosing-bugs`, `code-review`), or the `/command` the user runs for a user-invoked one (e.g., `/to-spec`, `/implement`).
 6. **Redaction**:
    * Redact all API keys, tokens, passwords, credentials, secrets, and personally identifiable information (`<REDACTED>`).

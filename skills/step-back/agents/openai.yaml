@@ -1,0 +1,5 @@
+interface:
+  display_name: "Step Back"
+  short_description: "Reassess a task that keeps growing through patches"
+policy:
+  allow_implicit_invocation: false

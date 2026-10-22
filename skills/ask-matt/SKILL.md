@@ -36,6 +36,7 @@ Before stating what any skill does or recommending that a step be skipped, **rea
 * **No scripted way to prove app behavior**: `/verify-app` (create or maintain a project-local verification skill).
 * **Green but heavier than needed**: `/tidy` (behavior-preserving simplification of the recent diff or a named module).
 * **Prose before it ships** (README, docs, commit message, PR body): `/unslop`.
+* **Patches keep stacking on one task**: `/step-back` (test the shared premise, compare a fresh design, then you choose).
 * **Multi-session foggy effort**: `/wayfinder` (resolves decision tickets, then hands off to `/to-spec`)
 * **Architectural survey & module deepening**: `/improve-codebase-architecture` + `/codebase-design`
 

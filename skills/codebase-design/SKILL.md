@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: Shared vocabulary and architectural guardrails for designing deep, agent-legible modules, brownfield sprout seams, and scrap circuit breakers. Use when designing or reviewing interfaces, deciding where a seam goes, refactoring legacy coupling, or making code testable and AI-navigable.
+description: Shared vocabulary and architectural guardrails for designing deep, agent-legible modules, brownfield sprout seams, and scrap circuit breakers. Use when designing or reviewing interfaces, deciding where a seam goes, or refactoring legacy coupling.
 metadata:
   invocation: model
 ---
@@ -90,8 +90,8 @@ One instance can be noise; a repeated pattern is the signal.
 
 ## Going Deeper
 
-* For dependency categories, seam discipline, and replace-don't-layer testing, read [DEEPENING.md](DEEPENING.md).
-* For the eight design red flags (shallow module, information leakage, temporal decomposition, pass-through, split ownership, two ways to do one task, importable internals, hand-synced list), read [DESIGN-RED-FLAGS.md](DESIGN-RED-FLAGS.md).
-* For exploring alternative interfaces on a critical or high-ambiguity module, read [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md): spin up parallel sub-agents to design it several radically different ways, then compare on depth, locality, and seam placement.
+* Before deciding how a dependency crosses a seam (its category, and whether tests replace it or layer over it), read [DEEPENING.md](DEEPENING.md).
+* Before proposing, approving, or reviewing an interface, screen it against [DESIGN-RED-FLAGS.md](DESIGN-RED-FLAGS.md).
+* When a Scrap Signal fired, the interface is exported across packages or modules, or the user asks for alternative designs, read [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md) and follow its process.
 
 Use provider-native subagents when their isolation or parallelism justifies the coordination cost. Otherwise produce the same independent designs sequentially in the current session, resetting to the stated constraints for each design before comparing them.

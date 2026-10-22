@@ -11,7 +11,7 @@ metadata:
 
 Inspect the current coding session (or a specified session log) to improve the **environment the agent works in**, not the feature code itself.
 
-Load and follow the `writing-for-agents` skill (`../writing-for-agents/SKILL.md`) before proposing any edits to `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, or skills.
+Use the `writing-for-agents` skill before proposing any edits to `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, or skills.
 
 ## Process
 

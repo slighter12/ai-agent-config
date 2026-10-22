@@ -299,7 +299,7 @@ func TestDelegatingSkillsRetainProviderFallback(t *testing.T) {
 
 	t.Run("wayfinder keeps mode-neutral research passes", func(t *testing.T) {
 		skill := readFile(t, filepath.Join(repoRoot, "skills", "wayfinder", "SKILL.md"))
-		mustContain(t, skill, "Resolved by a `/research` pass.")
+		mustContain(t, skill, "Resolved with the `research` skill.")
 		mustContain(t, skill, "5. **Run the research passes.**")
 		mustContain(t, skill, "otherwise run the same research passes sequentially in the current session")
 		mustContain(t, skill, "charting hand-resolves no other ticket type")
@@ -486,6 +486,7 @@ func TestLocalSkillsExposeCodexInterfaceMetadata(t *testing.T) {
 		"verify-app":     "Verify App",
 		"tidy":           "Tidy",
 		"unslop":         "Unslop",
+		"step-back":      "Step Back",
 	}
 	for name, displayName := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -578,20 +579,88 @@ func TestTidyAndUnslopPreserveBehaviorAndMeaning(t *testing.T) {
 	mustContain(t, pr, "Before finalizing the body, use the `unslop` skill on it")
 }
 
-// Skills call each other by name; a `../` path reaches into a sibling skill
-// directory that may not be installed next to this one. The legacy entries
-// below may shrink but never grow.
-func TestSkillsDoNotAddCrossSkillRelativePaths(t *testing.T) {
+// code-review names the red flags but keeps their criteria in one place, so a
+// reviewer has to read the codebase-design reference instead of a stale copy.
+func TestCodeReviewReadsDesignRedFlagsInsteadOfACopy(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	review := readFile(t, filepath.Join(repoRoot, "skills", "code-review", "SKILL.md"))
+	flags := readFile(t, filepath.Join(repoRoot, "skills", "codebase-design", "DESIGN-RED-FLAGS.md"))
+	mustContain(t, review, "use the `codebase-design` skill and read its `DESIGN-RED-FLAGS.md` before writing the Standards report")
+	mustNotContain(t, review, "give the state one owner")
+	for _, flag := range []string{
+		"Shallow Module", "Information Leakage", "Temporal Decomposition", "Pass-Through Method",
+		"Split Ownership", "Two Ways to Do One Task", "Importable Internals", "Hand-Synced List",
+	} {
+		mustContain(t, review, flag)
+		mustContain(t, flags, "## "+flag)
+	}
+}
+
+func TestStepBackStaysReadOnlyAndWaitsForTheUser(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	skill := readFile(t, filepath.Join(repoRoot, "skills", "step-back", "SKILL.md"))
+	mustContain(t, skill, "This skill is read-only: it never edits, reverts, stashes, or commits.")
+	mustContain(t, skill, "Report the premise as Verified, Not verified, or Inconclusive.")
+	mustContain(t, skill, "Then stop and wait for the user's decision.")
+	mustContain(t, skill, "use the `diagnosing-bugs` skill")
+	sidecar := readFile(t, filepath.Join(repoRoot, "skills", "step-back", "agents", "openai.yaml"))
+	mustContain(t, sidecar, "allow_implicit_invocation: false")
+}
+
+// A skill or reference file loads on an observable condition, so the model
+// never guesses whether a judgment phrase applies.
+func TestSkillsGateLoadsOnObservableConditions(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	skillsRoot := filepath.Join(repoRoot, "skills")
-	legacy := map[string]int{
-		"code-review/SKILL.md":     1,
-		"grill-me/SKILL.md":        1,
-		"grill-with-docs/SKILL.md": 1,
-		"implement/SKILL.md":       2,
-		"retro/SKILL.md":           1,
-		"tdd/SKILL.md":             2,
+	vague := []string{"if needed", "as needed", "if necessary", "as necessary", "in doubt", "when appropriate", "as appropriate", "where appropriate", "if relevant", "if you feel"}
+	err := filepath.WalkDir(skillsRoot, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || filepath.Ext(path) != ".md" || filepath.Base(path) == "UPSTREAM.md" {
+			return nil
+		}
+		for number, line := range strings.Split(strings.ToLower(readFile(t, path)), "\n") {
+			for _, phrase := range vague {
+				if strings.Contains(line, phrase) {
+					t.Errorf("%s:%d gates on %q; name the observable condition", path, number+1, phrase)
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	read := func(parts ...string) string {
+		return readFile(t, filepath.Join(append([]string{skillsRoot}, parts...)...))
+	}
+	tdd := read("tdd", "SKILL.md")
+	mustContain(t, tdd, "use the `diagnosing-bugs` skill and read its `PERF.md` checklist")
+	mustNotContain(t, tdd, "rule out caching and measurement noise")
+	research := read("research", "SKILL.md")
+	mustContain(t, research, "use the `why` skill and fold its result in")
+	mustNotContain(t, research, "git blame -L")
+	pr := read("pr", "SKILL.md")
+	mustNotContain(t, pr, "cache entries that are already expired")
+	mustNotContain(t, pr, "another language reading the same bytes")
+	mustNotContain(t, read("codebase-design", "DESIGN-IT-TWICE.md"), "Spawn 3+ sub-agents in parallel")
+	mustContain(t, read("codebase-design", "SKILL.md"), "When a Scrap Signal fired, the interface is exported across packages or modules, or the user asks for alternative designs")
+	implement := read("implement", "SKILL.md")
+	mustContain(t, implement, "When two or more frontier tickets touch the same module or file")
+	mustContain(t, implement, "Always start an append-only decision trail")
+	mustNotContain(t, read("teach", "SKILL.md"), "well-populated")
+	mustNotContain(t, read("diagnosing-bugs", "SKILL.md"), "explicitly justified")
+	mustNotContain(t, read("improve-codebase-architecture", "SKILL.md"), "**Benefits**")
+	mustContain(t, read("code-review", "SKILL.md"), "call the real target directly, unless the layer adds policy")
+}
+
+// Skills call each other by name; a `../` path reaches into a sibling skill
+// directory that may not be installed next to this one.
+func TestSkillsDoNotUseCrossSkillRelativePaths(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	skillsRoot := filepath.Join(repoRoot, "skills")
 	err := filepath.WalkDir(skillsRoot, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -607,14 +676,10 @@ func TestSkillsDoNotAddCrossSkillRelativePaths(t *testing.T) {
 		if relative == "UPSTREAM.md" {
 			return nil
 		}
-		lines := 0
-		for _, line := range strings.Split(readFile(t, path), "\n") {
+		for number, line := range strings.Split(readFile(t, path), "\n") {
 			if strings.Contains(line, "../") {
-				lines++
+				t.Errorf("%s:%d reaches another skill through a ../ path; call it by name", relative, number+1)
 			}
-		}
-		if lines > legacy[relative] {
-			t.Errorf("%s has %d lines with a cross-skill ../ path; allowed %d", relative, lines, legacy[relative])
 		}
 		return nil
 	})

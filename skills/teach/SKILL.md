@@ -17,9 +17,10 @@ Treat the current directory as a teaching workspace. The state of their learning
 - `MISSION.md`: A document capturing the _reason_ the user is interested in the topic. This should be used to ground all teaching. Use the format in [MISSION-FORMAT.md](./MISSION-FORMAT.md).
 - `./reference/*.html`: A directory of reference materials. These are the compressed learnings from the lessons - cheat sheets, reference algorithms, syntax, yoga poses, glossaries. They are the raw units of learning. They should be beautiful documents which print out well, and are designed for quick reference.
 - `RESOURCES.md`: A list of resources which can be explored to ground your teaching in contextual knowledge, or to acquire knowledge and wisdom. Use the format in [RESOURCES-FORMAT.md](./RESOURCES-FORMAT.md).
-- `./learning-records/*.md`: A directory of learning records, which capture what the user has learned. These are loosely equivalent to architectural decision records in software development - they capture non-obvious lessons and key insights that may need to be revised later, or drive future sessions. These should be used to calculate the zone of proximal development. They are titled `0001-<dash-case-name>.md`, where the number increments each time. Use the format in [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md).
+- `./learning-records/*.md`: A directory of learning records, which capture what the user has learned. Before writing one, read [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md) for when to write it, how to number it, and its format.
 - `./lessons/*.html`: A directory of lessons. A **lesson** is a single, self-contained HTML output that teaches one tightly-scoped thing tied to the mission. This is the primary unit of teaching in this workspace.
 - `./assets/*`: Reusable **components** shared across lessons. See [Assets](#assets).
+- `GLOSSARY.md`: The workspace's canonical terms, once the topic has its own nomenclature. Before creating or editing it, read [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).
 - `NOTES.md`: A scratchpad for you to jot down user preferences, or working notes.
 
 ## Philosophy
@@ -30,7 +31,7 @@ To learn at a deep level, the user needs three things:
 - **Skills**, acquired through highly-relevant interactive lessons devised by you, based on the knowledge
 - **Wisdom**, which comes from interacting with other learners and practitioners
 
-Before the `RESOURCES.md` is well-populated, your focus should be to find high-quality resources which will help the user acquire knowledge. Never trust your parametric knowledge.
+While `RESOURCES.md` has no Knowledge entry covering the skill the next lesson teaches, your focus should be to find high-quality resources which will help the user acquire knowledge. Never trust your parametric knowledge.
 
 Some topics may require more skills than knowledge. Learning more about theoretical physics might be more knowledge-based. For yoga, more skills-based.
 
@@ -75,7 +76,7 @@ A shared stylesheet is the first component every workspace earns: every lesson l
 
 Every lesson should be tied into the mission - the reason that the user is interested in learning about the topic.
 
-If the user is unclear about the mission, or the `MISSION.md` is not populated, your first job should be to question the user on why they want to learn this.
+If `MISSION.md` is missing or does not yet state why the user wants to learn this topic, your first job should be to question the user on why they want to learn this.
 
 Failing to understand the mission will mean knowledge acquisition is not grounded in real-world goals. Lessons will feel too abstract. You will have no way of judging what the user should do next.
 

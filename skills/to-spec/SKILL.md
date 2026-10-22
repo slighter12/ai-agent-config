@@ -13,7 +13,7 @@ Turn the decisions already settled in the conversation (or a cleared `/wayfinder
 
 Do not re-interview the user on product scope. `to-spec` synthesizes decisions already made and stops **exactly once**, at the Step 3 checkpoint (or at the Fast-Exit summary), to confirm everything that needs the user.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+If `docs/agents/issue-tracker.md` or `docs/agents/triage-labels.md` is missing, tell the user to run `/setup-matt-pocock-skills`.
 
 ## Tracker Safety Contract (Applies to Every Read and Write)
 

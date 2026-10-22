@@ -1,6 +1,6 @@
 ---
 name: how
-description: Explain how a subsystem or code path in this repository works, with file:line references, so it can be changed safely. Use for walkthroughs, runtime flow, and "where does this live" questions.
+description: Explain how a subsystem or code path in this repository works, with file:line references, so it can be changed safely. Use for walkthroughs, runtime flow, and questions about where a flow or subsystem lives across files.
 metadata:
   invocation: model
 ---
@@ -16,7 +16,7 @@ This skill is read-only: it never edits files, the index, history, or external s
 - **Simple** (one module, one function, a narrow question): explore and answer in this session.
 - **Complex** (a subsystem across several files or services, a cross-cutting feature, an architectural overview): split it into 2–4 angles, such as the entry point and trigger, the data flow, the I/O edges and persistence, and the error and concurrency paths. Explore the angles one at a time in this session. Dispatch read-only `explorer` subagents in parallel only when their raw search output would bloat this window, and ask each to return the explorer contract below.
 
-When in doubt, treat it as simple. If the scope is ambiguous, state your reading and proceed; the user can redirect.
+Treat the question as Complex when the answer spans two or more top-level directories or services; otherwise treat it as Simple. If the scope is ambiguous, state your reading and proceed; the user can redirect.
 
 ## 2. Trace
 

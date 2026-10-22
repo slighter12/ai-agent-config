@@ -13,7 +13,7 @@ If the question is about logic/state rather than what something looks like — w
 
 ## Two sub-shapes — strongly prefer sub-shape A
 
-A UI prototype is much easier to judge when it's **butting up against the rest of the app** — real header, real sidebar, real data, real density. A throwaway route on its own is a vacuum: every variant looks fine in isolation. Default to sub-shape A whenever there's a plausible existing page to host the variants. Only reach for sub-shape B if the prototype genuinely has no nearby home.
+A UI prototype is much easier to judge when it's **butting up against the rest of the app** — real header, real sidebar, real data, real density. A throwaway route on its own is a vacuum: every variant looks fine in isolation. Default to sub-shape A whenever an existing route renders the data or flow being prototyped, or would contain it. Use sub-shape B only when no existing route does.
 
 ### Sub-shape A — adjustment to an existing page (preferred)
 
@@ -23,7 +23,7 @@ If the prototype is for something that doesn't yet have a page but *would natura
 
 ### Sub-shape B — a new page (last resort)
 
-Only use this when the thing being prototyped genuinely has no existing page to live inside — e.g. an entirely new top-level surface, or a flow that can't be embedded anywhere sensible.
+Only use this when no existing route renders or would contain the thing being prototyped — e.g. an entirely new top-level surface, or a flow that can't be embedded anywhere sensible.
 
 Create a **throwaway route** following whatever routing convention the project already uses — don't invent a new top-level structure. Name it so it's obviously a prototype (e.g. include the word `prototype` in the path or filename). Same `?variant=` pattern.
 
