@@ -103,7 +103,7 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 | --- | --- |
 | Codex | User skills expose `agents/openai.yaml` with implicit invocation disabled; model discovery contribution stays below 8,000 characters. |
 | Claude | User skills expose `disable-model-invocation: true`; `argument-hint` is accepted where supplied upstream. |
-| OpenCode | User skills expose `metadata["opencode/autoinvoke"] = "false"`. |
+| OpenCode | User skills expose `metadata["opencode/autoinvoke"] = "false"`; OpenCode 2.x reports them as `autoinvoke: false` in its skill catalog. |
 | Gemini | Link discovery may be checked; invocation remains unverified until a fresh-session probe succeeds. |
 
 ## Recorded Runtime Evidence
@@ -116,7 +116,8 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 - On 2026-08-12, OpenCode 1.18.15 fresh sessions passed the `mcp-builder-go` boundary: explicit `/mcp-builder-go` returned all five workflow headings, while the equivalent plain request returned `NO_MCP_BUILDER_CONTEXT`.
 - On 2026-08-12, after a one-time backup and removal of the obsolete local disable entry, Codex CLI 0.147.0 default fresh sessions passed the same boundary without a per-run override: explicit `$mcp-builder-go` returned all five workflow headings, while the equivalent plain request returned `NO_MCP_BUILDER_CONTEXT`.
 - Claude Code 2.1.228 remains unverified for this skill because the local CLI was not authenticated; Gemini remains unverified because no compatible CLI was available.
-- On 2026-10-22, after the installer linked the 33-skill catalog, Claude Code 2.1.308 and Codex CLI 0.163.0 fresh sessions loaded `why`, `how`, `blast-radius`, `verify-app`, `tidy`, and `unslop` from matching plain prompts (M19–M22, M24, M26 shapes). Explicit `/step-back` and `$step-back` returned its five H2 headings, and the equivalent plain request returned `NO_STEP_BACK_CONTEXT` on both. OpenCode 1.19.3 failed every run, including a bare control, on a local Magic Context plugin migration mismatch, so OpenCode routing for these skills remains unverified. Details are in `docs/captures/2026-10-22-phase3-standalone-skills.md`.
+- On 2026-10-22, after the installer linked the 33-skill catalog, Claude Code 2.1.308 and Codex CLI 0.163.0 fresh sessions loaded `why`, `how`, `blast-radius`, `verify-app`, `tidy`, and `unslop` from matching plain prompts (M19–M22, M24, M26 shapes). Explicit `/step-back` and `$step-back` returned its five H2 headings, and the equivalent plain request returned `NO_STEP_BACK_CONTEXT` on both. OpenCode 1.19.3 failed every run, including a bare control, on a local Magic Context plugin migration mismatch, so OpenCode routing for these skills was unverified until the OpenCode 2.1.2 rerun below. Details are in `docs/captures/2026-10-22-phase3-standalone-skills.md`.
+- On 2026-10-22, after the Magic Context plugin was repaired, OpenCode 2.1.2 fresh `--standalone` sessions ran the same probes with `openai/gpt-5.6-terra` under a probe agent that allowed only the `skill` tool. The `why`, `how`, `blast-radius`, `verify-app`, and `unslop` prompts each loaded the matching skill. The M24 prompt ("Tests are green. Simplify the code I just changed...") loaded `oh-my-opencode-slim`'s bundled `simplify` skill on two runs, because both skills are active in OpenCode; the same prompt with "Clean up" loaded `tidy`. Attaching `skills: [{"id": "step-back"}]` through the session API returned its five H2 headings, and the plain request returned `NO_STEP_BACK_CONTEXT` with no skill load. OpenCode 2.x does not expand `/step-back` in `opencode run`.
 
 ## Acceptance
 

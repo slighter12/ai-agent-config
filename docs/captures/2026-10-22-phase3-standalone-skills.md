@@ -31,7 +31,7 @@ Add seven local-extension skills adapted from pstack (`cursor/plugins` at `d4575
 
 - A hand-off says "use the `<name>` skill" for a model-invoked target and tells the user to run `/<name>` for a user-invoked one. Relative links point only at files inside the same skill.
 - The eight legacy `../` lines (in `code-review`, `grill-me`, `grill-with-docs`, `implement`, `retro`, and `tdd`) are gone, including upstream `#1123`'s sibling-path fallback, recorded as Intentional Local Divergence 6 in `skills/UPSTREAM.md`. `TestSkillsDoNotUseCrossSkillRelativePaths` now allows none.
-- `writing-for-agents/LOCAL-PROVIDER-MECHANICS.md` records how each provider resolves a name: Claude Code and OpenCode through the `Skill` tool, Codex by opening the `SKILL.md` path its skill list shows.
+- `writing-for-agents/LOCAL-PROVIDER-MECHANICS.md` records how each provider resolves a name: Claude Code through the `Skill` tool, OpenCode through its `skill` tool, Codex by opening the `SKILL.md` path its skill list shows.
 - No inline summaries of a target: `code-review` names the eight design red flags and requires reading `codebase-design`'s `DESIGN-RED-FLAGS.md` for their criteria; `tdd` sends performance assertions to `diagnosing-bugs`'s `PERF.md`; `research` hands this repository's rationale to `why`. `research` keeps a compact copy of the five tier names, guarded by a contract test.
 
 ## Audit
@@ -68,13 +68,27 @@ Fresh-session probes ran from an empty directory with only installed-skill loadi
 - Claude Code 2.1.308 (non-persistent, `Skill` as the only tool): each of six prompts loaded the matching skill through the `Skill` tool (`why`, `how`, `blast-radius`, `verify-app`, `tidy`, `unslop`). Explicit `/step-back` returned its five H2 headings; the equivalent plain request returned `NO_STEP_BACK_CONTEXT` and made no `Skill` call.
 - Codex CLI 0.163.0 (`codex exec --ephemeral`, read-only sandbox): the same six prompts each read the matching `skills/<name>/SKILL.md` and named it. Explicit `$step-back` returned its five H2 headings; the plain request returned `NO_STEP_BACK_CONTEXT`.
 
+The first OpenCode attempt, on 1.19.3, failed every run, including a bare "Reply with exactly OK." control, because the local Magic Context plugin build supported database migrations through v91 while its database was at v95. After the plugin was repaired, OpenCode 2.1.2 passed the control and ran the probes in fresh `--standalone` sessions with `openai/gpt-5.6-terra`. A probe agent defined in the empty directory's `opencode.json` allowed only the `skill` tool, so the user's default agent's skill allowlist did not decide the result:
+
+| Probe | Skill loaded | Reply | Verdict |
+| --- | --- | --- | --- |
+| `why` | `why` | `SKILL=why` | Verified |
+| `how` | `how` | `SKILL=how` | Verified |
+| `blast-radius` | `blast-radius` | `SKILL=blast-radius` | Verified |
+| `verify-app` | `verify-app` | `SKILL=verify-app` | Verified |
+| `unslop` | `unslop` | `SKILL=unslop` | Verified |
+| `tidy` ("Simplify the code I just changed...") | `simplify` (two runs) | `SKILL=simplify` | Not matched |
+| `tidy` ("Clean up the code I just changed...") | `tidy` | `SKILL=tidy` | Verified |
+| `step-back` attached through the session API | content injected | five H2 headings | Verified |
+| `step-back` plain request | none | `NO_STEP_BACK_CONTEXT` | Verified |
+
+- The `simplify` result comes from `oh-my-opencode-slim`'s bundled `simplify` skill, the upstream source of `tidy`. When both are active in OpenCode, a prompt that says "simplify" selects it. `skills/tidy/SKILL.md` stays unchanged; the collision is resolved in the local OpenCode configuration.
+- OpenCode 2.x lists `step-back` with `autoinvoke: false`. It does not register skills as slash commands, so `opencode run "/step-back ..."` sends plain text; the explicit probe attached `skills: [{"id": "step-back"}]` to `session.prompt` instead.
+
 Not verified:
 
-- OpenCode 1.19.3: every run, including a bare "Reply with exactly OK." control, failed before routing because the local Magic Context plugin build supports database migrations through v91 while its database is at v95. Routing stays unverified until that plugin is upgraded.
 - Gemini: no compatible CLI is installed.
 
 ## Follow-ups
 
-- Re-run the OpenCode probes after upgrading its Magic Context plugin.
-- Delete `/tmp/cursor-plugins` and `/tmp/oh-my-opencode-slim` only after the user confirms.
 - Hand-synced reference copies (`domain-modeling` formats, `tdd` `tests.md` and `mocking.md`, `DEEPENING.md`, triage role definitions) are left for a later batch.
