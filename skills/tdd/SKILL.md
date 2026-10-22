@@ -64,7 +64,7 @@ When running Seam-Level TDD:
    * **Green**: Write the minimum production code required to make that test pass. Do not write code for future test cases yet.
    * Repeat one behavior at a time. Never write a batch of 10 failing tests upfront (horizontal slicing): bulk tests verify *imagined* behavior and lock in test structure before you understand the implementation. Each test is a **tracer bullet** that responds to what the last cycle taught you.
    * **Attack the Premise**: If two fixes or tests built on the same premise fail, stop patching, write the premise as one sentence, and test it directly before the next attempt.
-3. **Refactoring Is Not Part of the Loop**: Do not restructure code during red → green. Structural refactoring belongs to the review stage (`code-review`) or a separate, explicitly agreed tidy step.
+3. **Refactoring Is Not Part of the Loop**: Do not restructure code during red → green. Structural refactoring belongs to the review stage (`code-review`) or a separate, explicitly agreed tidy step. For any structural cleanup beyond renaming a local variable or helper in the file you just touched, use the `tidy` skill so every transformation stays behavior-preserving, test-gated, and separate from behavioral commits.
 
 ## Step 4: Post-Green Test Pruning Gate (Mandatory Before Commit)
 

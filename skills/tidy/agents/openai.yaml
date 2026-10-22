@@ -1,0 +1,5 @@
+interface:
+  display_name: "Tidy"
+  short_description: "Simplify recent code without changing behavior, verifying each step"
+policy:
+  allow_implicit_invocation: true

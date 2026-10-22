@@ -2,4 +2,4 @@ interface:
   display_name: "Blast Radius"
   short_description: "Find what a change breaks beyond its diff and prove its safety fact"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

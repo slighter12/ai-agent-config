@@ -41,7 +41,7 @@ Route every proposed improvement to the lowest layer that can enforce it, keepin
 | **Hard-Won Build / Boot / Verify Steps** | **Verification Recipe Capture**: Record the exact commands in `AGENTS.md` (1-line pointer) or a project script, or propose `/verify-app` to build or repair a project-local verification skill, so `Prove It Works` is one lookup next time. |
 | **Bloated or No-Op Lines in `AGENTS.md` / `CLAUDE.md`** | **Pruning**: Propose deleting instructions the model already obeys by default or moving long procedures out into on-demand skills. |
 
-**Verification Recipe shape**: Before recording a recipe, read the Launch, Doctor, Drive, Evidence, and Cleanup definitions in [`../verify-app/SKILL.md`](../verify-app/SKILL.md) (`### 2. Write the Skill`) and follow them. Run the recipe end to end once before recording it.
+**Verification Recipe shape**: Before recording or graduating a verification recipe, use the `verify-app` skill and follow its Launch, Doctor, Drive, Evidence, and Cleanup structure (`### 2. Write the Skill`). Run the recipe end to end once before recording it.
 
 ### Make the Mistake Impossible
 

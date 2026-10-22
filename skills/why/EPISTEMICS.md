@@ -1,6 +1,6 @@
 # Epistemics
 
-How to reason about confidence when evidence is historical, fragmentary, and sometimes contradictory, and how to report it without flattening it into false certainty. Code shows what it does, not why it exists. The why lives in commits, reviews, tickets, docs, and conversations, all incomplete and sometimes missing. This file is the single source for these rules; `research` and `why` both follow it.
+How to reason about confidence when evidence is historical, fragmentary, and sometimes contradictory, and how to report it without flattening it into false certainty. Code shows what it does, not why it exists. The why lives in commits, reviews, tickets, docs, and conversations, all incomplete and sometimes missing. `research` keeps a compact copy of the tier names and phrasing rules; a contract test fails when the two lists disagree.
 
 ## Confidence Tiers
 

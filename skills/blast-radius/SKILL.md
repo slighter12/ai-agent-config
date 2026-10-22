@@ -1,11 +1,8 @@
 ---
 name: blast-radius
-description: Find what a change or plan could break beyond its diff, then prove the one fact it is safe because of by running real code. Use for "what could this break", a small diff you do not trust, or a risky plan before coding.
-disable-model-invocation: true
-argument-hint: "Which change, branch, or plan should I check?"
+description: Find what a change or plan could break beyond its diff, then prove the one fact it is safe because of by running real code. Use when asked what a change could break, or when a PR's safety fact is below proof level 4.
 metadata:
-  invocation: user
-  opencode/autoinvoke: "false"
+  invocation: model
 ---
 
 # Blast Radius
@@ -32,7 +29,7 @@ Level 4 is usually one small script that imports the same library version the ap
 
 ## Steps
 
-1. **Read the change.** The diff or plan, the symbols it adds, changes, and deletes, and what now behaves differently, including what the diff does not spell out. Use `why` §2 commands to pull the commits and PR when history matters.
+1. **Read the change.** The diff or plan, the symbols it adds, changes, and deletes, and what now behaves differently, including what the diff does not spell out. When history matters, use the `why` skill to pull the commits and PR.
 2. **Find the one fact it is safe because of.** Most risky-looking changes are safe because of a single fact, such as "this call only drops cache entries that are already expired". If it holds, most risks clear at once. Spend your time here, not on a long list of maybes.
 3. **Look where grep stops.** Read the source of the libraries you call, at the pinned version and with any local patches. Work out when things run: async scheduling, teardown and shutdown order, retries, and concurrent callers. Follow what a symbol search misses: JSON an API returns, DB columns, wire and file formats, another language reading the same bytes, feature flags, configuration keys, and consumers several hops downstream.
 4. **Be honest about each risk.** Give it a realistic likelihood and cost. Keep the confirmed risks; list the checked-and-cleared ones separately. Cite a real `file:line`; a search that finds nothing is still an answer, recorded with its query. Never invent a caller or an API.

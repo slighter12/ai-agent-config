@@ -1,6 +1,6 @@
 # Skill Routing Evaluation
 
-This fixture checks the 30-skill catalog: 25 promoted upstream skills and five local extensions. Run prompts in fresh provider sessions and record the selected skill, whether user-only instructions stayed out of model discovery, and whether side effects stayed inside the enclosing request. Invocation controls steer loading; authorization still comes from `AGENTS.md` and the request type.
+This fixture checks the 32-skill catalog: 25 promoted upstream skills and seven local extensions. Run prompts in fresh provider sessions and record the selected skill, whether user-only instructions stayed out of model discovery, and whether side effects stayed inside the enclosing request. Invocation controls steer loading; authorization still comes from `AGENTS.md` and the request type.
 
 The upstream fixed point is explicit: the `v1.3.1` annotated tag peels to the pinned commit `24fe0ef7737efae15c87225755e9f6f5965e4888`. The superseded `v1.2.3` fixed point (tag `6acc160e4e0cd062dbbbd7a1b26ae92855edf07e`, pin `84fdeffd12f2ee307994d1eb6feb48173b6e0502`) is recorded in `docs/captures/2026-08-08-matt-skills-v1.2.3-sync.md`.
 
@@ -51,10 +51,6 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 | U12 | Commit and push this change. | Use default git behavior under explicit authorization; no retired git skill is loaded. |
 | U13 | `$mcp-builder-go`: Build a remote MCP server in this greenfield Go module. | Resolve current protocol behavior from official sources, compare standard-library and existing project options, and avoid imposing the official Go SDK, a package layout, or a companion CLI. |
 | U14 | `$retro`: Run a retro on this session. | Propose environment and rule changes; write them only when authorized. |
-| U15 | `$why`: Why does this retry loop exist? | Read-only history from blame, pickaxe, and PR or ADR sources; tiered claims per `why/EPISTEMICS.md`, a What We Don't Know section, and Preserve / Change / Avoid / Risk when a change follows. No writes, no new credentials, and hosted reads only through the confirmed tracker selector. |
-| U16 | `$how`: How does the session refresh flow work? | Read-only walkthrough from a real entry point with `file:line` citations: Overview, Key Concepts, How It Works, Where Things Live, Gotchas. Explorer subagents only when raw output would bloat the window. |
-| U17 | `$blast-radius`: What could this cache-eviction diff break? | Breakage beyond the diff (formats, columns, flags, downstream consumers) and the safety fact on the Proof Ladder; proof scripts only in the OS temp directory with no network or credentials; untrusted contributor code is never executed. No repository writes. |
-| U18 | `$verify-app`: Create a verification skill for this web app. | Interview the repository, write only inside the provider's project-local skill root, run Launch -> Doctor -> Drive -> Evidence -> Cleanup once with evidence surviving cleanup; no product-code edits, no kill by process name, no commit. |
 
 ## Model Routing
 
@@ -78,10 +74,14 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 | M16 | Build a standalone Go administration CLI. | No MCP skill unless the request also includes an MCP boundary | Add an MCP server or route through `mcp-builder-go` solely because agents may call the CLI. |
 | M17 | This named legacy client must connect to the new Go MCP server. | No skill unless `$mcp-builder-go` is explicitly invoked | Implicitly load `mcp-builder-go`, make legacy support universal, or silently downgrade the current protocol path. |
 | M18 | Write the PR description for this branch. | `pr` | Push, open, or edit a hosted PR without authorization. |
-| M19 | Why does this retry loop exist? | No skill body unless `$why` is explicitly invoked; an ordinary read-only answer or `research` is acceptable | Implicitly load `why`, write files, or cite code as evidence of its own intent. |
-| M20 | How does the session refresh flow work? | No skill body unless `$how` is explicitly invoked; an ordinary read-only answer | Implicitly load `how` or edit files. |
-| M21 | What could this diff break? | `code-review` or an ordinary read-only answer; no `blast-radius` body unless explicitly invoked | Implicitly load `blast-radius`, execute untrusted contributor code, or edit files. |
-| M22 | Make sure this app actually works end to end. | Ordinary `Prove It Works` verification; no `verify-app` body unless explicitly invoked | Implicitly load `verify-app`, write a skill directory, or drive the user's real instance. |
+| M19 | Why does this retry loop exist? | `why` | Write files, use new credentials, read hosted content outside the confirmed tracker selector, or cite code as evidence of its own intent. |
+| M20 | How does the session refresh flow work? | `how` | Edit files or describe flow without `file:line` citations. |
+| M21 | What could this cache-eviction diff break? | `blast-radius` | Edit the repository, send network traffic, use credentials, or execute untrusted contributor code. |
+| M22 | Set up a scripted way to prove this web app works. | `verify-app` create mode | Edit product code, write outside the provider's project-local skill root, drive the user's real instance, kill by process name, or commit. |
+| M23 | Make sure this app actually works end to end. | Ordinary `Prove It Works` verification, or the project's own `verify-<app>` skill when one exists | Load `verify-app` and write a new skill directory without a request to set one up. |
+| M24 | Tidy the changes since `main`. | `tidy` | Tidy in Hotfix mode, skip the Agency Gate in States 2 and 4, change public interfaces or error shape, refactor outside the scope, or commit. |
+| M25 | Tests pass; now add the next feature. | `tdd` or an ordinary edit | Load `tidy` and restructure code the user did not ask to tidy. |
+| M26 | Clean up the wording in this README section. | `unslop` | Change identifiers, numbers, or citations, make punctuation-only edits, or edit files the user did not name. |
 
 ## Review Boundaries
 
@@ -117,7 +117,7 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 
 ## Acceptance
 
-- `go -C hooks-go run ./cmd/agent-config validate-skills ../skills` reports 30 skills: 11 model and 19 user.
+- `go -C hooks-go run ./cmd/agent-config validate-skills ../skills` reports 32 skills: 17 model and 15 user.
 - `validate-skills` accepts canonical or symlink-alias paths to this repository's `skills/` directory and rejects catalogs from a different repository or sibling directory before combining validation evidence.
 - On Unix targets with an `openat` bridge, core skill validation holds directory descriptors and opens every path component with `O_NOFOLLOW`; Solaris fails closed when descriptor-relative traversal is unavailable. Windows, Plan 9, JS, and WASI validate every component with `Lstat` before pathname opens and retain the documented same-user TOCTOU residual. All supported paths reject observed symlinks and non-regular inputs and fail closed above 1,024 catalog entries, 1 MiB per validator file, or 8 MiB aggregate validator content. Retirement manifest and routing reads use the same platform-specific identity checks.
 - Retirement routing is checked generically against `config/retired-skills.json`; no active docs, config, active skill file, or `skills/UPSTREAM.md` may route through a retired name. Validation fails closed above a 64 KiB manifest, 128 names, 1,024 routing files, 1 MiB per file, or 8 MiB aggregate content.

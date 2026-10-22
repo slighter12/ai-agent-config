@@ -2,4 +2,4 @@ interface:
   display_name: "How"
   short_description: "Explain how a code path works, with file:line references"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

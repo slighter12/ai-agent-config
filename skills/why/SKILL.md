@@ -1,11 +1,8 @@
 ---
 name: why
-description: Explain why code in this repository has its current shape, from commit, review, ADR, and incident history, with every claim tiered by confidence. Use before changing code that looks odd, defensive, or redundant.
-disable-model-invocation: true
-argument-hint: "What code or decision should I trace?"
+description: Explain why code in this repository has its current shape from commit, review, ADR, and incident history, with every claim tiered by confidence. Use when asked why code exists, or before removing or restructuring code whose purpose is unclear.
 metadata:
-  invocation: user
-  opencode/autoinvoke: "false"
+  invocation: model
 ---
 
 # Why (Code Archaeology)

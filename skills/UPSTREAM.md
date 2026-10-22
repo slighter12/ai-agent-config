@@ -19,8 +19,8 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 
 Files adapted from these sources (rewritten, not vendored):
 
-- From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), and `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`).
-- From oh-my-opencode-slim: overlay rules in `to-spec`, `implement`, `codebase-design`, `retro`, and the agent definitions (`verification-planning`, `simplify`, `step-back`, `deepwork`, `reflect`, and the orchestrator prompt).
+- From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`), `skills/unslop/` (`unslop`, `technical-writing`), and the subtraction rules `skills/tidy/` applies (`principle-laziness-protocol`, `principle-subtract-before-you-add`).
+- From oh-my-opencode-slim: `skills/tidy/` (`simplify`), and overlay rules in `to-spec`, `implement`, `codebase-design`, `retro`, and the agent definitions (`verification-planning`, `simplify`, `step-back`, `deepwork`, `reflect`, and the orchestrator prompt).
 
 ## Upstream v1.3.1 Changes Adopted
 
@@ -68,8 +68,10 @@ These upstream `main` commits landed after the pinned `v1.3.1` commit. They are 
 - `why`
 - `blast-radius`
 - `verify-app`
+- `tidy`
+- `unslop`
 
-These remain outside the upstream set and are marked `local extension` in the canonical catalog.
+These remain outside the upstream set and are marked `local extension` in the canonical catalog. `mcp-builder-go` is user-invoked; the others are model-invoked so other skills can call them by name.
 Each carries local `agents/openai.yaml` interface metadata so Codex presents a human-readable name and description.
 
 ## Required overlays

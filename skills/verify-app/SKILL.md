@@ -1,11 +1,8 @@
 ---
 name: verify-app
-description: Create or maintain a project-local verification skill that launches the real app, drives it the way a user does, and captures evidence that survives cleanup. Use when a project has no scripted way to prove UI, CLI, or service behavior, or when its verification skill has drifted.
-disable-model-invocation: true
-argument-hint: "create or maintain, and which app?"
+description: Create or maintain a project-local verification skill that launches the real app, drives it as a user does, and captures evidence that survives cleanup. Use when asked to set up, repair, or audit scripted app verification for a project.
 metadata:
-  invocation: user
-  opencode/autoinvoke: "false"
+  invocation: model
 ---
 
 # Verify App
@@ -14,7 +11,7 @@ Give a project one scripted way to prove behavior in the running app: launch it,
 
 ## Boundaries
 
-- Invoking this skill authorizes edits only inside the target verification skill's directory. Never edit product code. If the checkout does not build or start as-is, stop and report the exact command and failure.
+- Edit only when the request asks to create, repair, or maintain a verification skill; otherwise report what you would write. Edits stay inside the target verification skill's directory. Never edit product code. If the checkout does not build or start as-is, stop and report the exact command and failure.
 - Write to the provider skill root the repository already uses (`.claude/skills/` or `.agents/skills/`). If neither exists, ask which one to create.
 - Run only local instances on disposable data directories, profiles, and ports. Never drive the user's own running instance or real data. External traffic, real credentials, or account changes need an exact preview and approval; store credential names, never values, in the generated skill.
 - Stop only processes you started, tracked by PID or session; never kill by process name.

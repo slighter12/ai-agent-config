@@ -21,10 +21,6 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `wait-what` | Re-pitch the last message with missing context. | upstream |
 | `retro` | Graduate session friction into checks, standards, and project rules. | upstream |
 | `mcp-builder-go` | Design a current-protocol MCP server in Go with project-fit dependencies. | local extension |
-| `how` | Explain how a code path works, with `file:line` references. | local extension |
-| `why` | Trace why code has its current shape from repository history, with tiered confidence. | local extension |
-| `blast-radius` | Find what a change breaks beyond its diff and prove the fact it is safe because of. | local extension |
-| `verify-app` | Create or maintain a project-local skill that proves app behavior end to end. | local extension |
 
 ## Model-invoked
 
@@ -41,3 +37,9 @@ User-invoked skills load only after explicit invocation. Model-invoked skills ma
 | `grilling` | Interview by design-tree frontier rounds. | upstream |
 | `writing-for-agents` | Write predictable documents agents consume. | upstream |
 | `pr` | Format a PR body with summary, evidence, and merge danger. | upstream |
+| `how` | Explain how a code path works, with `file:line` references. | local extension |
+| `why` | Trace why code has its current shape from repository history, with tiered confidence. | local extension |
+| `blast-radius` | Find what a change breaks beyond its diff and prove the fact it is safe because of. | local extension |
+| `verify-app` | Create or maintain a project-local skill that proves app behavior end to end. | local extension |
+| `tidy` | Simplify recent code or a named module without changing behavior, verifying each step. | local extension |
+| `unslop` | Cut AI tells from human-facing writing while preserving meaning and evidence. | local extension |

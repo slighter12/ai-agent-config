@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"bytes"
+	"io/fs"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -483,6 +484,8 @@ func TestLocalSkillsExposeCodexInterfaceMetadata(t *testing.T) {
 		"why":            "Why",
 		"blast-radius":   "Blast Radius",
 		"verify-app":     "Verify App",
+		"tidy":           "Tidy",
+		"unslop":         "Unslop",
 	}
 	for name, displayName := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -519,7 +522,12 @@ func TestCodeArchaeologySkillsStayReadOnly(t *testing.T) {
 	mustContain(t, how, "This skill is read-only: it never edits files, the index, history, or external systems")
 
 	research := readFile(t, filepath.Join(repoRoot, "skills", "research", "SKILL.md"))
-	mustContain(t, research, "[`../why/EPISTEMICS.md`](../why/EPISTEMICS.md)")
+	mustContain(t, research, "use the `why` skill")
+	epistemics := readFile(t, filepath.Join(repoRoot, "skills", "why", "EPISTEMICS.md"))
+	for _, tier := range []string{"**Direct**", "**Supported**", "**Inferred**", "**Speculative**", "**Unknown**"} {
+		mustContain(t, research, tier)
+		mustContain(t, epistemics, tier)
+	}
 }
 
 func TestBlastRadiusAndVerifyAppKeepSideEffectBoundaries(t *testing.T) {
@@ -532,17 +540,87 @@ func TestBlastRadiusAndVerifyAppKeepSideEffectBoundaries(t *testing.T) {
 	mustContain(t, blast, "## Proof Ladder")
 
 	verify := readFile(t, filepath.Join(repoRoot, "skills", "verify-app", "SKILL.md"))
-	mustContain(t, verify, "Invoking this skill authorizes edits only inside the target verification skill's directory. Never edit product code.")
+	mustContain(t, verify, "Edit only when the request asks to create, repair, or maintain a verification skill")
+	mustContain(t, verify, "Edits stay inside the target verification skill's directory. Never edit product code.")
 	mustContain(t, verify, "never kill by process name")
 	mustContain(t, verify, "confirm the evidence still exists at its named location")
 	mustContain(t, verify, "Never weaken a journey to make it pass.")
 	mustContain(t, verify, "Leave changes uncommitted.")
 
 	pr := readFile(t, filepath.Join(repoRoot, "skills", "pr", "SKILL.md"))
-	mustContain(t, pr, "read the `## Proof Ladder` in [`../blast-radius/SKILL.md`](../blast-radius/SKILL.md)")
-	mustContain(t, pr, "When the change is a One-Way Door or touches a cross-boundary contract")
+	mustContain(t, pr, "use the `blast-radius` skill to grade that fact on its `## Proof Ladder`")
+	mustContain(t, pr, "If the change is a One-Way Door or touches a cross-boundary contract")
 	retro := readFile(t, filepath.Join(repoRoot, "skills", "retro", "SKILL.md"))
-	mustContain(t, retro, "[`../verify-app/SKILL.md`](../verify-app/SKILL.md)")
+	mustContain(t, retro, "use the `verify-app` skill")
+}
+
+func TestTidyAndUnslopPreserveBehaviorAndMeaning(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+
+	tidy := readFile(t, filepath.Join(repoRoot, "skills", "tidy", "SKILL.md"))
+	mustContain(t, tidy, "Edit only on a change request")
+	mustContain(t, tidy, "In State 6 (Hotfix / Surgical), do not tidy")
+	mustContain(t, tidy, "In State 2 or State 4, stop and present the Agency Gate Menu")
+	mustContain(t, tidy, "Never change public interfaces, error-return shape, state transitions, or I/O seams")
+	mustContain(t, tidy, "If a candidate lacks behavioral coverage, pause and ask the user")
+	mustContain(t, tidy, "use the `why` skill")
+	mustContain(t, tidy, "Leave changes uncommitted.")
+
+	unslop := readFile(t, filepath.Join(repoRoot, "skills", "unslop", "SKILL.md"))
+	mustContain(t, unslop, "Edit only the text or files the user names.")
+	mustContain(t, unslop, "Keep identifiers, code, commands, paths, quotations, numbers, citations, links, and frontmatter exactly as written.")
+	mustContain(t, unslop, "Do not make punctuation-only edits.")
+	mustNotContain(t, unslop, "Em dash")
+
+	tdd := readFile(t, filepath.Join(repoRoot, "skills", "tdd", "SKILL.md"))
+	mustContain(t, tdd, "use the `tidy` skill")
+	pr := readFile(t, filepath.Join(repoRoot, "skills", "pr", "SKILL.md"))
+	mustContain(t, pr, "Before finalizing the body, use the `unslop` skill on it")
+}
+
+// Skills call each other by name; a `../` path reaches into a sibling skill
+// directory that may not be installed next to this one. The legacy entries
+// below may shrink but never grow.
+func TestSkillsDoNotAddCrossSkillRelativePaths(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	skillsRoot := filepath.Join(repoRoot, "skills")
+	legacy := map[string]int{
+		"code-review/SKILL.md":     1,
+		"grill-me/SKILL.md":        1,
+		"grill-with-docs/SKILL.md": 1,
+		"implement/SKILL.md":       2,
+		"retro/SKILL.md":           1,
+		"tdd/SKILL.md":             2,
+	}
+	err := filepath.WalkDir(skillsRoot, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || filepath.Ext(path) != ".md" {
+			return nil
+		}
+		relative, err := filepath.Rel(skillsRoot, path)
+		if err != nil {
+			return err
+		}
+		relative = filepath.ToSlash(relative)
+		if relative == "UPSTREAM.md" {
+			return nil
+		}
+		lines := 0
+		for _, line := range strings.Split(readFile(t, path), "\n") {
+			if strings.Contains(line, "../") {
+				lines++
+			}
+		}
+		if lines > legacy[relative] {
+			t.Errorf("%s has %d lines with a cross-skill ../ path; allowed %d", relative, lines, legacy[relative])
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestLocalTrackerSeparatesTriageFromWorkLifecycle(t *testing.T) {

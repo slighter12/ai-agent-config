@@ -1,11 +1,8 @@
 ---
 name: how
 description: Explain how a subsystem or code path in this repository works, with file:line references, so it can be changed safely. Use for walkthroughs, runtime flow, and "where does this live" questions.
-disable-model-invocation: true
-argument-hint: "What code path or subsystem should I explain?"
 metadata:
-  invocation: user
-  opencode/autoinvoke: "false"
+  invocation: model
 ---
 
 # How (Code Walkthrough)
@@ -42,4 +39,4 @@ Use these sections, dropping any that do not apply:
 - **Gotchas**: surprising behavior, pitfalls, and easy mistakes.
 - **Open Questions**: what you could not trace.
 
-Write with concrete actors ("`UserService` calls `AuthClient.refresh()`", not "the service delegates to the client"). When something is complex, explain why it is complex; when it is simple, keep it short. If the real question turns out to be why the code exists, suggest `/why`; if it is where new code should go, use `codebase-design`.
+Write with concrete actors ("`UserService` calls `AuthClient.refresh()`", not "the service delegates to the client"). When something is complex, explain why it is complex; when it is simple, keep it short. If the real question turns out to be why the code exists, use the `why` skill; if it is where new code should go, use the `codebase-design` skill.
