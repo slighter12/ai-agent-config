@@ -808,6 +808,19 @@ func TestAskMattWritesSlashFormOnlyForUserInvokedSkills(t *testing.T) {
 	mustContain(t, router, "with the `tdd` skill")
 }
 
+// ask-matt answers with a route and stops, whether the message asks how to
+// fix something or reads as a command to fix it.
+func TestAskMattAnswersWithARouteNotASolution(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	router := readFile(t, filepath.Join(repoRoot, "skills", "ask-matt", "SKILL.md"))
+	mustContain(t, router, "## Output Contract")
+	mustContain(t, router, "The answer to `/ask-matt` is a route, never a solution.")
+	mustContain(t, router, "the exact command to run next")
+	mustContain(t, router, "Do not solve the problem, compare implementation options, propose code, or edit files")
+	mustContain(t, router, "reads as a command")
+	mustContain(t, router, "Stop after the recommendation")
+}
+
 // Reference files and callers point at the single source instead of
 // restating it, so the copies cannot drift.
 func TestCallersPointAtReferenceFilesInsteadOfCopies(t *testing.T) {

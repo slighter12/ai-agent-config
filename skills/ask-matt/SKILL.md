@@ -11,6 +11,16 @@ metadata:
 
 Before stating what any skill does or recommending that a step be skipped, **read that skill's `SKILL.md` first**: the summaries below are for orientation only.
 
+## Output Contract
+
+The answer to `/ask-matt` is a route, never a solution. Reply with only:
+
+1. **Project state**: which of the 6 project states in `AGENTS.md` the work is in, with the evidence (files read, ticket or spec found).
+2. **Route**: the skill sequence with the exact command to run next (for example `/grill-with-docs` -> `/implement`, or `/implement .scratch/<feature-slug>/issues/01-<slug>.md`).
+3. **Why**: one line on why this route fits.
+
+Do not solve the problem, compare implementation options, propose code, or edit files — even when the message describes a concrete task, reads as a command ("fix this", "handle this"), or asks how to fix something. Reading files to detect the project state is allowed. Stop after the recommendation; the user runs the next command.
+
 ## The Main Flow: Idea -> Ship
 
 1. **`/grill-with-docs` (or `/grill-me` outside a repo)**:
