@@ -836,3 +836,18 @@ func TestCallersPointAtReferenceFilesInsteadOfCopies(t *testing.T) {
 	mustNotContain(t, architecture, "real enough to warrant")
 	mustNotContain(t, read("teach", "LEARNING-RECORD-FORMAT.md"), "genuine understanding")
 }
+
+// Given a spec, implement discovers its child tickets itself and picks the
+// mode from their count, so a spec with children never lands as one slice.
+func TestImplementRoutesSpecsByDiscoveredChildTickets(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
+	mustContain(t, implement, "**Given a spec**: list its child tickets before choosing a mode")
+	mustContain(t, implement, "`.scratch/<feature-slug>/issues/*.md`")
+	mustContain(t, implement, "`ls -R .`) skips it")
+	mustContain(t, implement, "the spec issue's native sub-issues")
+	mustContain(t, implement, "## Step 2: Dispatch by Child-Ticket Count")
+	mustContain(t, implement, "**A spec with two or more unresolved children** -> **Mode B")
+	mustContain(t, implement, "**A spec with exactly one unresolved child** -> **Mode A** on that child ticket")
+	mustNotContain(t, implement, "wants built in one run")
+}
