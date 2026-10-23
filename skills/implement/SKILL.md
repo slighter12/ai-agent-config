@@ -21,7 +21,7 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
    * **Given a spec**: list its child tickets before choosing a mode, whether or not the request mentions them.
      * Local Markdown: every `.scratch/<feature-slug>/issues/*.md` file beside the spec. `.scratch/` is a hidden directory, so list that `issues/` path directly; a recursive listing from the repository root (`ls -R .`) skips it. A file whose `Parent spec:` line names a different spec is not a child.
      * Hosted tracker: the spec issue's native sub-issues; where the tracker has none, the issues whose `## Parent` section references the spec.
-   * Read every child ticket before writing code. Child acceptance criteria are requirements of the spec; building the spec without them is a missing-requirement defect.
+     * Read every child ticket before writing code. Child acceptance criteria are requirements of the spec; building the spec without them is a missing-requirement defect.
 2. **Read Project Law**:
    * Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md`, and any `docs/adr/` covering the touched modules.
 3. **Run the 6-Scenario Friction Check on Target Files**:
@@ -31,14 +31,19 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
 4. **Treat Spec Deviations as Design Signals (Both Modes)**:
    * When implementation needs a parameter, dependency, or cross-seam call the spec or ticket did not anticipate, stop and surface it: was the spec wrong, was a requirement missed, or is the implementation overreaching? Never absorb it with a silent workaround. Two deviations of the same shape are a `codebase-design` Scrap Signal.
 
-## Step 2: Dispatch by Child-Ticket Count
+## Step 2: Dispatch by Input Type
 
-Choose the mode from the child tickets listed in Step 1, not from how the request is phrased. Count only unresolved children (local `Status:` other than `resolved`; hosted issues still open).
+Choose the mode from what the user passed and, for a spec, from the child tickets listed in Step 1, not from how the request is phrased.
 
-* **No spec, or a spec with zero child tickets** (one ticket, one bug, a direct in-window request) -> **Mode A (In-Window Surgical Build)**.
-* **A spec with exactly one unresolved child** -> **Mode A** on that child ticket.
-* **A spec with two or more unresolved children** -> **Mode B (Parallel Worktree Task-Graph Build)**. Mode B asks for run-plan approval before any branch or worktree exists; if the user declines worktrees, build the children one at a time in Mode A, in `Blocked by` order.
-* **A spec whose children are all resolved** -> report that no work remains and stop.
+* **Given a child ticket** -> **Mode A (In-Window Surgical Build)** on that ticket only. If any of its `Blocked by` tickets is unresolved, stop and report which. Never expand to the parent spec's other children; the parent spec is context, not scope.
+* **No ticket or spec** (one bug, a direct in-window request) -> **Mode A**.
+
+**Given a spec**, count only its unresolved children (local `Status:` other than `resolved`; hosted issues still open):
+
+* **Zero child tickets**: if the spec meets the `to-spec` Single-Slice Fast Exit condition (one seam or one config site, no cross-module blocking dependencies) -> **Mode A** on the spec. Otherwise (for example schema + domain logic + CLI output), stop before writing code and tell the user to run `/to-spec` to split it into tickets; build it in Mode A only if the user then says to build it as one slice.
+* **Exactly one unresolved child** -> **Mode A** on that child ticket.
+* **Two or more unresolved children** -> **Mode B (Parallel Worktree Task-Graph Build)**. Mode B asks for run-plan approval before any branch or worktree exists; if the user declines worktrees, build the children one at a time in Mode A, in `Blocked by` order.
+* **Every child resolved** -> report that no work remains and stop.
 
 ---
 

@@ -839,6 +839,7 @@ func TestCallersPointAtReferenceFilesInsteadOfCopies(t *testing.T) {
 
 // Given a spec, implement discovers its child tickets itself and picks the
 // mode from their count, so a spec with children never lands as one slice.
+// Given a child ticket, it builds that ticket only, never its siblings.
 func TestImplementRoutesSpecsByDiscoveredChildTickets(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
@@ -846,8 +847,11 @@ func TestImplementRoutesSpecsByDiscoveredChildTickets(t *testing.T) {
 	mustContain(t, implement, "`.scratch/<feature-slug>/issues/*.md`")
 	mustContain(t, implement, "`ls -R .`) skips it")
 	mustContain(t, implement, "the spec issue's native sub-issues")
-	mustContain(t, implement, "## Step 2: Dispatch by Child-Ticket Count")
-	mustContain(t, implement, "**A spec with two or more unresolved children** -> **Mode B")
-	mustContain(t, implement, "**A spec with exactly one unresolved child** -> **Mode A** on that child ticket")
+	mustContain(t, implement, "## Step 2: Dispatch by Input Type")
+	mustContain(t, implement, "**Given a child ticket** -> **Mode A (In-Window Surgical Build)** on that ticket only")
+	mustContain(t, implement, "Never expand to the parent spec's other children")
+	mustContain(t, implement, "tell the user to run `/to-spec` to split it into tickets")
+	mustContain(t, implement, "**Two or more unresolved children** -> **Mode B")
+	mustContain(t, implement, "**Exactly one unresolved child** -> **Mode A** on that child ticket")
 	mustNotContain(t, implement, "wants built in one run")
 }
