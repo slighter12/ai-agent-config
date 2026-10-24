@@ -903,3 +903,18 @@ func TestImplementRoutesSpecsByDiscoveredChildTickets(t *testing.T) {
 	mustContain(t, implement, "**Exactly one unresolved child** -> **Mode A** on that child ticket")
 	mustNotContain(t, implement, "wants built in one run")
 }
+
+// A new file in an area with competing patterns is the user's choice:
+// to-spec asks it at the checkpoint and records it, and implement reuses the
+// recorded pattern instead of asking again or picking one silently.
+func TestToSpecAsksTheStyleChoiceForNewFiles(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	toSpec := readFile(t, filepath.Join(repoRoot, "skills", "to-spec", "SKILL.md"))
+	mustContain(t, toSpec, "**Style choice for new files**")
+	mustContain(t, toSpec, "Never pick one silently: style drift is a separate question from the Agency Gate")
+	mustContain(t, toSpec, "2. **Style Choice for New Files** (only if Step 0.2 found style drift)")
+	mustContain(t, toSpec, "* Which pattern should new files follow (if shown)?")
+	mustContain(t, toSpec, "(including the chosen Agency Gate option and the pattern new files follow)")
+	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
+	mustContain(t, implement, "**ask the user** which style to use, unless the spec/ticket already records the chosen pattern.")
+}

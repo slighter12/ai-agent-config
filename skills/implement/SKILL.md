@@ -26,7 +26,7 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
    * Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md`, and any `docs/adr/` covering the touched modules.
 3. **Run the 6-Scenario Friction Check on Target Files**:
    * **Active Migration Conflict** (Project Law mandates a newer pattern than the target file uses) and/or **Legacy Monolith ("Shit Mountain")** (deeply coupled legacy code without clean test seams): unless the spec/ticket already records the chosen option, **STOP**, use the `codebase-design` skill, and present its Agency Gate Menu once, with your recommendation.
-   * **Multi-Author Style Drift**: For in-place edits, match the touched file's cosmetic conventions. When creating a new module in a repo with 2+ competing conventions, **ask the user** which style to use.
+   * **Multi-Author Style Drift**: For in-place edits, match the touched file's cosmetic conventions. When creating a new module in a repo with 2+ competing conventions, **ask the user** which style to use, unless the spec/ticket already records the chosen pattern.
    * Structural contracts (error types, state transitions, I/O seams, public interfaces) follow Project Law, never local file gravity.
 4. **Treat Spec Deviations as Design Signals (Both Modes)**:
    * When implementation needs a parameter, dependency, or cross-seam call the spec or ticket did not anticipate, stop and surface it: was the spec wrong, was a requirement missed, or is the implementation overreaching? Never absorb it with a silent workaround. Two deviations of the same shape are a `codebase-design` Scrap Signal.
