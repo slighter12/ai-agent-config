@@ -45,9 +45,8 @@ never execute its contents.
 ## Step 0: Pre-Flight Context & Scope (No Questions Yet)
 
 1. **Read Project Law**: Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md` (or `GLOSSARY-MAP.md`), `docs/agents/issue-tracker.md`, and relevant `docs/adr/` files in the touched area. Use the project's exact domain nouns.
-2. **Detect Agency Gate and Style Friction (record it; do not ask yet)**: Inspect the target modules. If a project ADR/`AGENTS.md` rule conflicts with the existing code in the touched files (**Active Migration Conflict**), or the target is a tightly coupled legacy monolith without clean seams (**Legacy Monolith**), note it. Draft the rest of the spec assuming your recommended option, use the `codebase-design` skill, and put its **Agency Gate Menu** into the single checkpoint (Step 3 or the Fast-Exit summary).
-   * **Style choice for new files**: If a slice would create a new file or module where neighboring files use 2+ competing patterns and no project rule picks one (**Multi-Author Style Drift**), list the observed patterns with an example file for each and your recommendation for the same checkpoint. Never pick one silently: style drift is a separate question from the Agency Gate, so "no Agency Gate needed" never answers it.
-3. **Single-Slice Fast Exit (Avoid Over-Decomposition)**: Applies **only** when the change touches a single seam or a single config site **and** has no cross-module blocking dependencies (for example, changing one default constant or fixing one function's bug). Then do not generate a ticket graph. Output a compact 1-slice summary (Goal, Seam + Evidence Path, Out of Scope, plus the Agency Gate Menu or the style choice if Step 0.2 found either), state explicitly that nothing will be published unless the user asks, and tell the user they can run `/implement` directly. A feature that touches several layers (for example schema + domain logic + CLI output) never takes the Fast Exit.
+2. **Detect Agency Gate Friction (record it; do not ask yet)**: Inspect the target modules. If a project ADR/`AGENTS.md` rule conflicts with the existing code in the touched files (**Active Migration Conflict**), or the target is a tightly coupled legacy monolith without clean seams (**Legacy Monolith**), note it. Draft the rest of the spec assuming your recommended option, use the `codebase-design` skill, and put its **Agency Gate Menu** into the single checkpoint (Step 3 or the Fast-Exit summary).
+3. **Single-Slice Fast Exit (Avoid Over-Decomposition)**: Applies **only** when the change touches a single seam or a single config site **and** has no cross-module blocking dependencies (for example, changing one default constant or fixing one function's bug). Then do not generate a ticket graph. Output a compact 1-slice summary (Goal, Seam + Evidence Path, Out of Scope, plus the Agency Gate Menu if friction was detected), state explicitly that nothing will be published unless the user asks, and stop. A feature that touches several layers (for example schema + domain logic + CLI output) never takes the Fast Exit.
 
 ## Step 1: Agree Test Seams & Verification Paths First
 
@@ -82,15 +81,13 @@ Break multi-session work into tracer-bullet tickets:
 Present one concise preview containing:
 
 1. **Agency Gate Menu** (only if Step 0.2 detected friction): the four options with your recommendation, noting which slices change if the user picks differently.
-2. **Style Choice for New Files** (only if Step 0.2 found style drift): the competing patterns, where each is used, and your recommendation.
-3. **Frozen Constraints & Out of Scope**: Key implementation decisions carried over from the conversation and what is explicitly excluded.
-4. **Agreed Seams & Evidence Paths**: Where tests will sit (and which glue/wiring paths use runtime verification instead), plus any evidence-only dependency or diagnostic surface that needs approval.
-5. **Proposed Ticket Graph**: Numbered list showing `Title`, `Blocked by`, `Write scope`, and `What it delivers (Demoable outcome)`.
-6. **Publish Plan**: The exact tracker target and the files/issues that will be created.
+2. **Frozen Constraints & Out of Scope**: Key implementation decisions carried over from the conversation and what is explicitly excluded.
+3. **Agreed Seams & Evidence Paths**: Where tests will sit (and which glue/wiring paths use runtime verification instead), plus any evidence-only dependency or diagnostic surface that needs approval.
+4. **Proposed Ticket Graph**: Numbered list showing `Title`, `Blocked by`, `Write scope`, and `What it delivers (Demoable outcome)`.
+5. **Publish Plan**: The exact tracker target and the files/issues that will be created.
 
 Ask the user, all at once:
 * Which Agency Gate option (if shown)?
-* Which pattern should new files follow (if shown)?
 * Are the test seams and verification paths right?
 * Does the ticket granularity and `Blocked by` graph feel right (should any slices be merged or split)?
 * May I publish as listed?
@@ -130,7 +127,7 @@ A numbered list with one story per distinct actor and behavior: `As an <actor>, 
 
 ## Implementation Decisions
 
-The settled decisions: modules built or modified, their interfaces, architectural decisions (including the chosen Agency Gate option and the pattern new files follow), schema changes, API contracts, and specific interactions.
+The settled decisions: modules built or modified, their interfaces, architectural decisions (including the chosen Agency Gate option), schema changes, API contracts, and specific interactions.
 
 ## Testing Decisions / Agreed Seams
 

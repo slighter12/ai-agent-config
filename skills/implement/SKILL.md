@@ -40,7 +40,7 @@ Choose the mode from what the user passed and, for a spec, from the child ticket
 
 **Given a spec**, count only its unresolved children (local `Status:` other than `resolved`; hosted issues still open):
 
-* **Zero child tickets**: if the spec meets the `to-spec` Single-Slice Fast Exit condition (one seam or one config site, no cross-module blocking dependencies) -> **Mode A** on the spec. Otherwise (for example schema + domain logic + CLI output), stop before writing code and tell the user to run `/to-spec` to split it into tickets; build it in Mode A only if the user then says to build it as one slice.
+* **Zero child tickets**: if the spec meets the `to-spec` Single-Slice Fast Exit condition (one seam or one config site, no cross-module blocking dependencies) -> **Mode A** on the spec. Otherwise (for example schema + domain logic + CLI output), stop before writing code and report that the spec spans several layers and has no tickets; build it in Mode A only if the user then says to build it as one slice.
 * **Exactly one unresolved child** -> **Mode A** on that child ticket.
 * **Two or more unresolved children** -> **Mode B (Parallel Worktree Task-Graph Build)**. Mode B asks for run-plan approval before any branch or worktree exists; if the user declines worktrees, build the children one at a time in Mode A, in `Blocked by` order.
 * **Every child resolved** -> report that no work remains and stop.

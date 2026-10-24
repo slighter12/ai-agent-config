@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -898,23 +899,56 @@ func TestImplementRoutesSpecsByDiscoveredChildTickets(t *testing.T) {
 	mustContain(t, implement, "## Step 2: Dispatch by Input Type")
 	mustContain(t, implement, "**Given a child ticket** -> **Mode A (In-Window Surgical Build)** on that ticket only")
 	mustContain(t, implement, "Never expand to the parent spec's other children")
-	mustContain(t, implement, "tell the user to run `/to-spec` to split it into tickets")
+	mustContain(t, implement, "report that the spec spans several layers and has no tickets")
 	mustContain(t, implement, "**Two or more unresolved children** -> **Mode B")
 	mustContain(t, implement, "**Exactly one unresolved child** -> **Mode A** on that child ticket")
 	mustNotContain(t, implement, "wants built in one run")
 }
 
-// A new file in an area with competing patterns is the user's choice:
-// to-spec asks it at the checkpoint and records it, and implement reuses the
-// recorded pattern instead of asking again or picking one silently.
-func TestToSpecAsksTheStyleChoiceForNewFiles(t *testing.T) {
+// A new file in an area with competing patterns is the user's choice, asked
+// by implement before writing code; a pattern the spec or ticket already
+// records is reused instead of asked again.
+func TestImplementReusesARecordedStyleChoice(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
-	toSpec := readFile(t, filepath.Join(repoRoot, "skills", "to-spec", "SKILL.md"))
-	mustContain(t, toSpec, "**Style choice for new files**")
-	mustContain(t, toSpec, "Never pick one silently: style drift is a separate question from the Agency Gate")
-	mustContain(t, toSpec, "2. **Style Choice for New Files** (only if Step 0.2 found style drift)")
-	mustContain(t, toSpec, "* Which pattern should new files follow (if shown)?")
-	mustContain(t, toSpec, "(including the chosen Agency Gate option and the pattern new files follow)")
 	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
 	mustContain(t, implement, "**ask the user** which style to use, unless the spec/ticket already records the chosen pattern.")
+	toSpec := readFile(t, filepath.Join(repoRoot, "skills", "to-spec", "SKILL.md"))
+	mustNotContain(t, toSpec, "Style Choice for New Files")
+}
+
+// As upstream, only ask-matt recommends routes. Another skill names a
+// /command only for a missing prerequisite, never as the next step.
+func TestOnlyAskMattRecommendsTheNextCommand(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	skillsRoot := filepath.Join(repoRoot, "skills")
+	recommendation := regexp.MustCompile("(?i)(tells?|telling) the user (to|they can) run `/([a-z-]+)|they run `/")
+	checked := 0
+	err := filepath.WalkDir(skillsRoot, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			if entry.Name() == "ask-matt" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(path) != ".md" {
+			return nil
+		}
+		checked++
+		for _, match := range recommendation.FindAllStringSubmatch(readFile(t, path), -1) {
+			if match[3] != "setup-matt-pocock-skills" {
+				t.Errorf("%s recommends a next command: %q", path, match[0])
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if checked == 0 {
+		t.Fatal("no skill files checked")
+	}
+	mustContain(t, readFile(t, filepath.Join(skillsRoot, "UPSTREAM.md")), "only `ask-matt` recommends routes: no other skill tells the user which command to run next")
 }

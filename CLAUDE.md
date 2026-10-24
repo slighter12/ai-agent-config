@@ -71,7 +71,7 @@ Every skill is designed to be **single-skill self-sufficient** (never requiring 
 | :--- | :--- | :--- |
 | `grilling` | Model & User | Frontier-based design tree interview with Entailment Pruning (no `A -> A' -> A''` repeats), Cross-Branch Tension probing (`A x B` conflicts), and empirical unknown routing. |
 | `grill-me` / `grill-with-docs` | User (`/grill-*`) | Thin entry wrappers for `grilling` (with `GLOSSARY.md` + ADR capture in `grill-with-docs`). |
-| `to-spec` | User (`/to-spec`) | Consolidated Spec & Tracer-Bullet Ticket Graph generator. Routes single-slice tasks directly to `implement`. |
+| `to-spec` | User (`/to-spec`) | Consolidated Spec & Tracer-Bullet Ticket Graph generator. Single-slice tasks get a Fast Exit summary instead of a ticket graph. |
 | `codebase-design` | Model & User | Deep modules, Agent-First Local Legibility, Deterministic Core / Thin Shell, Brownfield Sprout pattern, and Scrap circuit breaker. |
 | `tdd` | Model & User | Task-proportional verification loop, mechanical test-smell redlines, and Post-Green Test Pruning. |
 | `implement` | User (`/implement`) | Unified builder. Runs in-window for single slices or dispatches worktree `builder` subagents across a ticket task graph. |

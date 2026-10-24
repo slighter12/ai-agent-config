@@ -40,7 +40,7 @@ These changes come from the pinned `v1.3.1` commit above and were reapplied toge
    * Because coding harnesses typically auto-activate at most 1–2 skills per prompt, `to-spec`, `codebase-design`, `tdd`, and `implement` each embed a compact **Pre-Flight Context & Agency Gate** (4-tier rule precedence + 6-scenario detection + the canonical (a)–(d) Agency Gate Menu) rather than splitting principles across 5+ micro-skills.
 2. **Merged the standalone ticket-splitting skill into `skills/to-spec/SKILL.md`** (retirement recorded in `config/retired-skills.json`):
    * Eliminates double-compression drift between spec synthesis and ticket slicing (upstream `#341`).
-   * Routes single-slice changes immediately to `implement`. For multi-slice work, synthesizes Agreed Test Seams, Frozen Implementation Decisions, and the Tracer-Bullet Ticket Graph (`Blocked by` + `Write scope`) in a single pass.
+   * Single-slice changes get a Fast Exit summary instead of a ticket graph. For multi-slice work, synthesizes Agreed Test Seams, Frozen Implementation Decisions, and the Tracer-Bullet Ticket Graph (`Blocked by` + `Write scope`) in a single pass.
 3. **Merged the standalone spec-implementation skill into `skills/implement/SKILL.md`** (retirement recorded in `config/retired-skills.json`):
    * Dispatches automatically based on input shape: runs in-window for a single ticket/slice, or orchestrates isolated git worktree `builder` subagents across the ticket frontier when passed a multi-ticket spec.
    * Includes local frontier tracking, `Write scope` collision serialization, `.patch` pre-commit backup (upstream `#991`), and a strict 1-round post-review repair cap (upstream `#1014`).
@@ -52,7 +52,7 @@ These changes come from the pinned `v1.3.1` commit above and were reapplied toge
 5. **Language-Agnostic Mechanical `skills/tdd/SKILL.md` & `skills/codebase-design/SKILL.md`**:
    * Removes TypeScript/JS-specific coupling and adds concrete mechanical redlines (`Single-Caller Helper Ban`, `No Call-Only Mock Assertions`, `Evidence Conservation Law`, `Brownfield Sprout Pattern`, `Scrap Circuit Breaker`, and `Post-Green Same-Branch Test Pruning`).
 6. **Call Skills by Name, Never by Relative Path**:
-   * A skill that hands off to another skill says "use the `<name>` skill" when the target is model-invocable, or tells the user to run `/<name>` when it is user-invoked. Upstream `#1123`'s `../grilling/SKILL.md` fallback is removed, because an installed skill directory has no guaranteed sibling layout.
+   * A skill that needs another skill says "use the `<name>` skill" when the target is model-invocable. As upstream, only `ask-matt` recommends routes: no other skill tells the user which command to run next. Another skill writes a `/command` only to name a missing prerequisite (`/setup-matt-pocock-skills`) or to reference another skill's vocabulary; when it cannot proceed, it stops and reports why. Upstream `#1123`'s `../grilling/SKILL.md` fallback is removed, because an installed skill directory has no guaranteed sibling layout.
    * `writing-for-agents/LOCAL-PROVIDER-MECHANICS.md` records how each provider resolves a name, and a contract test rejects any parent-directory relative path in `skills/**/*.md`.
 7. **Concrete Trigger Wording**:
    * `prototype` adds a `Use when` clause to its upstream description, and `diagnosing-bugs` writes its trigger phrases as a sentence instead of slash lists. Skill bodies gate reference files and skill calls on observable conditions rather than judgment words such as "if needed".
