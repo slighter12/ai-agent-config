@@ -852,6 +852,7 @@ func TestImplementWritesTheDecisionTrailAtObservableSteps(t *testing.T) {
 	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
 	mustContain(t, implement, "**Create the Integration Branch and Its Decision Trail**")
 	mustContain(t, implement, "before the first dispatch, create the append-only decision trail `.scratch/<feature-slug>/decisions.tsv`")
+	mustContain(t, implement, "in the main checkout, outside every worktree, so removing a worktree never removes it")
 	mustContain(t, implement, "Right after each fast-forward merge, append its `decisions.tsv` row")
 	mustContain(t, implement, "A Mode B run without these rows is not finished.")
 	mustNotContain(t, implement, "**Shared Exploration and Decision Trail**")
@@ -907,11 +908,13 @@ func TestImplementRoutesSpecsByDiscoveredChildTickets(t *testing.T) {
 
 // A new file in an area with competing patterns is the user's choice, asked
 // by implement before writing code; a pattern the spec or ticket already
-// records is reused instead of asked again.
+// records is reused instead of asked again. An old and a new pattern side by
+// side is that question, not a local convention the agent picks from.
 func TestImplementReusesARecordedStyleChoice(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
 	mustContain(t, implement, "**ask the user** which style to use, unless the spec/ticket already records the chosen pattern.")
+	mustContain(t, implement, "A new file has no file gravity of its own")
 	toSpec := readFile(t, filepath.Join(repoRoot, "skills", "to-spec", "SKILL.md"))
 	mustNotContain(t, toSpec, "Style Choice for New Files")
 }
