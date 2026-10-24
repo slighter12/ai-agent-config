@@ -650,7 +650,7 @@ func TestSkillsGateLoadsOnObservableConditions(t *testing.T) {
 	mustContain(t, read("codebase-design", "SKILL.md"), "When a Scrap Signal fired, the interface is exported across packages or modules, or the user asks for alternative designs")
 	implement := read("implement", "SKILL.md")
 	mustContain(t, implement, "When two or more frontier tickets touch the same module or file")
-	mustContain(t, implement, "Always start an append-only decision trail")
+	mustContain(t, implement, "create the append-only decision trail")
 	mustNotContain(t, read("teach", "SKILL.md"), "well-populated")
 	mustNotContain(t, read("diagnosing-bugs", "SKILL.md"), "explicitly justified")
 	mustNotContain(t, read("improve-codebase-architecture", "SKILL.md"), "**Benefits**")
@@ -819,6 +819,36 @@ func TestAskMattAnswersWithARouteNotASolution(t *testing.T) {
 	mustContain(t, router, "Do not solve the problem, compare implementation options, propose code, or edit files")
 	mustContain(t, router, "reads as a command")
 	mustContain(t, router, "Stop after the recommendation")
+	mustContain(t, router, "This holds for every turn of the conversation `/ask-matt` started")
+	mustContain(t, router, "When the user answers a question or picks a menu option you offered")
+	mustContain(t, router, "`/implement <target> (Agency Gate: b)`")
+	mustContain(t, router, "it never authorizes starting the work here")
+}
+
+// ask-matt decides the scale before the project state, so an ADR conflict
+// never pulls a foggy multi-session effort off /wayfinder, and a split spec
+// goes to implement whole instead of one ticket at a time.
+func TestAskMattPicksTheRouteByScaleFirst(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	router := readFile(t, filepath.Join(repoRoot, "skills", "ask-matt", "SKILL.md"))
+	mustContain(t, router, "Decide the scale before the project state; the project state never changes it.")
+	mustContain(t, router, "A foggy multi-session effort routes to `/wayfinder` first, even in State 2 or State 4")
+	mustContain(t, router, "Start with `/wayfinder` instead of step 1")
+	mustContain(t, router, "recommend `/implement <spec>`, not one `/implement` per ticket, however small the tickets are")
+	mustContain(t, router, "if the user declines, it builds the children one at a time in `Blocked by` order")
+	mustNotContain(t, router, "`/implement 01`")
+}
+
+// Mode B creates its decision trail with the integration branch and writes a
+// row at each merge, so the trail has a step that cannot be skipped silently.
+func TestImplementWritesTheDecisionTrailAtObservableSteps(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
+	mustContain(t, implement, "**Create the Integration Branch and Its Decision Trail**")
+	mustContain(t, implement, "before the first dispatch, create the append-only decision trail `.scratch/<feature-slug>/decisions.tsv`")
+	mustContain(t, implement, "Right after each fast-forward merge, append its `decisions.tsv` row")
+	mustContain(t, implement, "A Mode B run without these rows is not finished.")
+	mustNotContain(t, implement, "**Shared Exploration and Decision Trail**")
 }
 
 // Reference files and callers point at the single source instead of
