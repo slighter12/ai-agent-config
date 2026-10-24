@@ -820,22 +820,27 @@ func TestAskMattAnswersWithARouteNotASolution(t *testing.T) {
 	mustContain(t, router, "reads as a command")
 	mustContain(t, router, "Stop after the recommendation")
 	mustContain(t, router, "This holds for every turn of the conversation `/ask-matt` started")
-	mustContain(t, router, "When the user answers a question or picks a menu option you offered")
-	mustContain(t, router, "`/implement <target> (Agency Gate: b)`")
+	mustContain(t, router, "When the user answers a question you asked, the reply is still a route")
 	mustContain(t, router, "it never authorizes starting the work here")
 }
 
-// ask-matt decides the scale before the project state, so an ADR conflict
-// never pulls a foggy multi-session effort off /wayfinder, and a split spec
-// goes to implement whole instead of one ticket at a time.
-func TestAskMattPicksTheRouteByScaleFirst(t *testing.T) {
+// ask-matt routes by where the work stands, using each skill's own entry
+// condition. Project state belongs to /implement, so an ADR conflict never
+// pulls a multi-session effort off /wayfinder, a well-scoped feature never
+// lands there, and a split spec goes to implement whole.
+func TestAskMattRoutesByWhereTheWorkStands(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	router := readFile(t, filepath.Join(repoRoot, "skills", "ask-matt", "SKILL.md"))
-	mustContain(t, router, "Decide the scale before the project state; the project state never changes it.")
-	mustContain(t, router, "A foggy multi-session effort routes to `/wayfinder` first, even in State 2 or State 4")
-	mustContain(t, router, "Start with `/wayfinder` instead of step 1")
+	mustContain(t, router, "## Routing Questions")
+	mustContain(t, router, "the first one that applies picks the route")
+	mustContain(t, router, "**Can one session hold the open decisions?**")
+	mustContain(t, router, "A well-scoped feature never goes here, however many design questions it has: those are grilling questions.")
+	mustContain(t, router, "**Project state belongs to `/implement`.** Do not classify the 6 project states or present the Agency Gate Menu here")
 	mustContain(t, router, "recommend `/implement <spec>`, not one `/implement` per ticket, however small the tickets are")
 	mustContain(t, router, "if the user declines, it builds the children one at a time in `Blocked by` order")
+	mustNotContain(t, router, "**Project state**:")
+	mustNotContain(t, router, "**Scale**:")
+	mustNotContain(t, router, "(Agency Gate: b)")
 	mustNotContain(t, router, "`/implement 01`")
 }
 
