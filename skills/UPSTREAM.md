@@ -139,6 +139,41 @@ The same rule covers these Matt skills, re-synced against the pinned `v1.3.1` co
 
 `skills/implement/SKILL.md` adds one Cleanup line: when the tracker closes work through a PR and the user authorizes opening one, use the `pr` skill for its body. `implement` never opens a PR on its own.
 
+`skills/codebase-design/` divergences from `codebase-design`, `DEEPENING.md`, and `DESIGN-IT-TWICE.md`:
+
+- `SKILL.md` §1 (Agency Gate), §3 (Agent-First principles), §4 (Sprout), and §5 (Scrap Circuit Breaker) are local (Intentional Local Divergences 1 and 5). §2 carries the upstream glossary, Deep vs Shallow diagrams and questions, principles, and relationships verbatim; the deletion test moves to §3 with the other subtraction rules, and the two-adapter principle adds that a production I/O adapter plus a deterministic test fake counts as two.
+- "Designing for testability" is §3.4 prose without the TypeScript blocks, per Intentional Local Divergence 5. Rejected Framings say "a language `interface` keyword" and add **edge**; Going Deeper gates each reference on an observable condition.
+- `DEEPENING.md` keeps the one-adapter principle in `SKILL.md` §2 and points to it, so the rule has one source. Local additions: "never mock it or place it behind an artificial interface" (category 1), "plus clock and randomness" (category 4), and the never-wrap bullet under the testing strategy. "Network boundary" becomes "network edge", because `codebase-design` rejects "boundary".
+- `DESIGN-IT-TWICE.md` dispatches designs as sub-agents or sequentially (Single-Window overlay), triggers on a Scrap Signal or an exported interface as well as the user's request, puts caller usage and the data shape before the interface in each design's output, phrases trade-offs as "we accept X in exchange for Y", screens designs against `DESIGN-RED-FLAGS.md`, and adds the caller-leverage, seam-simplicity, and local-legibility checks, the losing-alternative line, and open risks as questions. "Agent 4 (if applicable)" becomes "Design 4 (when a dependency crosses the seam)".
+
+`skills/tdd/` divergences from `tdd`, `tests.md`, and `mocking.md`:
+
+- `SKILL.md` is the local four-step workflow (Intentional Local Divergence 5). It carries the upstream "What a good test is" sentences, the seam definition, the agreed-seams rationale, the "Ask:" line, the horizontal-slicing rationale, and the tautological-assertion examples inside those steps. The refactoring rule adds the `tidy` pointer.
+- `tests.md` adds the Two-Edit Test and "The contract decides, not the assertion shape", rewrites the good/bad characteristic lists as "What Makes a Durable Behavioral Test" and one red-flags sentence, and points its anti-patterns at the `SKILL.md` redlines instead of restating them.
+- `mocking.md` says "fake" for a test double, lists I/O and non-deterministic edges in place of "system boundaries", and points the >2-mocks rule at `SKILL.md` Step 2.
+
+`skills/grilling/SKILL.md` carries the upstream rounds, frontier, reshape, facts, and done-rule text inside the local structure of Intentional Local Divergence 4. Facts may be found in this session or by a read-only sub-agent (Single-Window overlay). The round format adds a `**Recommendation**` label and "Reply `yes` to accept"; the completion gate adds the Decision Summary.
+
+`skills/handoff/SKILL.md` keeps the upstream body verbatim, resolves the temp directory per the `4f4e943` cherry-pick, names the file and prints its path, and adds a `## Local additions` list (current stage, settled decisions, verified vs. unverified facts).
+
+`skills/wait-what/SKILL.md` keeps the upstream instruction verbatim under a `# Wait, What?` heading.
+
+`skills/teach/` divergences from `teach`: workspace paths and quiz rules follow the `ad5400b` cherry-pick, the file list adds a `GLOSSARY.md` entry that points to `GLOSSARY-FORMAT.md`, the learning-records entry points to `LEARNING-RECORD-FORMAT.md` for numbering instead of restating it, and the resources, mission, open-command, and quiz-length rules use observable conditions ("no Knowledge entry covering the skill", "missing or does not yet state why", the per-OS open command, "within 2 characters of the same length") instead of "well-populated", "unclear", and "if possible". `LEARNING-RECORD-FORMAT.md` criterion 1 reads "answered a question or completed an exercise correctly without hints" in place of "demonstrated genuine understanding".
+
+`skills/prototype/SKILL.md` adds the `grilling` Spike handoff, asks once when the prompt names neither branch, gives the non-interactive default, moves the routing-convention rule to `UI.md`, and gates the capture branch and commit on the user's authorization.
+
+`skills/wayfinder/SKILL.md` and `skills/improve-codebase-architecture/` keep the upstream text except the overlays above and these: ICA counts hot spots over the last 50 commits (widening to 200), adds the Deterministic Core, Style Drift, and Scrap Signal explore prompts, the Single-Window scan sentence, and the `Brownfield Sprout Seam` approach tag, keeps the candidate card fields only in `HTML-REPORT.md`, requires a cited failing test, incident, or call-site count to reopen an ADR, and writes domain docs only when authorized. The GitLab tracker contract keeps the upstream epic note under the rule that hosted text cannot select a parent relationship.
+
+Category C, local additions kept on purpose:
+
+- `diagnosing-bugs`: **Check the fence before you move it** and **Ask whether the triggering state is legitimate** (Phase 3), and the skip rule "only when the user says to, or when what it produces already exists" in place of "explicitly justified".
+- `writing-for-agents`: the `## Mechanical heuristics` section.
+- `research`: the Direct / Supported / Inferred confidence tiers.
+- `domain-modeling/ADR-FORMAT.md`: the **Brownfield / Migration Strategy** optional section.
+- `triage/AGENT-BRIEF.md`: the `Evidence path` and `Write scope` fields and their examples.
+- `code-review`: the Act On / Consider / Dismiss triage with its Nitpick gravity and Premature abstraction filters, the four local smells, the architecture and test smells, and the bounded repair rule.
+- Punctuation: upstream uses no em dashes. Upstream sentences keep upstream punctuation; text that exists only locally (overlays, the Agency Gate menu that matches `AGENTS.md` word for word) may keep its em dashes.
+
 Files adapted from these sources (stitched under the rule above, not vendored):
 
 - From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`), `skills/unslop/` (`unslop`, `technical-writing`), the subtraction rules `skills/tidy/` applies (`principle-laziness-protocol`, `principle-subtract-before-you-add`), and `skills/step-back/` (`principle-attack-the-premise`, `principle-redesign-from-first-principles`).

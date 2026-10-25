@@ -32,7 +32,9 @@ function processPayment(order) {
 }
 ```
 
-**2. Prefer SDK-style interfaces over generic fetchers**: one function per external operation, so each fake returns one specific shape with no conditional logic in test setup, and the test shows which endpoints it exercises.
+**2. Prefer SDK-style interfaces over generic fetchers**
+
+Create specific functions for each external operation instead of one generic function with conditional logic:
 
 ```typescript
 // GOOD: Each function is independently fakeable
@@ -47,3 +49,9 @@ const api = {
   fetch: (endpoint, options) => fetch(endpoint, options),
 };
 ```
+
+The SDK approach means:
+- Each fake returns one specific shape
+- No conditional logic in test setup
+- Easier to see which endpoints a test exercises
+- Type safety per endpoint

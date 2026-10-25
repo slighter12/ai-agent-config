@@ -9,7 +9,7 @@ metadata:
 
 Verify behavior through the tightest, most durable feedback loop that matches the architectural layer you are changing. Keep the test suite lean, behavioral, and 100% language-agnostic.
 
-A good test verifies behavior through a public interface and reads like a specification of a capability, so it survives refactors. Before writing the first test, read [tests.md](tests.md) for good and bad examples; before adding any test double, read [mocking.md](mocking.md). When no seam was agreed before Step 3, or the test needs a new or changed exported interface, use the `codebase-design` skill to decide how deep the module is and where the seam belongs.
+Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification: "user can checkout with valid cart" tells you exactly what capability exists, and it survives refactors because it doesn't care about internal structure. Before writing the first test, read [tests.md](tests.md) for good and bad examples; before adding any test double, read [mocking.md](mocking.md). When no seam was agreed before Step 3, or the test needs a new or changed exported interface, use the `codebase-design` skill to decide how deep the module is and where the seam belongs.
 
 ## Step 1: Pre-Flight Context, Agency & Layer Routing Gate
 
@@ -46,7 +46,7 @@ Apply these four low-reasoning structural checks to every test you write:
    * If your test sets up **more than 2 mocks/stubs**, OR if its assertions **only check that an internal dependency was called** (`mock.calledWith`) without asserting a returned value, state transition, or error result -> **STOP. Delete the unit test.** Either test at a higher seam or verify via runtime execution.
    * The request a true external system observes counts as an outcome when the contract promises it; assert it with a paired positive case ([tests.md](tests.md#the-two-edit-test)).
 4. **Real-Input & Tautology Guard**:
-   * **No Tautological Expected Values**: Expected values in assertions must be concrete literals or spec-derived outcomes, never recomputed by copying the production formula into the test.
+   * **No Tautological Expected Values**: the assertion must not recompute the expected value the way the code does (`expect(add(a, b)).toBe(a + b)`, a snapshot derived by hand the same way, a constant asserted equal to itself), because it passes by construction and can never disagree with the code. Expected values must come from an independent source of truth: a known-good literal, a worked example, the spec.
    * **No Normalized Bug Inputs**: When replaying a real failing input or production call, never strip out flags, paths, or preconditions just to make the fixture easier to construct. If removing your production fix does not turn the test red, the test is vacuous.
    * **Explain the Number**: Before writing a test or benchmark that asserts a performance, latency, throughput, or allocation target, use the `diagnosing-bugs` skill and read its `PERF.md` checklist.
 
@@ -54,11 +54,11 @@ Apply these four low-reasoning structural checks to every test you write:
 
 When running Seam-Level TDD:
 
-1. **Confirm the Seam**: If the spec or ticket already pre-agreed the test seam, use it. Otherwise propose the public function/interface seam you will test at, give each proposed seam one line on what it catches and what it misses, and **wait for the user to confirm it** before writing the first test. When running as a `builder` subagent, return the proposed seams as a pause instead of waiting.
+1. **Confirm the Seam**: A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside. Tests live at seams, never against internals. You can't test everything, so agreeing the seams up front is how testing effort lands on the critical paths and complex logic instead of every edge case. Ask: "What's the public interface, and which seams should we test?" If the spec or ticket already pre-agreed the test seam, use it. Otherwise propose the public function/interface seam you will test at, give each proposed seam one line on what it catches and what it misses, and **wait for the user to confirm it** before writing the first test. When running as a `builder` subagent, return the proposed seams as a pause instead of waiting.
 2. **One Tracer-Bullet Slice at a Time**:
    * **Red**: Write **one** behavioral test at the agreed seam. Run the single test file and confirm it fails on the expected behavior (not a syntax or import error).
    * **Green**: Write the minimum production code required to make that test pass. Do not write code for future test cases yet.
-   * Repeat one behavior at a time. Never write a batch of 10 failing tests upfront (horizontal slicing): bulk tests verify *imagined* behavior and lock in test structure before you understand the implementation. Each test is a **tracer bullet** that responds to what the last cycle taught you.
+   * Repeat one behavior at a time. Never write a batch of 10 failing tests upfront (horizontal slicing). Bulk tests verify _imagined_ behavior: you test the _shape_ of things rather than user-facing behavior, the tests go insensitive to real changes, and you commit to test structure before understanding the implementation. Each test is a **tracer bullet** that responds to what the last cycle taught you.
    * **Attack the Premise**: If two fixes or tests built on the same premise fail, stop patching and use the `diagnosing-bugs` skill to attack the premise before the next attempt.
 3. **Refactoring Is Not Part of the Loop**: Do not restructure code during red → green. Structural refactoring belongs to the review stage (`code-review`) or a separate, explicitly agreed tidy step. For any structural cleanup beyond renaming a local variable or helper in the file you just touched, use the `tidy` skill so every transformation stays behavior-preserving, test-gated, and separate from behavioral commits.
 

@@ -19,15 +19,15 @@ If the redacted output is not enough to diagnose the bug, say so and ask the use
 
 Keep repository-tracked files, the index, history, and external systems unchanged when the request is diagnosis-only. Trusted local tests and inspection may run inside the repository's ordinary read-only boundary. Before using real credentials, sending external traffic, driving a non-local browser, changing git state (including checkout or bisect), or adding production/staging instrumentation, preview the exact operation and obtain explicit authorization. Run authorized external or trace-replay probes in a disposable, credential-free, no-host-write, network-disabled environment whenever the probe itself does not require the relevant capability; otherwise state the minimum capability required and wait for approval.
 
-## Phase 1 — Build a feedback loop
+## Phase 1: Build a feedback loop
 
-**This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug — one that goes red on _this_ bug — you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
+**This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug (one that goes red on _this_ bug), you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
 
 Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give up.**
 
 ### Ways to construct one — try them in roughly this order
 
-1. **Failing test** at whatever seam reaches the bug — unit, integration, e2e.
+1. **Failing test** at whatever seam reaches the bug: unit, integration, e2e.
 2. **Curl / HTTP script** against an authorized local dev server.
 3. **CLI invocation** with a fixture input, diffing stdout against a known-good snapshot.
 4. **Headless browser script** (Playwright / Puppeteer) — drives an authorized local UI and asserts on DOM/console/network.
@@ -48,7 +48,7 @@ Treat the loop as a product. Once you have _a_ loop, **tighten** it:
 - Can I make the signal sharper? (Assert on the specific symptom, not "didn't crash".)
 - Can I make it more deterministic? (Pin time, seed RNG, isolate filesystem, freeze network.)
 
-A 30-second flaky loop is barely better than no loop; a 2-second deterministic one is tight — a debugging superpower.
+A 30-second flaky loop is barely better than no loop; a 2-second deterministic one is tight, a debugging superpower.
 
 ### Non-deterministic bugs
 
@@ -58,24 +58,24 @@ The goal is not a clean repro but a **higher reproduction rate**. Loop the trigg
 
 Stop and say so explicitly. List what you tried. Ask the user for: (a) access to whatever environment reproduces it, (b) a redacted captured artifact (HAR file, log dump, core dump, screen recording with timestamps), or (c) permission to add temporary production instrumentation. Do **not** proceed to hypothesise without a loop.
 
-### Completion criterion — a tight loop that goes red
+### Completion criterion: a tight loop that goes red
 
 Phase 1 is done when the loop is **tight** and **red-capable** within the authorized boundary: you can name **one command** — a script path, a test invocation, or an authorized local request — that you have **already run at least once** (show the invocation and its output, redacted), and that is:
 
-- [ ] **Red-capable** — it drives the actual bug code path and asserts the **user's exact symptom**, so it can go red on this bug and green once fixed. Not "runs without erroring" — it must be able to _catch this specific bug_.
-- [ ] **Deterministic** — same verdict every run (flaky bugs: a pinned, high reproduction rate, per above).
-- [ ] **Fast** — seconds, not minutes.
-- [ ] **Agent-runnable** — you can run it unattended; a human in the loop only via `scripts/hitl-loop.template.sh`.
+- [ ] **Red-capable**: it drives the actual bug code path and asserts the **user's exact symptom**, so it can go red on this bug and green once fixed. Not "runs without erroring"; it must be able to _catch this specific bug_.
+- [ ] **Deterministic**: same verdict every run (flaky bugs: a pinned, high reproduction rate, per above).
+- [ ] **Fast**: seconds, not minutes.
+- [ ] **Agent-runnable**: you can run it unattended; a human in the loop only via `scripts/hitl-loop.template.sh`.
 
 If the only credible loop requires an unauthorized credential, external request, git-state change, or instrumentation write, stop and request that exact authority rather than running it. If you catch yourself reading code to build a theory before a safe or authorized command exists, **stop — jumping straight to a hypothesis is the exact failure this skill prevents.** No red-capable command, no Phase 2.
 
-## Phase 2 — Reproduce + minimise
+## Phase 2: Reproduce + minimise
 
 Run the loop. Watch it go red — the bug appears.
 
 Confirm:
 
-- [ ] The loop produces the failure mode the **user** described — not a different failure that happens to be nearby. Wrong bug = wrong fix.
+- [ ] The loop produces the failure mode the **user** described, not a different failure that happens to be nearby. Wrong bug = wrong fix.
 - [ ] The failure is reproducible across multiple runs (or, for non-deterministic bugs, reproducible at a high enough rate to debug against).
 - [ ] You have captured the exact symptom (error message, wrong output, slow timing) so later phases can verify the fix actually addresses it.
 
@@ -85,11 +85,11 @@ Once it's red, shrink the repro to the **smallest scenario that still goes red**
 
 Why bother: a minimal repro shrinks the hypothesis space in Phase 3 (fewer moving parts left to suspect) and becomes the clean regression test in Phase 5.
 
-Done when **every remaining element is load-bearing** — removing any one of them makes the loop go green.
+Done when **every remaining element is load-bearing**: removing any one of them makes the loop go green.
 
 Do not proceed until you have reproduced **and** minimised.
 
-## Phase 3 — Hypothesise
+## Phase 3: Hypothesise
 
 Generate **3–5 ranked hypotheses** before testing any of them. Single-hypothesis generation anchors on the first plausible idea.
 
@@ -97,7 +97,7 @@ Each hypothesis must be **falsifiable**: state the prediction it makes.
 
 > Format: "If <X> is the cause, then <changing Y> will make the bug disappear / <changing Z> will make it worse."
 
-If you cannot state the prediction, the hypothesis is a vibe — discard or sharpen it.
+If you cannot state the prediction, the hypothesis is a vibe: discard or sharpen it.
 
 **Check the fence before you move it.** When a hypothesis blames legacy logic that looks wrong or redundant, read why it exists first — `git log -S '<snippet>'`, `git blame`, and `docs/adr/` — and fold the constraint it was guarding into that hypothesis's prediction. These are read-only history queries.
 
@@ -116,9 +116,9 @@ If you cannot state the prediction, the hypothesis is a vibe — discard or shar
 
 **Stop**: Do not start the next fix before the premise is written down and tested.
 
-**Show the ranked list to the user before testing.** They often have domain knowledge that re-ranks instantly ("we just deployed a change to #3"), or know hypotheses they've already ruled out. Cheap checkpoint, big time saver. Don't block on it — proceed with your ranking if the user is AFK.
+**Show the ranked list to the user before testing.** They often have domain knowledge that re-ranks instantly ("we just deployed a change to #3"), or know hypotheses they've already ruled out. Cheap checkpoint, big time saver. Don't block on it; proceed with your ranking if the user is AFK.
 
-## Phase 4 — Instrument
+## Phase 4: Instrument
 
 Each probe must map to a specific prediction from Phase 3. **Change one variable at a time.**
 
@@ -132,13 +132,13 @@ Tool preference:
 
 **Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second. Vet the baseline and every later number with [PERF.md](PERF.md), and try its fix order cheapest first.
 
-## Phase 5 — Fix + regression test
+## Phase 5: Fix + regression test
 
 Enter this phase only when the enclosing request authorizes a fix. Otherwise stop after the evidence identifies the root cause, report confidence and the smallest credible fix direction, and leave the workspace unchanged.
 
 Ship only what the evidence justifies. A belt-and-suspenders change that "might help" is an untested hypothesis, not a fix, and does not ship. When evidence refutes a hypothesis, revert every change it motivated.
 
-Write the regression test **before the fix** — but only if there is a **correct seam** for it.
+Write the regression test **before the fix**, but only if there is a **correct seam** for it.
 
 A correct seam is one where the test exercises the **real bug pattern** as it occurs at the call site. If the only available seam is too shallow (single-caller test when the bug needs multiple callers, unit test that can't replicate the chain that triggered the bug), a regression test there gives false confidence.
 
@@ -153,7 +153,7 @@ If a correct seam exists:
 5. Re-run the Phase 1 feedback loop against the original (un-minimised) scenario, on the same surface where the user saw the symptom. An inconclusive run or a different surface is not a pass; say so. Unit tests show branch behavior, not bug absence.
 6. When the request authorizes commits, commit the failing regression test before the fix, so history shows red then green.
 
-## Phase 6 — Cleanup
+## Phase 6: Cleanup
 
 Required before declaring done:
 
@@ -162,7 +162,7 @@ Required before declaring done:
 - [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
 - [ ] Changes motivated by refuted hypotheses are reverted
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
-- [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
+- [ ] The hypothesis that turned out correct is stated in the commit / PR message, so the next debugger learns
 - [ ] Sibling instances of the same bug pattern are searched for in the module and repo and listed; fix them only when the request authorizes that wider scope
 - [ ] The summary names the cheapest layer that would have blocked this bug class — a type, a linter/compiler check, or a test seam — or a Brownfield Sprout when the legacy file has no clean seam
 - [ ] If the deciding fact took a deep dig to find, the summary proposes the cheap, always-on signal (a log line, metric, or assertion) that would have shown it at first look

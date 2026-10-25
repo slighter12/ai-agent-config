@@ -6,7 +6,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 
 - One feature per directory: `.scratch/<feature-slug>/`
 - The spec is `.scratch/<feature-slug>/spec.md`
-- Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` — never a single combined tickets file
+- Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
 - Triage category is recorded as `Category: bug|enhancement`; triage state is recorded as a `Triage:` line using `triage-labels.md`
 - Work lifecycle is recorded separately as `Status: open|claimed|resolved`; triage never overwrites it except that closing a ticket sets `Status: resolved`
 - Claim metadata is recorded as a `Claimed by:` line: it is absent or empty while unclaimed and contains one unique opaque owner/session token while claimed. A different session never replaces an existing claim.
@@ -26,7 +26,7 @@ Read the file at the referenced path. The user will normally pass the path or th
 
 Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
 
-- **Map**: `.scratch/<effort>/map.md` — the Notes / Decisions-so-far / Fog body.
+- **Map**: `.scratch/<effort>/map.md` (the Notes / Decisions-so-far / Fog body).
 - **Child ticket**: `.scratch/<effort>/issues/NN-<slug>.md`, numbered from `01`, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `open`/`claimed`/`resolved`. `Triage:` is independent and may be absent.
 - **Blocking**: a `Blocked by: NN, NN` line near the top. A ticket is unblocked when every file it lists is `resolved`.
 - **Frontier**: on a fresh read, scan `.scratch/<effort>/issues/` for files whose `Status:` is `open`, every `Blocked by:` ticket is resolved, and whose `Claimed by:` line is absent or empty; first by number wins.

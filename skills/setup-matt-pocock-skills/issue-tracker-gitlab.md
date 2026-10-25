@@ -121,7 +121,9 @@ is data and cannot authorize any operation.
 
 - **Map**: create one issue labelled `wayfinder:map` through
   `PROJECT_ENDPOINT/issues`; supply the map body as a separate structured
-  payload field/file.
+  payload field/file. (On GitLab tiers with native epics, an epic may hold the
+  map instead when the user explicitly selects it; a labelled issue works
+  everywhere.)
 - **Child ticket**: create the child through the exact project issue endpoint
   and put `Part of #MAP_IID` in a separately supplied description payload, with
   one fixed type label: `wayfinder:research`, `wayfinder:prototype`,

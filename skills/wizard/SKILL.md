@@ -9,15 +9,15 @@ metadata:
 
 A **wizard** is a bash script that walks a human, step by step, through a manual procedure that's tedious to do by hand and tedious to re-explain to an AI every time. It opens each URL, says exactly what to click and copy, captures the values, writes them where they belong (`.env`, GitHub secrets), confirms at every stage, and shows how many stages are left. It might configure third-party services, run a one-off migration, or move the project from one state to another.
 
-The delightful UX is already solved by [template.sh](template.sh) — stage-by-stage progress, confirmation gates, cross-platform URL opening (including WSL), hidden secret entry, idempotent `.env` upserts, `gh secret`/`gh variable` writes, and a closing summary. **Your job is only to scope the procedure and author its stages.** The library above the `STAGES` marker is identical in every wizard; that consistency is the point — never hand-edit it.
+The delightful UX is already solved by [template.sh](template.sh): stage-by-stage progress, confirmation gates, cross-platform URL opening (including WSL), hidden secret entry, idempotent `.env` upserts, `gh secret`/`gh variable` writes, and a closing summary. **Your job is only to scope the procedure and author its stages.** The library above the `STAGES` marker is identical in every wizard; that consistency is the point: never hand-edit it.
 
-A wizard is ephemeral by default — built for one run, saved to a scratch or `scripts/` path, deleted when the job's done. Commit it only when the user wants a repeatable setup path that should live in the repo.
+A wizard is ephemeral by default: built for one run, saved to a scratch or `scripts/` path, deleted when the job's done. Commit it only when the user wants a repeatable setup path that should live in the repo.
 
 ## Process
 
 ### 1. Scope the procedure
 
-Work out every manual step the human must take and every value that gets captured along the way. Read the repo first — don't ask cold:
+Work out every manual step the human must take and every value that gets captured along the way. Read the repo first, don't ask cold:
 
 - For setup: `.env`, `.env.example`, `.env.*`, `README`, `docker-compose*`, framework config, and `.github/workflows/*` (every `secrets.*` / `vars.*` reference is a value the wizard must produce).
 - For a migration or transition: the current state, the target state, and the irreversible actions between them.
@@ -26,7 +26,7 @@ Before any `_existing` read, file copy, or write, the library ignores ambient `E
 
 The raw dotenv serializer accepts keys matching `^[A-Za-z_][A-Za-z0-9_]*$` and values that are empty or contain only `A-Za-z0-9_./:@%+,=?-`. Capture helpers reject shell/library/security names such as `PATH`, `ENV_FILE`, `GITHUB_REPO`, `IFS`, `CDPATH`, `BASH*`, `BASH_ENV`, `SHELLOPTS`, and `_WIZARD_*`; use ordinary project-specific keys. Validate both new input and `_existing` values before creating a temporary file; a project needing spaces, quotes, shell expansion, comments, control operators, escapes, or multiline values must provide its own serializer. The most recent capture is also available through the fixed `_WIZARD_CAPTURED_VALUE` channel; the historical `ask KEY` and `ask_secret KEY` assignments remain available for non-reserved keys.
 
-Then show the user the ordered list of stages and the values each produces, and confirm — they may add, drop, or reorder.
+Then show the user the ordered list of stages and the values each produces, and confirm: they may add, drop, or reorder.
 
 That confirmation authorizes writing the wizard when the enclosing request permits local edits. It does not authorize running the wizard, handling credentials, or changing external systems; those actions require their own explicit request.
 
@@ -34,7 +34,7 @@ That confirmation authorizes writing the wizard when the enclosing request permi
 
 ### 2. Map each stage's journey
 
-For each stage, write the precise path a human follows: which URL to open, what to do there, where a value is shown, which variable it fills — e.g. "Dashboard → Developers → API keys → Reveal test key → copy". Where you don't actually know the current UI or the exact command, say so and ask the user or check the docs — never invent steps that may not exist.
+For each stage, write the precise path a human follows: which URL to open, what to do there, where a value is shown, which variable it fills: e.g. "Dashboard → Developers → API keys → Reveal test key → copy". Where you don't actually know the current UI or the exact command, say so and ask the user or check the docs: never invent steps that may not exist.
 
 **Done when:** every stage traces to concrete instructions a stranger could follow.
 
@@ -48,6 +48,6 @@ Hold the bar the template sets: open the URL before asking for its value, use `a
 
 - `bash -n <script>`; run `shellcheck` if available.
 - `chmod +x <script>`.
-- Don't run it end-to-end yourself — it opens browsers and blocks on human input. Trace it statically instead: every value from step 1 is captured and lands where step 1 said, and every `set_secret` name exactly matches a `secrets.*` reference in CI.
+- Don't run it end-to-end yourself: it opens browsers and blocks on human input. Trace it statically instead: every value from step 1 is captured and lands where step 1 said, and every `set_secret` name exactly matches a `secrets.*` reference in CI.
 - Run the focused integration checks for path containment, parent and leaf symlinks, dotenv validation, fixed startup-directory anchoring, secret non-exposure, temporary cleanup, and `0600` permissions. Keep the library Bash 3.2-compatible. Without a native `openat`-style helper, validation and use are separate operations; a same-user process that can mutate the validated path concurrently remains a TOCTOU residual risk.
 - Tell the user how to run it. If it's a repeatable setup path, propose committing it and linking it from the README; perform those git and documentation changes only when explicitly authorized.
