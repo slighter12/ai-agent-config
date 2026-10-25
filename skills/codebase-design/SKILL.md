@@ -51,7 +51,18 @@ Use these terms exactly across specs, reviews, and code discussions; don't subst
    * Place input validation, parsing, type narrowing, and I/O orchestration at the thin outer edge (HTTP/CLI/RPC handlers, storage adapters).
    * Keep domain rules and state transitions inside a deterministic core that takes plain inputs (or narrow port interfaces at the I/O edge) and returns explicit results/errors.
    * **The Deletion Test**: Imagine deleting an intermediate layer or helper. If complexity disappears instead of reappearing across `N` callers, that layer was shallow pass-through boilerplate — inline it.
-   * **Subtract Before You Add**: Before adding a parameter, flag, or wrapper, delete the dead paths and collapse the single-caller wrappers it would touch, so the change lands on a smaller base. Subtraction stops at meaning: do not inline away a name that carries intent, merge unrelated logic into one function, or remove a seam that serves testability.
+   * **Subtract Before You Add**: When evolving a system, remove complexity first, then build. Default to subtraction. Make simplification a continual investment. Leave the design slightly simpler and more capable behind the same or smaller surface than you found it.
+     * Sequence removal before construction
+     * Cut before you polish (get to the minimum before investing in quality)
+     * Design for observed usage, not speculative edge cases
+     * No speculative validators, parsers, or guards beyond what the spec demands
+     * Simplify prompts (remove redundant instructions, excessive templates)
+     * When a reference has no novel content, delete it rather than leaving a stub
+     * Before adding a parameter, flag, or wrapper, delete the dead paths and collapse the single-caller wrappers it would touch, so the change lands on a smaller base.
+     * Subtraction stops at meaning: do not inline away a name that carries intent, merge unrelated logic into one function, or remove a seam that serves testability.
+   * **Laziness Protocol**:
+     * **Consolidate decisions.** Do not repeat the same choice in several places. Put it behind one source of truth and pass the result as a simple flag.
+     * **Minimize the diff.** Make the smallest change that solves the problem. Fewer lines beat "elegant" boilerplate.
 3. **Caller Usage & Data Shape First**:
    * Before writing signatures, write the most common caller's usage snippet, then the core data shape (types, state machine, or table registry) that makes illegal states unrepresentable. Parse external data into that shape once at the edge.
    * Derive the signatures from the caller usage, not the reverse.
