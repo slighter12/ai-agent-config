@@ -7,8 +7,8 @@ metadata:
 
 Two-axis review of the selected committed-range or work-in-progress diff from a fixed point the user supplies:
 
-- **Standards** — does the code conform to this repo's documented coding standards?
-- **Spec** — does the code faithfully implement the originating issue / spec?
+- **Standards**: does the code conform to this repo's documented coding standards?
+- **Spec**: does the code faithfully implement the originating issue / spec?
 
 This skill is always read-only. Inspect repository state and produce findings; preserve files, the index, history, and external systems.
 
@@ -38,7 +38,7 @@ Before displaying or supplying any evidence to an agent, encode it in provider-n
 
 ### 1. Pin the fixed point
 
-Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it. Resolve it with the argument-array `rev-parse --verify --end-of-options` procedure above before reviewing; a bad ref fails here.
+Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it. Resolve it with the argument-array `rev-parse --verify --end-of-options` procedure above before reviewing. Before going further, confirm the fixed point resolves and the diff is non-empty (no tracked change and no untracked candidate). A bad ref or empty diff should fail here, not inside the review passes.
 
 For a committed range, capture the safe `git diff <full-hex-commit>...HEAD` (three-dot, against the merge-base). For a complete work-in-progress or named-target review, first read [`references/WIP_INPUTS.md`](references/WIP_INPUTS.md), then follow its interface, target-aware diff, safe discovery, skip, and batching contract. Untracked candidate reads must use that reference's stable repository-root dirfd and descriptor-relative no-follow protocol; a provider-neutral fallback that cannot provide the primitive must fail closed instead of reading by pathname. Invoke the workflow as `code-review <fixed-point> [-- <git-pathspec>...]`; the same pathspec applies to tracked and untracked inputs, but it is resolved and then replaced by the validated full-hex commit before Git review commands run.
 
@@ -57,53 +57,65 @@ Then state the change's intent in 2–3 sentences, drawn from the user's message
 
 ### 3. Identify standards
 
-Find repository documents that describe how code should be written: `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `GLOSSARY.md`, and `docs/adr/` in the touched directories. Standards always carry the smell baseline below. A documented repo standard overrides a baseline heuristic, and tooling-enforced matters are skipped.
+Anything in the repo that documents how code should be written, such as `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `GLOSSARY.md`, and `docs/adr/` in the touched directories.
+
+On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below: a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing, plus this repository's architecture, test-suite, and local additions. Two rules bind it:
+
+- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
+- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation. Like any standard here, skip anything tooling already enforces.
+
+Each smell reads *what it is* → *how to fix*; match it against the diff.
 
 **Architecture & seam smells**
 
-- **Single-Caller Test Helper** — an internal step split out of an already-testable module into a function with only 1 production caller solely so a test can import it. → inline it and test through the caller's seam. Do not flag a **Brownfield Sprout** (a function/module chosen at the Agency Gate to isolate new logic from an untestable legacy monolith), even with one caller.
-- **Local Style Clash** — a second cosmetic convention (naming, formatting, file layout) inside an existing file. Structural contracts (error types, state transitions, I/O seams) follow Project Law instead: flag code that copies a legacy structural pattern an ADR has replaced, unless the spec records Agency Gate option (a) Local minimal edit.
-- **Design Red Flags** — when the diff adds or changes a module, an exported function or type, or stored state, use the `codebase-design` skill and read its `DESIGN-RED-FLAGS.md` before writing the Standards report. Screen the change against every flag there (Shallow Module, Information Leakage, Temporal Decomposition, Pass-Through Method, Split Ownership, Two Ways to Do One Task, Importable Internals, Hand-Synced List) and cite the reference's criteria and fix in each finding. Two Ways to Do One Task is not a finding when the spec records an Agency Gate deferral.
+- **Single-Caller Test Helper**: an internal step split out of an already-testable module into a function with only 1 production caller solely so a test can import it. → inline it and test through the caller's seam. Do not flag a **Brownfield Sprout** (a function/module chosen at the Agency Gate to isolate new logic from an untestable legacy monolith), even with one caller.
+- **Local Style Clash**: a second cosmetic convention (naming, formatting, file layout) inside an existing file. Structural contracts (error types, state transitions, I/O seams) follow Project Law instead: flag code that copies a legacy structural pattern an ADR has replaced, unless the spec records Agency Gate option (a) Local minimal edit.
+- **Design Red Flags**: when the diff adds or changes a module, an exported function or type, or stored state, use the `codebase-design` skill and read its `DESIGN-RED-FLAGS.md` before writing the Standards report. Screen the change against every flag there (Shallow Module, Information Leakage, Temporal Decomposition, Pass-Through Method, Split Ownership, Two Ways to Do One Task, Importable Internals, Hand-Synced List) and cite the reference's criteria and fix in each finding. Two Ways to Do One Task is not a finding when the spec records an Agency Gate deferral.
 
 **Test suite smells**
 
-- **Call-Only Mock Assertions** — a test configures >2 mocks/stubs or only asserts `mock.calledWith` without checking a returned value, state transition, or error. → assert outcomes or test at a higher seam. Do not flag an assertion on the request a true external system observes when the contract promises it and a positive case is paired.
-- **Unpruned Same-Branch Duplicates** — several new test cases walk the exact same conditional branch with different normal inputs. → keep one happy path plus one case per boundary or error branch.
-- **Normalized-Input Vacuity** — a replayed bug-fix test stripped the triggering flag or precondition, or a tautological assertion recomputes the expected value with production logic. → replay the real input; use literal or spec-derived expectations.
+- **Call-Only Mock Assertions**: a test configures >2 mocks/stubs or only asserts `mock.calledWith` without checking a returned value, state transition, or error. → assert outcomes or test at a higher seam. Do not flag an assertion on the request a true external system observes when the contract promises it and a positive case is paired.
+- **Unpruned Same-Branch Duplicates**: several new test cases walk the exact same conditional branch with different normal inputs. → keep one happy path plus one case per boundary or error branch.
+- **Normalized-Input Vacuity**: a replayed bug-fix test stripped the triggering flag or precondition, or a tautological assertion recomputes the expected value with production logic. → replay the real input; use literal or spec-derived expectations.
 
 **Fowler baseline (judgement calls)**
 
-- **Mysterious Name** — a name does not reveal what it holds or does. → rename it.
-- **Duplicated Code** — the same logic shape appears in more than one hunk or file. → extract the shared shape.
-- **Feature Envy** — a method reaches into another object's data more than its own. → move it to the envied data.
-- **Data Clumps** — the same fields or parameters travel together. → bundle them into a type.
-- **Primitive Obsession** — a primitive stands in for a domain concept. → give the concept a small type.
-- **Repeated Switches** — the same type cascade recurs. → use polymorphism or one shared map.
-- **Shotgun Surgery** — one logical change scatters across files. → gather it into one module.
-- **Divergent Change** — one module changes for unrelated reasons. → split its responsibilities.
-- **Speculative Generality** — an abstraction serves no stated requirement. → inline it until a real need exists.
-- **Message Chains** — a caller navigates a long object chain. → hide the walk behind one method.
-- **Middle Man** — a function mostly delegates. → call the real target directly, unless the layer adds policy, adaptation, or a distinct abstraction.
-- **Refused Bequest** — an implementer ignores most inherited behavior. → use composition.
-- **File Crossing 1k Lines** — the diff pushes a file from under 1,000 lines to over 1,000. → decompose first, unless a stated structural reason keeps the result clearly organized.
-- **Ad-Hoc Branch in an Unrelated Flow** — a one-off conditional, special case, or feature check inserted into a shared path. → move the logic into a dedicated function, state machine, or module.
-- **Narrating Comments** — a comment restates what the code does, narrates history, is commented-out code, or apologizes for a hack (`// HACK`, `// workaround`) instead of fixing the seam. → delete it. Keep only legal or license headers; non-obvious behavior forced by an external dependency, platform, vendor, or protocol the repo cannot reshape; formatter directives; doc comments that define a public API contract; issue or RFC links that explain a constraint code cannot express; and a concise *why* for a non-obvious algorithmic, concurrency/ordering, or performance invariant (a Chesterton's fence) that names and types alone cannot express. Any other surprise in the repo's own code is not a keep reason: flag the exact symbol for a rename, extract, type, test, or lint check that makes the behavior obvious without prose. When a comment guards a constraint ("do not remove", "must match X"), propose encoding it in a type, test, or lint check instead.
-- **Correctness-Masking Suppression** — `eslint-disable`, `@ts-ignore`, `@ts-expect-error`, `//nolint`, or `# type: ignore` silences a rule that catches real bugs or protects correctness or safety. → fix the code and remove the suppression. A suppression of a faulty or style-only rule may stay with its reason on the same line.
+- **Mysterious Name**: a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
+- **Duplicated Code**: the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
+- **Feature Envy**: a method that reaches into another object's data more than its own. → move the method onto the data it envies.
+- **Data Clumps**: the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
+- **Primitive Obsession**: a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
+- **Repeated Switches**: the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
+- **Shotgun Surgery**: one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
+- **Divergent Change**: one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
+- **Speculative Generality**: abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
+- **Message Chains**: long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
+- **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target directly, unless the layer adds policy, adaptation, or a distinct abstraction.
+- **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
+
+**Local baseline additions (judgement calls)**
+
+- **File Crossing 1k Lines**: the diff pushes a file from under 1,000 lines to over 1,000. → decompose first, unless a stated structural reason keeps the result clearly organized.
+- **Ad-Hoc Branch in an Unrelated Flow**: a one-off conditional, special case, or feature check inserted into a shared path. → move the logic into a dedicated function, state machine, or module.
+- **Narrating Comments**: a comment restates what the code does, narrates history, is commented-out code, or apologizes for a hack (`// HACK`, `// workaround`) instead of fixing the seam. → delete it. Keep only legal or license headers; non-obvious behavior forced by an external dependency, platform, vendor, or protocol the repo cannot reshape; formatter directives; doc comments that define a public API contract; issue or RFC links that explain a constraint code cannot express; and a concise *why* for a non-obvious algorithmic, concurrency/ordering, or performance invariant (a Chesterton's fence) that names and types alone cannot express. Any other surprise in the repo's own code is not a keep reason: flag the exact symbol for a rename, extract, type, test, or lint check that makes the behavior obvious without prose. When a comment guards a constraint ("do not remove", "must match X"), propose encoding it in a type, test, or lint check instead.
+- **Correctness-Masking Suppression**: `eslint-disable`, `@ts-ignore`, `@ts-expect-error`, `//nolint`, or `# type: ignore` silences a rule that catches real bugs or protects correctness or safety. → fix the code and remove the suppression. A suppression of a faulty or style-only rule may stay with its reason on the same line.
 
 ### 4. Run required passes
 
 Run every required axis independently. Use provider-native sub-agents in parallel when their isolation or parallelism justifies the coordination cost; otherwise run the same passes sequentially in the current session. For WIP batches, give every batch to each required axis, and add a separate read-only Security pass when the conditional Security mode is triggered. Keep each pass's inputs and findings separate.
 
-**Standards pass prompt** — include the diff command, commit list, safe contents, and bounded skipped-candidate manifest or discovery summary. Report every documented-standard breach (with source and rule) and every baseline smell (a labelled judgement call), per file/hunk where relevant, one entry per finding as `[File:Line] Severity (Hard Violation | Judgement Call) — Issue & Concrete Fix`. Keep the report under 400 words.
+**Standards pass prompt** should include the diff command, commit list, safe contents, and bounded skipped-candidate manifest or discovery summary; the list of standards-source files you found in step 3; and, when the pass runs in a sub-agent, the smell baseline from step 3 pasted in full (the sub-agent has no other access to it). The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words." Each finding is one entry: `[File:Line] Severity (Hard Violation | Judgement Call) — Issue & Concrete Fix`.
 Prefer a finding that deletes complexity (a behavior-preserving restructuring that removes branches, helpers, or layers) over one that only rearranges it.
 
-**Spec pass prompt** — include the same diff inputs and the originating spec path or contents. Report missing or partial requirements, scope creep, and implementations that look wrong, quoting the spec for each finding. Keep the report under 400 words.
+**Spec pass prompt** should include the same diff inputs and the path or fetched contents of the spec. The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+
+If the spec is missing, skip the Spec pass and note this in the final report.
 
 ### 5. Aggregate
 
 For WIP, include the safe contents, bounded skipped-candidate manifest or aggregate summary, and every batch's results. Do not call the review complete until every batch has completed all required passes. If only skipped candidates exist, still run the review and report each unreviewed path, reason, and aggregate summary as residual risk.
 
-Present reports under `## Standards` and `## Spec`; add `## Correctness`, `## Release readiness`, and/or `## Security` only when triggered. Do not merge or rerank findings across axes. Within each axis, triage findings into **Act On** (blocks merge: correctness, security, ADR/spec violation, broken seam, vacuous test), **Consider** (a real trade-off worth the user's attention), **Noted** (valid but low priority), and **Dismissed** (false positive or nitpick, with a one-line reason). End each rendered axis with a one-line finding count and worst issue, including every triggered optional axis. A Release readiness report cannot conclude that the change is ready without evidence for every required criterion.
+Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned; add `## Correctness`, `## Release readiness`, and/or `## Security` only when triggered. Do **not** merge or rerank findings across axes, because the axes are deliberately separate (see _Why two axes_). Within each axis, triage findings into **Act On** (blocks merge: correctness, security, ADR/spec violation, broken seam, vacuous test), **Consider** (a real trade-off worth the user's attention), **Noted** (valid but low priority), and **Dismissed** (false positive or nitpick, with a one-line reason). End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any), including every triggered optional axis. Don't pick a single winner across axes: that's the reranking the separation exists to prevent. A Release readiness report cannot conclude that the change is ready without evidence for every required criterion.
 
 Before triaging, filter each axis's findings:
 
@@ -116,4 +128,11 @@ Before triaging, filter each axis's findings:
 
 **Bounded repair rule (when called inside `/implement`)**: the repair pass touches only **Act On** findings; after one repair pass fixes them, verify only the repaired hunks and affected tests; do not start a second broad review loop.
 
-The axes stay separate because a change can follow every standard while implementing the wrong thing, or satisfy the spec while violating a documented standard.
+## Why two axes
+
+A change can pass one axis and fail the other:
+
+- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
+- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+
+Reporting them separately stops one axis from masking the other.

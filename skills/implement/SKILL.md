@@ -124,6 +124,7 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * If issues are found, dispatch **one** fresh `builder` subagent as the repair pass, with consolidated scope: the ticket, every later directive, the review findings, and the prior builder's report and branch. Resume an existing builder only when the repair strictly needs state that lives in it and is costly to move (uncommitted changes in its worktree, or a process it still runs). Run focused verification checks on the repaired files, and **stop** (never launch a second broad review loop).
 8. **Cleanup**:
    * Remove the temporary worktrees (`git worktree remove`), update ticket statuses per `docs/agents/issue-tracker.md` only as approved in Step 2, and report the integration branch summary and verification evidence.
+   * When the issue tracker closes work through a PR and the user explicitly authorizes opening one (draft or ready), use the `pr` skill for its body; `implement` never opens a PR on its own.
    * Before the final report, read `decisions.tsv` back against what actually happened: one `merge` or `direct` row per landed ticket, as many `merge` rows as tickets landed through a worktree, and any wrong row superseded. A Mode B run without these rows is not finished.
 
 ## Final Report (Both Modes)

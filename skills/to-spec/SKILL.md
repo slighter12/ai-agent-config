@@ -64,17 +64,20 @@ Before writing full prose, identify the verification strategy for the work:
 
 Break multi-session work into tracer-bullet tickets:
 
-* **Vertical Slices Only**: Slice by end-to-end behavior, never horizontally by layer. Each ticket cuts a narrow path through every layer it needs (for example schema + domain + CLI for one behavior), so it can be demoed or verified on its own as soon as it lands. "Schema ticket → domain ticket → CLI ticket" is a horizontal split and is forbidden.
-* **Size**: Each slice fits in a single fresh context window.
+* **Vertical Slices Only**: Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests): vertical, NOT a horizontal slice of one layer. A completed slice is demoable or verifiable on its own. "Schema ticket → domain ticket → CLI ticket" is a horizontal split and is forbidden.
+* **Size**: Each slice is sized to fit in a single fresh context window.
 * **Prefactoring, Baseline & Riskiest Unknown First**: Place a needed local structural tidy ("make the change easy, then make the easy change"), a baseline capture (the old value to compare against the new one), and the slice that settles the riskiest unknown as the earliest tickets, blocking the feature slices that depend on them.
-* **Wide-Refactor Exception (Expand-Contract)**: If one mechanical change (renaming a core symbol or schema column) fans across the codebase so no vertical slice can land green, sequence it as:
+* **Wide-Refactor Exception (Expand-Contract)**: If one mechanical change (renaming a core symbol or schema column) fans across the codebase so no vertical slice can land green, don't force it into a tracer bullet; sequence it as:
   1. `01-expand`: Add the new interface/shape alongside the old so CI stays green.
   2. `02..N-migrate`: Migrate callers in bounded directory/package batches (each blocked by `01-expand`). When the migration is mechanical, the first migrate ticket does one unit by hand, then builds a codemod or script and proves it by rerunning it on that unit and diffing against the hand edit; later batches run the script.
   3. `final-contract`: Remove the old shape once zero callers remain (blocked by every migrate batch).
+
+  When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there.
 * **Explicit Blocking Edges, Write Scope & Evidence**: For every ticket, declare:
   * `Blocked by`: Which ticket IDs must land first (`None` for initial frontier tickets).
   * `Write scope`: The exact files and packages this ticket modifies, **plus every shared collision point** it touches: migration sequence numbers, lockfiles (`go.sum`, `package-lock.json`, ...), codegen outputs, and shared registries/route tables/type definitions. `/implement` uses this to prevent parallel worktree merge collisions; if two tickets share any listed file or collision point, first check whether the sharing can be removed (for example, each ticket registers in its own file that a generated index reads) and split it that way; add a blocking edge between them only when it cannot.
   * `Evidence path`: The agreed test seam or runtime verification command, plus a falsifiable acceptance criterion that fails at the base commit.
+* **Work the frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
 ## Step 3: Single Interactive Checkpoint (Ask Once)
 
@@ -89,7 +92,9 @@ Present one concise preview containing:
 Ask the user, all at once:
 * Which Agency Gate option (if shown)?
 * Are the test seams and verification paths right?
-* Does the ticket granularity and `Blocked by` graph feel right (should any slices be merged or split)?
+* Does the granularity feel right? (too coarse / too fine)
+* Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it?
+* Should any tickets be merged or split further?
 * May I publish as listed?
 
 Revise in response to the answers, but do not open new question topics. Publishing requires the user's approval from this checkpoint.
@@ -107,7 +112,7 @@ Publish according to `docs/agents/issue-tracker.md`:
   * Publish child tickets in dependency order (blockers first) so blocking edges reference real identifiers. Use the platform's native sub-issue and blocking relationships where they exist (for GitHub: `gh issue create -R <host/owner/repository> --parent <spec_id> --blocked-by <ids> --body-file <payload>`), and apply `ready-for-agent` to each child. Do NOT close or modify the parent spec's body or state.
   * Prefer a structured connector/API. If a CLI is the only available integration, create the hosted-text payload with a non-shell file API using a secure temporary-file primitive equivalent to `mkstemp`/`CreateTemp`: the primitive must provide atomic exclusive creation, an unpredictable name in the OS temporary directory, and mode `0600` at creation. Write through the returned file handle, close that handle before invoking the provider, and pass the path as a separate argument through a non-shell argument-array process API. Invoke the CLI through an argument-array process API, not a shell. Unlink the path in guaranteed cleanup after invocation, including failure paths. Never construct a predictable path, open it, then chmod it, and never follow or replace a symlink. Only the confirmed selector, fixed issue numbers/database IDs, configured labels, and payload-file path may be argument values; titles, bodies, comments, notes, and links stay in the payload file. If the CLI cannot safely accept every hosted-text field via a file/stdin input, use the structured API instead. Never use command substitution, string interpolation, or a generic heredoc.
 
-In every template, avoid specific file paths or code snippets outside `Write scope` — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts.
+In every template, avoid specific file paths or code snippets outside `Write scope`: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
 
 ### Spec Template
 
@@ -115,31 +120,56 @@ In every template, avoid specific file paths or code snippets outside `Write sco
 
 ## Problem Statement
 
-The problem the user is facing, from the user's perspective.
+The problem that the user is facing, from the user's perspective.
 
 ## Solution
 
-The solution, from the user's perspective.
+The solution to the problem, from the user's perspective.
 
 ## User Stories
 
-A numbered list with one story per distinct actor and behavior: `As an <actor>, I want <capability>, so that <benefit>`. For a purely architectural spec, write one entry per affected caller or invariant instead. Each entry is something the Spec review pass can check against the diff.
+A LONG, numbered list of user stories. Each user story should be in the format of:
+
+1. As an <actor>, I want a <feature>, so that <benefit>
+
+<user-story-example>
+1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
+</user-story-example>
+
+This list of user stories should be extremely extensive and cover all aspects of the feature. For a purely architectural spec, write one entry per affected caller or invariant instead. Each entry is something the Spec review pass can check against the diff.
 
 ## Implementation Decisions
 
-The settled decisions: modules built or modified, their interfaces, architectural decisions (including the chosen Agency Gate option), schema changes, API contracts, and specific interactions.
+A list of implementation decisions that were made. This can include:
+
+- The modules that will be built/modified
+- The interfaces of those modules that will be modified
+- Technical clarifications from the developer
+- Architectural decisions (including the chosen Agency Gate option)
+- Schema changes
+- API contracts
+- Specific interactions
+
+Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
+
+Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
 
 ## Testing Decisions / Agreed Seams
 
-The agreed seam(s), the claim and evidence path for each slice (Seam TDD vs. `Prove It Works`), what makes a good test here (external behavior only), and prior art in the codebase. Each path closes with a verdict: **Verified** (stating what remains outside the evidence's reach), **Not verified**, or **Inconclusive**.
+A list of testing decisions that were made. Include:
+
+- A description of what makes a good test (only test external behavior, not implementation details)
+- Which modules will be tested
+- Prior art for the tests (i.e. similar types of tests in the codebase)
+- The agreed seam(s) and the claim and evidence path for each slice (Seam TDD vs. `Prove It Works`), each closing with a verdict: **Verified** (stating what remains outside the evidence's reach), **Not verified**, or **Inconclusive**
 
 ## Out of Scope
 
-What this spec explicitly excludes.
+A description of the things that are out of scope for this spec.
 
 ## Further Notes
 
-Anything else a builder needs.
+Any further notes about the feature.
 
 </spec-template>
 

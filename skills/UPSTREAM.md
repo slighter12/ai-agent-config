@@ -94,6 +94,51 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 
 `skills/diagnosing-bugs/SKILL.md` Phase 3 carries pstack `principle-attack-the-premise` at `d457567` under its **Attack the premise.** lead-in, with the same divergences as `skills/step-back/` §3 except the step-back-only ones: the links to unported principles are dropped, "per the [Laziness Protocol]" points to `codebase-design` §3, the closing sentence that distinguishes it from Redesign from First Principles is dropped because this skill has no redesign step, and labels use `**Label**: text`. The trigger stays failed fixes only, without step-back's "or when workarounds keep piling up", because a diagnosis pile is fixes for one failing behavior.
 
+The same rule covers these Matt skills, re-synced against the pinned `v1.3.1` commit. Overlays listed under "Intentional Local Divergences" and "Required overlays" below are not repeated here.
+
+`skills/pr/` divergences from `pr` and its `CREDITS.md`:
+
+- The frontmatter keeps the local description and `metadata.invocation`; the upstream `credits` block moves into the body sentence that links `CREDITS.md`, which is copied verbatim.
+- Local additions: the 40-line budget, the repository-template pre-check (every standard GitHub and GitLab location), the `**Safety Fact:**` template line and its `blast-radius` grading, the Evidence S-tier and A-tier lines and the `Measured` / `Inferred` labels, the performance-number line, the Door Type and Blast Radius bullets, and `## Plain Speech` with its `unslop` pointer.
+- "Start directly at `## Summary`" is appended to the preamble rule.
+
+`skills/ask-matt/PHASE-BOUNDARIES.md` divergences from `ask-matt/PHASE-BOUNDARIES.md`:
+
+- The heading reads "Phase Boundaries & Context Management".
+- The smart zone "(~150k tokens)" becomes "(roughly the first half of the window, as `AGENTS.md` §3 defines it)", so the window size is not hard-coded.
+- Question 4 adds one sentence naming this repository's subagent roles.
+
+`skills/ask-matt/SKILL.md` divergences from `ask-matt`:
+
+- `## Output Contract`, `## Routing Questions`, `## The Skills Along the Route`, and `## On-Ramps & Codebase Health` replace the upstream flow prose (main flow, on-ramps, codebase health, vocabulary layer). The routing questions name the same skills and branches; they are a deliberate restructure, not a cut.
+- Names follow the local convention: `/name` for user-invoked skills and `` `name` `` for model-invoked ones.
+- Context hygiene says "`/to-spec` has written the tickets" because ticket splitting merged into `to-spec` (Intentional Local Divergence 2).
+- Standalone notes that `research` writes into the repository only when the request authorizes it.
+
+`skills/retro/SKILL.md` divergences from `retro`:
+
+- Local categories added after the upstream seven: Project Law graduation, domain glossary, and verification recipe.
+- Local additions: the trust-boundary rule for session logs, workspace-only log reads, discarding best practices that trace to no session moment, ranking, the Hard Stop before any write, and `## Make the Mistake Impossible`.
+- The verification-recipe category points to the `verify-app` skill's `### 2. Generate the skill` step.
+
+`skills/code-review/SKILL.md` divergences from `code-review`:
+
+- Labels use `**Label**: text`.
+- The Middle Man smell keeps "directly, unless the layer adds policy", which a contract test locks.
+- Local smells are grouped under **Local baseline additions (judgement calls)** after the upstream Fowler baseline.
+- The upstream "parallel sub-agents" dispatch becomes Single-Window dispatch: sub-agents only when isolation or parallelism earns the cost, otherwise sequential passes, with the smell baseline pasted only into a sub-agent brief.
+- The missing-tracker case continues with local spec discovery instead of telling the user to run setup, since review is read-only.
+- Git commands use the sanitized forms under "Required overlays"; the commit list is captured only when a fixed point exists.
+
+`skills/to-spec/SKILL.md` divergences from `to-spec` and the merged ticket-splitting skill:
+
+- One interactive checkpoint (Step 3) carries the ticket quiz, the Agency Gate menu, seams, and the publish plan; "Iterate until the user approves" becomes "Revise in response to the answers, but do not open new question topics."
+- The upstream tracker-routing paragraph is replaced by Local Markdown and Hosted modes, with the payload-file security rules and the parent spec kept free of `ready-for-agent`.
+- The local ticket template adds `Write scope`, `Evidence path`, and `Category:` / `Triage:` / `Status: open` lines (see "Required overlays").
+- Prefactoring adds baseline capture and the riskiest unknown to the earliest tickets; expand–contract adds the codemod proof and the shared integration branch fallback.
+
+`skills/implement/SKILL.md` adds one Cleanup line: when the tracker closes work through a PR and the user authorizes opening one, use the `pr` skill for its body. `implement` never opens a PR on its own.
+
 Files adapted from these sources (stitched under the rule above, not vendored):
 
 - From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`), `skills/unslop/` (`unslop`, `technical-writing`), the subtraction rules `skills/tidy/` applies (`principle-laziness-protocol`, `principle-subtract-before-you-add`), and `skills/step-back/` (`principle-attack-the-premise`, `principle-redesign-from-first-principles`).
