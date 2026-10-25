@@ -28,7 +28,7 @@ For a complete WIP review, capture tracked changes with this argument-array shap
 ["git", "--no-pager", "-c", "diff.external=", "-c", "core.pager=cat", "-c", "pager.diff=false", "diff", "--no-ext-diff", "--no-textconv", "<full-hex-commit>", "--", ...gitPathspecs]
 ```
 
-For a named target, the pathspec after `--` is the same pathspec used for every input below. A staged-only or unstaged-only request is narrower: use the same safe argv controls with `diff --cached` or `diff`, and do not discover untracked files. A committed-range review uses the same safe controls with `diff --no-ext-diff --no-textconv <full-hex-commit>...HEAD` and does not need WIP discovery. A fixed-point log uses `<full-hex-commit>..HEAD`; never substitute the user's original ref.
+For a named target, the pathspec after `--` is the same pathspec used for every input below. A staged-only or unstaged-only request is narrower: use the same safe argv controls with `diff --cached` or `diff`, and do not discover untracked files. A committed-range review uses the same safe controls with `diff --no-ext-diff --no-textconv <full-hex-commit>...HEAD`, or `<full-hex-commit>...<target-full-hex>` when the caller names a target resolved the same way, and does not need WIP discovery. A fixed-point log uses `<full-hex-commit>..HEAD`; never substitute the user's original ref.
 
 For a WIP or named target, discover candidates with this NUL-delimited argument-array shape. Discovery has no external diff, text conversion, or pager path:
 

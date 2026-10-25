@@ -6,10 +6,10 @@ Issues and specs for this repo live as Markdown files in `.scratch/`.
 
 - One feature per directory: `.scratch/<feature-slug>/`
 - Specification: `.scratch/<feature-slug>/spec.md`
-- Tickets: `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`; never one combined tickets file
+- Tickets: `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in an empty directory, otherwise continuing after the highest existing number; a number is never reused; never one combined tickets file
 - Triage category: a `Category:` line containing `bug` or `enhancement`
 - Triage state: a `Triage:` line containing the configured triage role
-- Work lifecycle: a `Status:` line containing `open`, `claimed`, or `resolved`; ordinary triage transitions never change this field, and closing a ticket is the sole exception that sets `Status: resolved`
+- Work lifecycle: a `Status:` line containing `open`, `claimed`, `resolved`, or a non-fulfilling closure; ordinary triage transitions never change this field. Closing a ticket whose work is done sets `Status: resolved`; closing it without fulfilling it sets `Status: closed (wontfix)`, `Status: closed (duplicate)`, or `Status: closed (out-of-scope)`
 - Blocking: explicit `Blocked by:` edges in each ticket
 - Claim metadata: an unclaimed ticket has no non-empty `Claimed by:` line; a claimed ticket records one unique opaque owner/session token there. A different session never replaces an existing token.
 - Comments and conversation history: append under `## Comments`
@@ -36,8 +36,10 @@ Read the referenced file. The user normally supplies its path or issue number.
 ## Wayfinding operations
 
 - **Map:** `.scratch/<effort>/map.md`; holds Destination, Notes, Decisions-so-far, Not-yet-specified, and Out-of-scope.
-- **Child ticket:** `.scratch/<effort>/issues/<NN>-<slug>.md`; `Type:` is `research`, `prototype`, `grilling`, or `task`; `Status:` is `open`, `claimed`, or `resolved`. `Triage:` is independent and may be absent.
-- **Blocking:** `Blocked by: NN, NN`; a ticket is unblocked when every listed ticket is resolved.
+- **Child ticket:** `.scratch/<effort>/issues/<NN>-<slug>.md`, numbered after the highest existing number; `Type:` is `research`, `prototype`, `grilling`, or `task`; `Status:` is `open`, `claimed`, or `resolved`. `Triage:` is independent and may be absent.
+- **Blocking:** `Blocked by: NN, NN`; a ticket is unblocked when every listed ticket is `Status: resolved`, and a blocker closed without being fulfilled never unblocks it.
 - **Frontier:** on a fresh read, open tickets whose every blocker is resolved and whose `Claimed by:` line is absent or empty, in numeric order.
 - **Claim:** perform a conditional compare-and-set under a bounded exclusive lock or lease for the ticket. While holding it, re-read the exact file and require the expected prior state — `Status: open`, every blocker resolved, and no `Claimed by:` value. Atomically replace the file with `Status: claimed` and the session's unique opaque owner/session token, then re-read and confirm that token. Never overwrite an existing claim; if the lock, atomic replacement, expected-state check, or confirmation cannot complete, stop without work.
-- **Resolve:** append `## Answer`, set `Status: resolved`, then append a gist and link to the map's Decisions-so-far.
+- **Resume:** a session continues a `claimed` ticket without claiming again only when the user names that ticket or passes a `/handoff` document carrying its exact token, and a fresh read shows that same `Claimed by:` token.
+- **Release or take over:** only after the user explicitly authorizes it for a stale or interrupted claim. Use the Claim lock and atomic replacement, and require the exact stale token as the expected prior state; then write the new session's token (take over) or clear `Claimed by:` and set `Status: open` (release), and re-read to confirm.
+- **Resolve:** append `## Answer`, set `Status: resolved`, then append a gist and link to the map's Decisions-so-far. Resolve is idempotent: when the map loads, a ticket with `## Answer` and `Status: resolved` but no Decisions-so-far pointer gets the missing pointer appended, deduplicated by ticket number.

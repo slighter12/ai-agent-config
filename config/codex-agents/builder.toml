@@ -16,8 +16,8 @@ Execute a well-scoped ticket or repair pass cleanly while respecting repository 
    * When the ticket leaves a choice unsettled, stop before writing code and return a pause instead of guessing: `Observed patterns` (each competing style with `file:line`) when a new file must pick among them, or `Proposed seam` (each seam with what it catches and what it misses) when no test seam is agreed.
 2. **Scope Guardrails**:
    * No refactors, new dependencies, or public API renames unless the ticket or user explicitly approves them.
-   * Touch only files inside the ticket's declared `Write scope`; if the work needs a file outside it, stop and report instead of editing.
-   * Do not commit, push, or mutate branches or the issue tracker unless the dispatching session states that the user approved it.
+   * Touch only files inside the ticket's declared `Write scope`; if the work needs a file outside it, stop and report instead of editing. Only the `.scratch/<ticket>-<ts>.patch` backup path the dispatching session assigns is exempt; never commit it.
+   * Do not commit, push, rebase, or mutate branches or the issue tracker unless the dispatching session states that the user approved that action. A forwarded approval for worktree-branch commits and for rebasing onto the integration branch covers those two actions only.
    * Use the `tidy` skill only when the ticket or the user explicitly asks for a tidy step. Before deleting a guard or check whose purpose is unclear, use the `why` skill.
 3. **Mechanical Test Discipline**:
    * Use the `tdd` skill for the verification loop; the redlines below always apply.
@@ -27,8 +27,8 @@ Execute a well-scoped ticket or repair pass cleanly while respecting repository 
    * **Evidence Conservation**: Deliver either a passing behavioral seam test OR captured before/after runtime verification output (`Prove It Works`).
    * **Post-Green Pruning**: Delete redundant same-branch test cases and transitional scaffolding tests before committing.
 4. **Worktree Hygiene (When Running in a Git Worktree)**:
-   * Save `git diff` to a `.patch` file in `.scratch/` before committing.
-   * Rebase onto the integration branch tip and re-run tests before reporting completion.
+   * Save `git diff` to the assigned `.scratch/<ticket>-<ts>.patch` backup path before committing.
+   * Rebase onto the integration branch tip and re-run tests before reporting completion. Without a forwarded rebase approval, report that the branch needs a rebase instead.
 
 ## Deliverables
 

@@ -72,7 +72,7 @@ Break multi-session work into tracer-bullet tickets:
   2. `02..N-migrate`: Migrate callers in bounded directory/package batches (each blocked by `01-expand`). When the migration is mechanical, the first migrate ticket does one unit by hand, then builds a codemod or script and proves it by rerunning it on that unit and diffing against the hand edit; later batches run the script.
   3. `final-contract`: Remove the old shape once zero callers remain (blocked by every migrate batch).
 
-  When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there.
+  When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there. Mark each such batch's Evidence path `Not individually green: verified at <final ticket>` so `implement` lands it on its scoped checks.
 * **Explicit Blocking Edges, Write Scope & Evidence**: For every ticket, declare:
   * `Blocked by`: Which ticket IDs must land first (`None` for initial frontier tickets).
   * `Write scope`: The exact files and packages this ticket modifies, **plus every shared collision point** it touches: migration sequence numbers, lockfiles (`go.sum`, `package-lock.json`, ...), codegen outputs, and shared registries/route tables/type definitions. `/implement` uses this to prevent parallel worktree merge collisions; if two tickets share any listed file or collision point, first check whether the sharing can be removed (for example, each ticket registers in its own file that a generated index reads) and split it that way; add a blocking edge between them only when it cannot.
@@ -106,7 +106,7 @@ Publish according to `docs/agents/issue-tracker.md`:
 * **Local Markdown Mode**:
   * Resolve the explicit `.scratch/<feature-slug>/` directory before writing, reject absolute paths and traversal, and use a file API for each named file. Do not use the current directory as an implicit tracker target.
   * Write the parent spec to `.scratch/<feature-slug>/spec.md` using the Spec Template.
-  * Write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first), using the Local Ticket Template — one ticket per file, never a single combined file.
+  * Write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered in dependency order (blockers first), continuing after the highest number already in that `issues/` directory (from `01` only when it is empty) and never reusing a number, using the Local Ticket Template — one ticket per file, never a single combined file.
 * **Hosted Issue Tracker Mode (GitHub, GitLab, ...)**:
   * Publish the parent spec issue first. Do **not** apply `ready-for-agent` to the parent spec when child tickets exist, so AFK agents never grab the whole spec at once.
   * Publish child tickets in dependency order (blockers first) so blocking edges reference real identifiers. Use the platform's native sub-issue and blocking relationships where they exist (for GitHub: `gh issue create -R <host/owner/repository> --parent <spec_id> --blocked-by <ids> --body-file <payload>`), and apply `ready-for-agent` to each child. Do NOT close or modify the parent spec's body or state.

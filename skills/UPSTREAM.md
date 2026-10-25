@@ -139,6 +139,15 @@ The same rule covers these Matt skills, re-synced against the pinned `v1.3.1` co
 
 `skills/implement/SKILL.md` adds one Cleanup line: when the tracker closes work through a PR and the user authorizes opening one, use the `pr` skill for its body. `implement` never opens a PR on its own.
 
+Local protocol overlays (state machine and cross-skill contracts), none of which replace upstream prose:
+
+- `implement`: resume reconciliation of `decisions.tsv` against the integration branch before choosing a mode; only fulfilled blockers clear `Blocked by`; wayfinder decision tickets are not children; the **Stuck graph** stop; the Sequential Fallback reviews once after the last child; the `Replanned` pivot result; deferred-green migration batches with `Inconclusive (deferred to final integration ticket #<id>)`; gitignored fixtures provisioned in the worktree or the ticket is `Blocked`; the assigned `.scratch/<ticket>-<ts>.patch` path is exempt from `Write scope`; builder rebases are part of the approved run plan and forwarded in the dispatch; `code-review` receives a single base commit and a target.
+- `builder` (all three definitions): the patch-path exemption and rebase only on a forwarded approval.
+- `to-spec`: deferred-green batches are marked in their Evidence path, and local ticket numbers continue after the highest existing number.
+- `code-review` and `references/WIP_INPUTS.md`: an optional caller-named target resolved with the same `^{commit}` procedure.
+- `wayfinder` and the tracker contracts: resume an own claim, user-authorized stale-claim release or takeover through a CAS on the stale token, idempotent Resolve that appends a missing map pointer once per ticket, and non-fulfilling closures (`Status: closed (...)`, GitHub `not_planned` / `duplicate`, GitLab `wontfix` label) that never unblock a dependent. `triage` closes `wontfix` that way, except **Already implemented**, which closes as fulfilled.
+- `handoff`: the **Run state** item carries the integration branch and the `decisions.tsv` path.
+
 `skills/codebase-design/` divergences from `codebase-design`, `DEEPENING.md`, and `DESIGN-IT-TWICE.md`:
 
 - `SKILL.md` §1 (Agency Gate), §3 (Agent-First principles), §4 (Sprout), and §5 (Scrap Circuit Breaker) are local (Intentional Local Divergences 1 and 5). §2 carries the upstream glossary, Deep vs Shallow diagrams and questions, principles, and relationships verbatim; the deletion test moves to §3 with the other subtraction rules, and the two-adapter principle adds that a production I/O adapter plus a deterministic test fake counts as two.
