@@ -7,55 +7,84 @@ metadata:
 
 # Verify App
 
-Give a project one scripted way to prove behavior in the running app: launch it, exercise a feature as a user would, and capture evidence. `tdd` proves behavior at a code seam; `retro` notices missing recipes after a session; `verify-app` builds or repairs the recipe and proves it by running it. Write the generated skill for an agent that will read it cold, mid-task, without having seen the app.
+Every serious project needs a scripted way to drive the real app and prove behavior: launch it, exercise a feature the way a user would, and capture evidence. This skill generates that as a project-local skill (`verify-<app>/`) tailored to the repo, and keeps it honest as the app changes. You write the generator's output for the next agent, not for a human: it will be read cold, mid-task, by an agent that has never seen the app. `tdd` proves behavior at a code seam; `retro` notices missing recipes after a session; `verify-app` builds or repairs the recipe and proves it by running it.
 
 ## Boundaries
 
-- Edit only when the request asks to create, repair, or maintain a verification skill; otherwise report what you would write. Edits stay inside the target verification skill's directory. Never edit product code. If the checkout does not build or start as-is, stop and report the exact command and failure.
+- Edit only when the request asks to create, repair, or maintain a verification skill; otherwise report what you would write. Edits stay inside the target verification skill's directory. Never edit product code.
 - Write to the provider skill root the repository already uses (`.claude/skills/` or `.agents/skills/`). If neither exists, ask which one to create.
 - Run only local instances on disposable data directories, profiles, and ports. Never drive the user's own running instance or real data. External traffic, real credentials, or account changes need an exact preview and approval; store credential names, never values, in the generated skill.
 - Stop only processes you started, tracked by PID or session; never kill by process name.
 - Leave changes uncommitted. Branches, commits, and PRs need their own approval.
-- Pick the mode from the request: **create** when the project has no verification skill, **maintain** when one exists. If several candidates exist, ask which one.
+- Pick the mode from the request: **create** when the project has no verification skill, **maintain** when one exists.
 
 ## Create
 
-### 1. Interview the Repository
+### 1. Interview the repo, not the user
 
-Answer from the codebase and ask the user only what you cannot observe:
+Answer these from the codebase and only ask the user what you cannot observe:
 
-- **Surface**: what a user touches (web UI, CLI or TUI, desktop, API, mobile, library). Pick the primary one and note the rest.
-- **Run**: the repository's documented dev command, with ports, environment variable names, seed data, and auth.
-- **Drive**: existing harnesses first (browser specs, PTY or expect scripts, HTTP endpoints, a debug port), then a generic recipe: browser automation for web, a PTY or tmux session for CLI and TUI, plain HTTP for services.
-- **Observe**: screenshots, terminal transcripts, response bodies, logs, exit codes, and database state.
-- **Isolate**: whether two instances can run side by side. If not, the generated skill must refuse to drive a shared instance.
+- **Surface**: what does a user actually touch? A web UI, a CLI/TUI, a desktop app, an API, a mobile app, a library? A repo can have several; pick the primary one and note the rest.
+- **Run**: how does the app start locally? Prefer the repo's own documented dev command (package scripts, Makefile, README quickstart). Note ports, env vars, seed data, auth.
+- **Drive**: how can an agent interact with it programmatically? Existing harnesses first — Playwright/Cypress specs, expect scripts, PTY helpers, curl-able endpoints, a debug port. Only then pick a generic recipe: browser/CDP for web and Electron, a tmux/PTY harness for CLI/TUI, plain HTTP for services.
+- **Observe**: what evidence can be captured? Screenshots, terminal transcripts, response bodies, logs, exit codes, DB state.
+- **Isolate**: can two instances run side by side (ports, data dirs, profiles)? If not, say so in the generated skill: refusing to double-drive a shared instance beats corrupting the user's session.
 
-### 2. Write the Skill
+If the checkout doesn't build or start as-is, report it precisely, with the exact command and failure, before generating; a skill written against a broken base teaches wrong steps. When an irrelevant missing asset blocks startup (a static dir the API never serves, a sample config), the generated skill may create it, clearly marked as verification scaffolding, and remove it in cleanup.
 
-Create `verify-<app>/SKILL.md` with frontmatter (`name: verify-<app>` and a `description` naming the app, the surface, and when to use it), following the project's existing skill conventions. Leave it model-invocable so agents proving behavior in this project load it instead of skipping or guessing, unless the user asks for manual-only (`disable-model-invocation: true`). Ground every section in what the interview found; leave no placeholders:
+### 2. Generate the skill
 
-- **Launch**: the exact command that starts the app from an empty data directory, including migrations and seed data, and the signal that it is ready. Ready means usable, not merely answering: a health check can pass while init scripts still run. For a short-lived CLI, Launch builds once and each drive gets its own isolated session.
-- **Doctor**: one read-only check that the instance is worth driving: process up, expected build, port owned by this run, auth valid. Run it first and after anything surprising.
-- **Drive**: real selectors and commands from this repository. Prefer stable handles (accessible labels, data attributes, routes, prompt strings) over coordinates and tab order.
-- **Evidence**: what to capture and where it lands. Exercise the real user path, not internal setters or test-only endpoints; capture the action and the resulting state; check side effects (files, rows, messages) as well as what is visible; mock only where a production boundary already isolates the external system. When the safe path is a dry run, observe what it actually skips rather than trusting its name. Redact secrets.
-- **Cleanup**: tear down what the run created and keep the evidence at the named location.
-- **Helpers**: any script the skill ships is executable, and the skill body shows how to invoke it.
+Write `verify-<app>/SKILL.md` under the provider skill root with YAML frontmatter (`name: verify-<app>` and a `description` that names the app, the surface, and when to reach for it — without frontmatter the skill never registers), following the project's existing skill conventions. Leave it model-invocable so agents proving behavior in this project load it instead of skipping or guessing, unless the user asks for manual-only (`disable-model-invocation: true`). Give it these sections, each grounded in what the interview actually found (no placeholders left):
 
-### 3. Seed the Feature Map
+- **Launch**: the exact command that starts the app for verification, and how to tell it's ready (a log line, a prompt). Launch must reach a usable state from an empty data dir, including any migrations and seed data. Ready means usable, not just that a process answers. A database health check can pass while its init scripts are still running. Include teardown. For a short-lived CLI or TUI there is no server to keep alive: launch means build the binary (or install deps) once, then start each drive in its own isolated PTY or tmux session.
+- **Doctor**: one read-only check that answers "is this instance worth driving?" — process up, right version/build, port owned by us, auth valid. An agent runs this first whenever anything looks off.
+- **Drive**: the harness recipe with real selectors/commands from this repo, not examples. Prefer stable handles (ARIA labels, data attributes, prompt strings, route paths) over coordinates and tab order.
+- **Evidence**: what to capture for a proof and where it goes. State the proof standards: exercise the real user path, not internal setters or test-only endpoints; capture the action and the resulting state, not just the final screen; verify side effects (files written, rows inserted, messages sent) alongside what's visible; mocks only where a production boundary already isolates the external system. When the safe path is a dry-run or test mode, verify what it actually skips by observing (files, network, git refs) rather than trusting its name: some dry-runs still touch the network or open a browser. Redact secrets.
+- **Cleanup**: how to tear down instances the run created. Never kill by process name; kill what you started. Cleanup removes instances and scratch state, never the evidence: proof artifacts survive the teardown, in a location the skill names.
+- **Helpers**: any script the skill ships is executable and its invocation is shown in the skill body. A helper the reader has to reverse-engineer is not a helper.
 
-Create `verify-<app>/features/README.md` as an index and one file per user-facing feature (start with the top 3–5 from routes, commands, menus, or docs). Each file uses four H2s: `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>` (preconditions, then each step with its command and the observable result), and `Gotchas`. If seed data lacks a precondition a journey needs, the journey fails and the reason goes in `Gotchas`. Never weaken a journey to make it pass.
+### 3. Seed the feature map
 
-### 4. Prove It Before Handing Over
+Create `verify-<app>/features/README.md` plus one file per user-facing feature you can identify (aim for the top 3-5 to start, from routes, commands, menus, or docs), with the README as the index. Each file answers, from the user's point of view: what the feature is, how to reach it, how to drive it with the harness, and what observable end state proves it works. The four H2s are `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>`, and `Gotchas`. If the seed data lacks a precondition that a journey needs, the journey reports a failure and the reason goes in that feature's `Gotchas`. Never weaken a journey to make it pass. The map is the repo's maintained verification source; a proof that drives one convenient entry point is incomplete when the map lists others.
 
-Run the generated skill end to end once: Launch, Doctor, drive one mapped feature, capture evidence, Cleanup. After cleanup, confirm the evidence still exists at its named location. Fix what fails, and run Cleanup after every failed attempt. A skill that was never run is a draft. If you proved it in a stand-in for the real target (a container instead of a fresh VM), list each setup step the stand-in provided that the target will not; those stay Not verified.
+### 4. Prove the generated skill before handing it over
+
+Run its own instructions end to end once: launch, doctor, drive ONE mapped feature (one is enough; the map exists so later runs can cover the rest), capture evidence, clean up. After cleanup, confirm the evidence still exists at its named location — a cleanup that eats the proof fails this step. Fix what fails, and run the generated cleanup after every failed iteration too, so broken attempts don't strand processes and ports. A generated skill that was never executed is a draft, not a deliverable. If you proved it in a stand-in for the real target (a container in place of a fresh VM, a local stack in place of a remote one), list every setup step the stand-in did that the target will not. Those steps stay Not verified until a run on the real target covers them.
+
+### 5. Offer the maintenance loop
+
+Point the user at maintain mode for keeping the map honest as the app changes. Suggest a cadence only if they ask.
 
 ## Maintain
 
-Keep the skill and its feature map honest as the app changes. The unit of rigor is the feature: every feature file gets source coverage and a live drive.
+A feature map rots the moment the app changes. Maintain mode is the upkeep loop for a skill generated in create mode (or any project-local verification skill with a feature map). The unit of rigor is the feature, not every sentence: cover every feature file from source and exercise every feature live, without terminalising every bullet.
 
-1. **Index hygiene**: fix missing, extra, duplicate, or dead entries in `features/README.md`.
-2. **Source pass**: for each feature file, read the source that implements it, flag drift with `file:line` citations, and note one live recipe. Work in this session; dispatch read-only `explorer` subagents only when raw output would bloat the window. They never drive the app or edit files.
-3. **Reconcile**: merge recipes into as few app states as practical, spot-check cited drift, and look at recent churn for user-facing surfaces the map omits, naming a concrete source path for each.
-4. **Live pass**: required even when the source looks clean. Follow the skill's own launch model and drive every feature at least once. Run Doctor before the first drive and after any failed drive; when Doctor cannot see the failure, reset or relaunch. Evidence must survive every cleanup. A feature is unreachable only with its concrete missing prerequisite and the route attempted.
-5. **Triage**: a wrong description is doc drift, so fix the map; working behavior the harness cannot drive is a harness gap, so fix the harness and re-drive it live; broken app behavior is a product gap, so report it and leave the map unchanged.
-6. **Outcome**: report exactly one: **clean** (full coverage, nothing to change), **changed** (proven corrections left as local edits for review), or **blocked** (what stopped coverage or a safe fix).
+### Outcomes
+
+Pick one, and say which:
+
+- **clean** — every feature got source and live coverage; nothing worth shipping. No branch, no PR.
+- **changed** — proven doc, harness, or map corrections, left as uncommitted local edits for review.
+- **blocked** — coverage could not finish or a proven fix could not ship safely. Say exactly what blocked it.
+
+### Edit scope
+
+Only edit the verification skill's own directory (its SKILL.md, features/, and any harness scripts it owns). Never edit product code during a run: a behavior the map describes that the app no longer does is either doc drift (fix the map) or a product regression (report it, don't paper over it in docs).
+
+### Pass
+
+0. **Locate the target.** Find the verification skill to maintain: the project-local skill whose body has launch/drive sections and a feature map (usually `verify-*/` under the provider skill root). Several candidates → ask which one; none → stop and switch to create mode instead of inventing a target.
+
+1. **Index hygiene.** Read the feature map README and glob its sibling files. Fix missing, extra, duplicate, or dead entries. Lightweight; no generated inventory.
+
+2. **Source pass.** For each feature file, explain "how does this user-facing feature work?" from source, flag likely doc drift with citations, and write one concise live-verification recipe. Work in this session; dispatch read-only `explorer` subagents only when raw output would bloat the window. They never drive the app and never edit files. Return shape: feature summary / source entry points / likely drift or none / one recipe.
+
+3. **Reconcile.** Every feature file has a returned summary. Merge overlapping recipes into as few app states as practical. Spot-check cited drift; don't re-prove clean claims. Sweep recent churn for user-facing surfaces missing from the map — require a concrete source path before calling one missing.
+
+4. **Live pass.** Required even when source looks clean. This session owns all driving; follow the verification skill's own launch model — one long-lived instance driven serially for servers and UIs, or a fresh isolated session per drive for short-lived CLIs (the skill's Launch section decides, not this one). Exercise every feature at least once, and hold three invariants the whole pass, whatever the failure: (1) never drive an instance you haven't health-checked since it last did something surprising — doctor before first drive, doctor on each fresh session where sessions are the unit, doctor again after any failed drive, and where doctor can't see the failure (a wedged UI state on a healthy process), reset to a known state or relaunch rather than hoping; (2) evidence captured so far survives every cleanup, checked at its named location, not assumed; (3) nothing a drive started outlives that drive's usefulness — failed-iteration residue is cleaned whether the session is stuck, exited, or shared (for a shared instance, clean the residue, not the instance). A doctor failure caused by skill drift is drift: fix it under edit scope and retry once — restart whatever the fix invalidated, nothing more — before calling the pass `blocked`. A feature that can't be reached is `verified-unreachable` only with the concrete prerequisite (auth, entitlement, OS, external state) and the route attempted; if the map omits that prerequisite, that's drift. Any harness fix from triage gets re-driven live before it counts as changed. Final teardown happens after the last drive of the run — including those re-proofs — so nothing outlives the run (evidence stays, per the skill).
+
+5. **Triage.** Wrong or missing user-POV description → doc drift, fix it. Working behavior the harness can't drive → harness gap, fix it; a harness fix follows the same helpers rule as generation (scripts executable, invocation documented in the skill body). App behavior that's actually broken → product gap; record it for the user, keep it out of the corrections.
+
+6. **Ship or stop.** For changed: re-read every changed file first, then report the corrections as uncommitted local edits. For clean or blocked: report the outcome and the coverage honestly.
+
+Keep concise run notes (features covered, unreachable prerequisites, confirmed drift, outcome) in a scratch location; don't commit them.
