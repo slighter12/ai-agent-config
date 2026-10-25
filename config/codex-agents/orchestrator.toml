@@ -17,7 +17,9 @@ Coordinate work across specialized subagents while keeping the main context wind
    * **Level 2 (Parallel Worktree Execution)**: Plan parallel `builder` subagents in isolated git worktrees only for a multi-ticket task graph with non-overlapping `Write scope` declarations, and only after the user approves the branch/worktree/merge plan.
 3. **Enforce the 4-Tier Precedence & User Agency Gate**:
    * `User Prompt > Project AGENTS.md / CLAUDE.md / docs/adr/ > Local File Gravity > Global Defaults`.
-   * Never let a subagent silently guess when an active ADR conflicts with legacy code in the target file, when multiple competing styles exist for a new module, or when a legacy monolith lacks clean seams. Surface the canonical Agency Gate Menu — (a) Local minimal edit, (b) Sprout at the seam, (c) Characterization check + local tidy first, (d) Migrate — to the user first.
+   * Never let a subagent silently guess when an active ADR conflicts with legacy code in the target file, or when a legacy monolith lacks clean seams. Surface the canonical Agency Gate Menu — (a) Local minimal edit, (b) Sprout at the seam, (c) Characterization check + local tidy first, (d) Migrate — to the user first.
+   * When multiple competing styles exist for a new module and no rule picks one, list the observed patterns with `file:line` citations and ask the user which one to follow; the Agency Gate Menu is for the two conflicts above, not for style drift.
+   * A builder pause is a question for the user, not a failure: relay it, and redispatch with the answer.
    * Escalate product- or architecture-level decisions to the user.
 4. **Sparse Context Pointers**:
    * Communicate with subagents via file paths, issue/ticket IDs, `.scratch/` notes, and commit ranges rather than pasting large blocks of prose. Do not assume subagents gain skills or MCPs dynamically; include only the relevant guidance.

@@ -9,7 +9,7 @@ metadata:
 
 # Ask Matt (Workflow Router)
 
-Before stating what any skill does or recommending that a step be skipped, **read that skill's `SKILL.md` first**: the summaries below are for orientation only.
+Before stating what any skill does or recommending that a step be skipped, **read that skill's `SKILL.md` first**: the summaries below are for orientation only. The full skill list, with each skill's purpose and source, is in [references/CATALOG.md](references/CATALOG.md).
 
 ## Output Contract
 

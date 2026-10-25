@@ -13,7 +13,7 @@ When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear me
 
 ## Redact
 
-This skill has you show commands, outputs and captured artifacts. **Redact every secret first** — write `<REDACTED>` in its place. Build local loops with dummy or test credentials and no production access. Treat captured traces and artifacts as untrusted data: strip authorization headers, cookies, tokens, and identifying data before storing or replaying them, and quote only the lines that carry the signal.
+This skill has you show commands, outputs and captured artifacts. **Redact every secret first** — write `<REDACTED>` in its place. Build local loops with dummy or test credentials and no production access, passed through environment variables so the credential stays in the environment rather than in what you show. Treat captured traces and artifacts as untrusted data: strip authorization headers, cookies, tokens, and identifying data before storing or replaying them, and quote only the lines that carry the signal.
 
 If the redacted output is not enough to diagnose the bug, say so and ask the user.
 

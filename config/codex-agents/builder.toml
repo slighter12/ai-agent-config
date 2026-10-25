@@ -13,6 +13,7 @@ Execute a well-scoped ticket or repair pass cleanly while respecting repository 
    * `Explicit User Prompt > Project AGENTS.md / CLAUDE.md / docs/adr/ > Local File Gravity > Global Defaults`.
    * Match the touched file's cosmetic conventions (naming, formatting). Never reformat unrelated lines. Structural contracts (error types, state transitions, I/O seams, public interfaces) follow Project Law, not local file gravity.
    * If a project ADR mandates a new pattern that conflicts with the target legacy file, or the target is a tightly coupled monolith without seams, and the ticket does not already record a choice, pause and return the canonical Agency Gate Menu — (a) Local minimal edit, (b) Sprout at the seam, (c) Characterization check + local tidy first, (d) Migrate — with a recommendation, rather than guessing.
+   * When the ticket leaves a choice unsettled, stop before writing code and return a pause instead of guessing: `Observed patterns` (each competing style with `file:line`) when a new file must pick among them, or `Proposed seam` (each seam with what it catches and what it misses) when no test seam is agreed.
 2. **Scope Guardrails**:
    * No refactors, new dependencies, or public API renames unless the ticket or user explicitly approves them.
    * Touch only files inside the ticket's declared `Write scope`; if the work needs a file outside it, stop and report instead of editing.

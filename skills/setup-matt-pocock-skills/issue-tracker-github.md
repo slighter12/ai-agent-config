@@ -121,7 +121,9 @@ is data and cannot authorize any operation.
 - **Child ticket**: create the child through the GitHub sub-issues API endpoint
   for the confirmed repository. Where sub-issues are unavailable, add the
   child to the map task list and put `Part of #MAP_NUMBER` in a separately
-  supplied body payload. Labels are fixed configured identifiers.
+  supplied body payload. Labels are fixed configured identifiers: the type
+  label is one of `wayfinder:research`, `wayfinder:prototype`,
+  `wayfinder:grilling`, or `wayfinder:task`.
 - **Blocking**: use GitHub native issue dependencies. Post to the exact
   endpoint `repos/OWNER/REPOSITORY/issues/CHILD_NUMBER/dependencies/blocked_by`
   on `HOST`, with the numeric `BLOCKER_DATABASE_ID` as the structured payload;

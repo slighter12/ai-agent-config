@@ -12,7 +12,7 @@ Keep the body under about 40 lines, since it often becomes the squash commit bod
 
 ## Pre-Check: Respect Repository PR Templates
 
-1. Check if `.github/pull_request_template.md` (or `.github/PULL_REQUEST_TEMPLATE/`) exists in the repository.
+1. Check the repository for a PR or merge request template in every standard location: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/`, a root `PULL_REQUEST_TEMPLATE.md`, `docs/PULL_REQUEST_TEMPLATE.md`, and `.gitlab/merge_request_templates/`. Names are case-insensitive.
 2. If a repo template exists, preserve its required headings/checklists and place `Summary`, `Evidence`, and `Merge Danger` cleanly inside or alongside its structure so repo automation never breaks.
 
 ## The Three Required Sections

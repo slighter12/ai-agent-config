@@ -54,7 +54,7 @@ Apply these four low-reasoning structural checks to every test you write:
 
 When running Seam-Level TDD:
 
-1. **Confirm the Seam**: If the spec or ticket already pre-agreed the test seam, use it. Otherwise propose the public function/interface seam you will test at, give each proposed seam one line on what it catches and what it misses, and **wait for the user to confirm it** before writing the first test.
+1. **Confirm the Seam**: If the spec or ticket already pre-agreed the test seam, use it. Otherwise propose the public function/interface seam you will test at, give each proposed seam one line on what it catches and what it misses, and **wait for the user to confirm it** before writing the first test. When running as a `builder` subagent, return the proposed seams as a pause instead of waiting.
 2. **One Tracer-Bullet Slice at a Time**:
    * **Red**: Write **one** behavioral test at the agreed seam. Run the single test file and confirm it fails on the expected behavior (not a syntax or import error).
    * **Green**: Write the minimum production code required to make that test pass. Do not write code for future test cases yet.

@@ -73,7 +73,7 @@ Break multi-session work into tracer-bullet tickets:
   3. `final-contract`: Remove the old shape once zero callers remain (blocked by every migrate batch).
 * **Explicit Blocking Edges, Write Scope & Evidence**: For every ticket, declare:
   * `Blocked by`: Which ticket IDs must land first (`None` for initial frontier tickets).
-  * `Write scope`: The exact files and packages this ticket modifies, **plus every shared collision point** it touches: migration sequence numbers, lockfiles (`go.sum`, `package-lock.json`, ...), codegen outputs, and shared registries/route tables/type definitions. `/implement` uses this to prevent parallel worktree merge collisions; if two tickets share any listed file or collision point, add a blocking edge between them.
+  * `Write scope`: The exact files and packages this ticket modifies, **plus every shared collision point** it touches: migration sequence numbers, lockfiles (`go.sum`, `package-lock.json`, ...), codegen outputs, and shared registries/route tables/type definitions. `/implement` uses this to prevent parallel worktree merge collisions; if two tickets share any listed file or collision point, first check whether the sharing can be removed (for example, each ticket registers in its own file that a generated index reads) and split it that way; add a blocking edge between them only when it cannot.
   * `Evidence path`: The agreed test seam or runtime verification command, plus a falsifiable acceptance criterion that fails at the base commit.
 
 ## Step 3: Single Interactive Checkpoint (Ask Once)

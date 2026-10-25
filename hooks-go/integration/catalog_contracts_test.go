@@ -854,11 +854,20 @@ func TestImplementWritesTheDecisionTrailAtObservableSteps(t *testing.T) {
 	mustContain(t, implement, "before the first dispatch, create the append-only decision trail `.scratch/<feature-slug>/decisions.tsv`")
 	mustContain(t, implement, "in the main checkout, outside every worktree, so removing a worktree never removes it")
 	mustContain(t, implement, "Immediately after each ticket lands on the integration branch, whether by a worktree fast-forward merge or by a direct commit on the integration branch, append its `decisions.tsv` row with the landed commit SHA as `evidence`")
-	mustContain(t, implement, "`merge`: exactly one row per worktree branch fast-forward merged into the integration branch, and for nothing else")
+	mustContain(t, implement, "`merge`: exactly one row per ticket, for the first fast-forward merge of that ticket's worktree branch, and for nothing else")
+	mustContain(t, implement, "A later fast-forward merge of a repair or wiring branch is `review-fix` or `integration-fix`, never `merge`.")
+	mustContain(t, implement, "`result` takes exactly one of these values")
+	mustContain(t, implement, "`Supersedes <ts>`")
+	mustContain(t, implement, "A `direct` commit passes the same gates as a worktree merge before its row is written")
+	mustContain(t, implement, "builder commits on their isolated worktree branches")
+	mustContain(t, implement, "passing it the spec path")
+	mustContain(t, implement, "## Sequential Fallback (Worktrees Declined)")
+	mustContain(t, implement, "mark each built and verified child `Status: resolved` before starting the next")
+	mustContain(t, implement, "A builder pause is not a failed attempt")
 	mustContain(t, implement, "`direct`: a ticket committed straight onto the integration branch")
 	mustContain(t, implement, "`integration-fix`: wiring or repair committed on the integration branch after a ticket landed")
 	mustContain(t, implement, "`review-fix`: a commit from the `code-review` repair pass")
-	mustContain(t, implement, "one `merge` or `direct` row per landed ticket")
+	mustContain(t, implement, "one `merge` or `direct` row per landed ticket, as many `merge` rows as tickets landed through a worktree")
 	mustNotContain(t, implement, "Right after each fast-forward merge")
 	mustContain(t, implement, "A Mode B run without these rows is not finished.")
 	mustNotContain(t, implement, "**Shared Exploration and Decision Trail**")
@@ -923,7 +932,7 @@ func TestImplementRoutesSpecsByDiscoveredChildTickets(t *testing.T) {
 func TestImplementReusesARecordedStyleChoice(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	implement := readFile(t, filepath.Join(repoRoot, "skills", "implement", "SKILL.md"))
-	mustContain(t, implement, "**ask the user** which style to use, unless the spec/ticket already records the chosen pattern.")
+	mustContain(t, implement, "list the observed patterns with `file:line` citations and **ask the user** which one to follow, unless the spec/ticket already records the chosen pattern.")
 	mustContain(t, implement, "A new file has no file gravity of its own")
 	toSpec := readFile(t, filepath.Join(repoRoot, "skills", "to-spec", "SKILL.md"))
 	mustNotContain(t, toSpec, "Style Choice for New Files")
@@ -964,4 +973,52 @@ func TestOnlyAskMattRecommendsTheNextCommand(t *testing.T) {
 		t.Fatal("no skill files checked")
 	}
 	mustContain(t, readFile(t, filepath.Join(skillsRoot, "UPSTREAM.md")), "only `ask-matt` recommends routes: no other skill tells the user which command to run next")
+}
+
+// Category A contracts: State 3 asks with the observed patterns, builder pauses
+// reach the user, and copies of shared rules stay aligned with their source.
+func TestStyleDriftAndBuilderPausesReachTheUser(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	read := func(parts ...string) string {
+		return readFile(t, filepath.Join(append([]string{repoRoot}, parts...)...))
+	}
+	orchestrator := read("agents", "orchestrator.md")
+	mustContain(t, orchestrator, "list the observed patterns with `file:line` citations and ask the user which one to follow")
+	mustNotContain(t, orchestrator, "when multiple competing styles exist for a new module, or when a legacy monolith lacks clean seams. Surface")
+	builder := read("agents", "builder.md")
+	mustContain(t, builder, "stop before writing code and return a pause")
+	mustContain(t, builder, "`Observed patterns`")
+	mustContain(t, builder, "`Proposed seam`")
+	tdd := read("skills", "tdd", "SKILL.md")
+	mustContain(t, tdd, "When running as a `builder` subagent, return the proposed seams as a pause instead of waiting")
+	oracle := read("agents", "oracle.md")
+	mustContain(t, oracle, "When an implementation hits a Scrap Signal (use the `codebase-design` skill; its §5 lists every signal)")
+	mustNotContain(t, oracle, "a change forces pass-through edits across 3+ layers")
+}
+
+func TestCrossSkillContractsStayAligned(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	read := func(parts ...string) string {
+		return readFile(t, filepath.Join(append([]string{repoRoot, "skills"}, parts...)...))
+	}
+	for _, tracker := range []string{"issue-tracker-github.md", "issue-tracker-gitlab.md"} {
+		contract := read("setup-matt-pocock-skills", tracker)
+		for _, label := range []string{"`wayfinder:research`", "`wayfinder:prototype`", "`wayfinder:grilling`", "`wayfinder:task`"} {
+			mustContain(t, contract, label)
+		}
+	}
+	mustContain(t, read("ask-matt", "SKILL.md"), "[references/CATALOG.md](references/CATALOG.md)")
+	glossary := read("domain-modeling", "GLOSSARY-FORMAT.md")
+	mustContain(t, glossary, "# Glossary Map")
+	mustNotContain(t, glossary, "# Context Map")
+	review := read("code-review", "SKILL.md")
+	mustContain(t, review, "Do not flag an assertion on the request a true external system observes when the contract promises it and a positive case is paired.")
+	mustContain(t, review, "Before displaying or supplying any evidence to an agent")
+	mustNotContain(t, review, "any hostile evidence")
+	pr := read("pr", "SKILL.md")
+	for _, location := range []string{"`PULL_REQUEST_TEMPLATE.md`", "`docs/PULL_REQUEST_TEMPLATE.md`", "`.github/PULL_REQUEST_TEMPLATE/`", "`.gitlab/merge_request_templates/`"} {
+		mustContain(t, pr, location)
+	}
+	mustContain(t, read("diagnosing-bugs", "SKILL.md"), "so the credential stays in the environment rather than in what you show")
+	mustContain(t, read("to-spec", "SKILL.md"), "first check whether the sharing can be removed")
 }
