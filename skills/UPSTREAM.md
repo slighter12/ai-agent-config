@@ -17,6 +17,19 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 * [`cursor/plugins/pstack`](https://github.com/cursor/plugins/tree/main/pstack/skills) (`@poteto` / Lauren Tan; read at `d457567332aa6989e753ea289f30ea2bfbc80bc0`; license `LICENSES/pstack-MIT.txt`; later commits reviewed through `eb4db2b` on 2026-10-22 with nothing adopted, since none touched these sources): Agent-First Local Legibility, Boundary Discipline (Deterministic Core / Thin Effectful Shell), Task-Proportional Verification (`Prove It Works`), and 5 Layers of Correction.
 * [`alvinunreal/oh-my-opencode-slim`](https://github.com/alvinunreal/oh-my-opencode-slim) (read at `e0a513368ff55b4ea7a25e148d75945c4d34a434`; license `LICENSES/oh-my-opencode-slim-MIT.txt`; later commits reviewed through `a598a26` on 2026-10-22 with nothing adopted, since `src/skills/` was unchanged): Lightweight role boundaries, Evidence Paths (`verification-planning`), and Surgical Changes.
 
+**Block-Level Verbatim Stitching**: a port or re-sync keeps each source block's exact wording and concrete examples inside its section. Edits are limited to the seams between sources and to the overlays this file lists (authorization and read-only gates, Single-Window dispatch, the `Verified` / `Not verified` / `Inconclusive` verdicts, `use the <name> skill` pointers, concrete triggers, and the local label format). Every other change is a divergence and is listed below its file. Paraphrasing a whole file in new words is not a port. `skills/unslop/` is re-synced under this rule; the other files below were first ported as rewrites and are pending the same audit.
+
+`skills/unslop/` divergences from pstack `unslop` and `technical-writing` at `d457567`:
+
+- Rules 13 (em dash), 14 (colon), and 17 (title case) and the `technical-writing` punctuation rules (semicolons, em dashes, slashes) are not adopted; the Boundaries section matches the document's own punctuation and heading case instead.
+- Rule 7 adds `seamless`, carried over from the redline `pr` used to hold.
+- Rule 16 judges a lead-in by whether it restates its line, not by its punctuation, so a colon label with new detail is fine.
+- Rule 26 exempts terms defined in `GLOSSARY.md` or used as identifiers.
+- Rule 28 appends the `technical-writing` "Vary the rhythm" sentences on one thought versus one length.
+- Rule 33 keeps the document's established notation.
+- The pronoun rule replaces "when in doubt" with the observable condition "when a pronoun could point to two nouns" (concrete-trigger overlay).
+- Labels use `**Label**: text`; the frontmatter, Boundaries, Process, and the rule-number note are local, and `## Sentences` adopts seven `technical-writing` rules with their upstream wording.
+
 Files adapted from these sources (rewritten, not vendored):
 
 - From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`), `skills/unslop/` (`unslop`, `technical-writing`), the subtraction rules `skills/tidy/` applies (`principle-laziness-protocol`, `principle-subtract-before-you-add`), and `skills/step-back/` (`principle-attack-the-premise`, `principle-redesign-from-first-principles`).
