@@ -92,6 +92,8 @@ The local catalog vendors the promoted runtime artifacts under upstream `skills/
 
 `skills/tdd/SKILL.md` keeps only the Attack the Premise trigger and points to the `diagnosing-bugs` skill for the method, so the method is not maintained in `tdd` as well.
 
+`skills/diagnosing-bugs/SKILL.md` Phase 3 carries pstack `principle-attack-the-premise` at `d457567` under its **Attack the premise.** lead-in, with the same divergences as `skills/step-back/` §3 except the step-back-only ones: the links to unported principles are dropped, "per the [Laziness Protocol]" points to `codebase-design` §3, the closing sentence that distinguishes it from Redesign from First Principles is dropped because this skill has no redesign step, and labels use `**Label**: text`. The trigger stays failed fixes only, without step-back's "or when workarounds keep piling up", because a diagnosis pile is fixes for one failing behavior.
+
 Files adapted from these sources (stitched under the rule above, not vendored):
 
 - From pstack: `skills/codebase-design/DESIGN-RED-FLAGS.md` (`architect/references/design-red-flags.md`), `skills/diagnosing-bugs/PERF.md` (`benchmark-checklist`, `poteto-mode/playbooks/perf-issue.md`), `skills/why/` (`why`, `why/references/epistemics.md`, `code-archaeology.md`, `incident-postmortem.md`), `skills/how/` (`how`, `how/references/explainer-prompt.md`, `explorer-prompt.md`), `skills/blast-radius/` (`blast-radius`), `skills/verify-app/` (`create-verification-skill`, `maintain-verification-skill`), `skills/unslop/` (`unslop`, `technical-writing`), the subtraction rules `skills/tidy/` applies (`principle-laziness-protocol`, `principle-subtract-before-you-add`), and `skills/step-back/` (`principle-attack-the-premise`, `principle-redesign-from-first-principles`).

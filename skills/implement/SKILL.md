@@ -77,7 +77,15 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * When two or more frontier tickets touch the same module or file, run one read-only `explorer` subagent upfront and save its concise pointer notes to `.scratch/<feature-slug>/notes.md` outside the worktrees so builders do not repeat exploration.
 4. **Create the Integration Branch and Its Decision Trail**:
    * Create or check out the approved integration branch (`feat/<feature-slug>` or as named by the user).
-   * In the same step, before the first dispatch, create the append-only decision trail `.scratch/<feature-slug>/decisions.tsv` in the main checkout, outside every worktree, so removing a worktree never removes it. Give it the header `ts	phase	decision	why	evidence	result`. Each row is one line. `evidence` is a pointer (commit SHA, `file:line`, or a command and its verdict), never prose. A wrong row is superseded by a new row, never edited or deleted. Strip tabs and newlines from every cell, and prefix a cell that starts with `=`, `+`, `-`, or `@` with a single quote so a spreadsheet never evaluates it. The trail stays an uncommitted working file unless the user asks to keep it.
+   * In the same step, before the first dispatch, create the append-only decision trail `.scratch/<feature-slug>/decisions.tsv` in the main checkout, outside every worktree, so removing a worktree never removes it. Give it the header `ts	phase	decision	why	evidence	result`. Each row is one line. `phase` takes exactly one of these values:
+     * `merge`: exactly one row per worktree branch fast-forward merged into the integration branch, and for nothing else.
+     * `direct`: a ticket committed straight onto the integration branch (for example a foundational contract ticket) instead of through a worktree.
+     * `integration-fix`: wiring or repair committed on the integration branch after a ticket landed.
+     * `review-fix`: a commit from the `code-review` repair pass in Step 7.
+     * `pivot`: a pivot, revert, or re-sequence.
+     * `gate`: a gate that resolves.
+
+     `evidence` is a pointer (commit SHA, `file:line`, or a command and its verdict), never prose. A wrong row is superseded by a new row, never edited or deleted. Strip tabs and newlines from every cell, and prefix a cell that starts with `=`, `+`, `-`, or `@` with a single quote so a spreadsheet never evaluates it. The trail stays an uncommitted working file unless the user asks to keep it.
 5. **Dispatch Frontier `builder` Subagents in Git Worktrees**:
    * For each unblocked ticket on the current frontier (with non-overlapping write scopes), create an isolated git worktree (`git worktree add`) and dispatch a `builder` subagent into it.
    * Pass sparse context pointers (path/ID to the spec, the specific ticket, `.scratch/<feature-slug>/notes.md`, and the integration branch name).
@@ -93,14 +101,14 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * Compare the builder's `git diff --name-only` against its declared `Write scope`. Any file outside the scope (or touching another in-flight ticket's scope) blocks the merge until resolved: re-sequence the affected tickets or ask the user.
    * After two failed attempts on one ticket, change the slice boundary or the approach (and say which) instead of re-dispatching a longer version of the same prompt. If the run reaches about twice its expected effort, stop and re-plan with the user. Security and money/data-correctness defects are never deferred to a later pass.
    * Merge only by fast-forward (`git merge --ff-only`) after the branch is rebased onto the current integration tip and its tests pass there. If the tip moved, the builder rebases and re-tests again.
-   * Right after each fast-forward merge, append its `decisions.tsv` row (the merged commit SHA as `evidence`). Also append a row whenever a pivot, revert, or re-sequence happens or a gate resolves.
+   * Immediately after each ticket lands on the integration branch, whether by a worktree fast-forward merge or by a direct commit on the integration branch, append its `decisions.tsv` row with the landed commit SHA as `evidence` (phase `merge` or `direct`). Append an `integration-fix` or `review-fix` row for each later commit that wires or repairs landed work, never a `merge` row. Also append a `pivot` or `gate` row whenever a pivot, revert, or re-sequence happens or a gate resolves.
    * Mark the ticket merged in your local graph tracker, recompute the newly unblocked frontier, and dispatch the next wave until all tickets are merged.
 7. **Single Integration `code-review` & Bounded 1-Round Closeout**:
    * Once **all** tickets have landed on the integration branch (never mid-graph, or unbuilt tickets will be flagged as missing requirements), use the `code-review` skill once on `base...integration-branch`.
    * If issues are found, dispatch **one** fresh `builder` subagent as the repair pass, with consolidated scope: the ticket, every later directive, the review findings, and the prior builder's report and branch. Resume an existing builder only when the repair strictly needs state that lives in it and is costly to move (uncommitted changes in its worktree, or a process it still runs). Run focused verification checks on the repaired files, and **stop** (never launch a second broad review loop).
 8. **Cleanup**:
    * Remove the temporary worktrees (`git worktree remove`), update ticket statuses per `docs/agents/issue-tracker.md` only as approved in Step 2, and report the integration branch summary and verification evidence.
-   * Before the final report, read `decisions.tsv` back against what actually happened: one merge row per merged ticket, with any wrong row superseded. A Mode B run without these rows is not finished.
+   * Before the final report, read `decisions.tsv` back against what actually happened: one `merge` or `direct` row per landed ticket, as many `merge` rows as worktree branches merged, and any wrong row superseded. A Mode B run without these rows is not finished.
 
 ## Final Report (Both Modes)
 

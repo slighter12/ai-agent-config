@@ -103,7 +103,18 @@ If you cannot state the prediction, the hypothesis is a vibe — discard or shar
 
 **Ask whether the triggering state is legitimate.** If the system may be in that state, the code that broke on it is the root cause and handling the state there is the fix. If the state should never exist, a check where it broke hides the bug: rank a hypothesis about what *produced* the state. Guards, retries, swallowed errors, clamped values, and discarded state are the usual ways a bug gets hidden. When the failure appears only after a restart, rank persisted state first (config files, caches, lock files, serialized state).
 
-**Attack the premise.** If two fixes that share one premise fail the same check, write that premise as one sentence and test it directly before writing another fix: find an observation that would differ if the premise were false, and look at how the failures are distributed, not only how large they are.
+**Attack the premise.** When two or more fixes that share one premise have failed the same gate, suspect the premise, not the fixes.
+
+**Why**: Each failed fix is evidence against the belief it assumed. A third fix on the same premise spends effort where the evidence already says the cause is not.
+
+**Pattern**:
+
+- **Write the premise down.** The premise is the one sentence that every failed fix assumed.
+- **Test the premise before the next fix.** Find an observation that would come out differently if the premise were false, and make it. Look at how the failures are distributed, not only at how large they are. Make the check rerunnable.
+- **Follow the evidence.** If it contradicts the premise, the cause is elsewhere. Look for what the failures have in common that the premise did not predict. If it confirms the premise, ask the next "why". The earlier fixes may have treated a consequence instead of the cause.
+- **Remove the condition instead of compensating for it**, per the Laziness Protocol in `codebase-design` §3. If the evidence shows that one part always lands on the losing side, change what puts it there. A mechanism that cleans up after it leaves the cause in place and adds work on every run.
+
+**Stop**: Do not start the next fix before the premise is written down and tested.
 
 **Show the ranked list to the user before testing.** They often have domain knowledge that re-ranks instantly ("we just deployed a change to #3"), or know hypotheses they've already ruled out. Cheap checkpoint, big time saver. Don't block on it — proceed with your ranking if the user is AFK.
 
