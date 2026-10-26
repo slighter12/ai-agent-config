@@ -24,5 +24,5 @@ If the user passed arguments, treat them as a description of what the next sessi
 
 * **Current stage and next action**: state where the work stands (for example "Grilling in progress: 2 branches settled, 1 open", "Spec settled: ready for Ticket 02", or "Debugging repro loop built, testing Hypothesis 2") and the next action.
 * **Settled decisions**: record every choice the user already approved so the next session never re-asks it: settled `grilling` branches with any open `⚡ Tension` items and Spike / Prototype Prerequisites, the Agency Gate option chosen for each target, and the agreed test seams and evidence path for each slice.
-* **Run state**: for an `implement` run, the integration branch and the `decisions.tsv` path, so the next session reconciles landed tickets before dispatching.
+* **Run state**: for an `implement` run, the integration branch and the branch it was created from (when used), the run's `BASE_SHA`, and the `decisions.tsv` path, so the next session reconciles landed tickets before dispatching.
 * **Verified vs. unverified**: list facts confirmed by a `file:line` read or a command (cite it) apart from hypotheses the resuming agent must verify before acting on them.

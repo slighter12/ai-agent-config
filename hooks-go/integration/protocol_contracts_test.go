@@ -134,14 +134,14 @@ func TestImplementResumeReconcilesLandedTickets(t *testing.T) {
 	mustContain(t, implement, "**Resume an interrupted run**")
 	mustContain(t, implement, "reconcile its `merge` and `direct` rows against `git log` on the integration branch")
 	mustContain(t, implement, "never re-dispatch it")
-	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "the integration branch and the `decisions.tsv` path")
+	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "so the next session reconciles landed tickets before dispatching")
 }
 
 // code-review receives a single base revision and a target, never a range
 // string that cannot pass the ^{commit} check.
 func TestImplementPassesASingleBaseRevisionToCodeReview(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
-	mustContain(t, implement, "the single base commit SHA the integration branch started from as the fixed point and the integration branch as the target")
+	mustContain(t, implement, "passing `BASE_SHA` as the fixed point and the integration branch as the target")
 	mustNotContain(t, implement, "once on `base...integration-branch`")
 	review := flat(t, "skills", "code-review", "SKILL.md")
 	mustContain(t, review, "When the caller names a target branch or commit")
@@ -150,7 +150,7 @@ func TestImplementPassesASingleBaseRevisionToCodeReview(t *testing.T) {
 
 func TestSequentialFallbackReviewsOnceAtTheEnd(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
-	mustContain(t, implement, "Skip Mode A's per-child review")
+	mustContain(t, implement, "per-child review: after each child, run its focused verification")
 	mustContain(t, implement, "After the last child, use the `code-review` skill once (Standards and Spec)")
 }
 
@@ -158,7 +158,7 @@ func TestSequentialFallbackReviewsOnceAtTheEnd(t *testing.T) {
 func TestRebaseApprovalIsForwardedToBuilders(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	mustContain(t, implement, "each builder's rebase of its worktree branch onto the integration tip")
-	mustContain(t, implement, "state that the user approved commits on its worktree branch and rebasing that branch onto the integration branch tip")
+	mustContain(t, implement, "`User pre-approved in run plan: you are authorized to git commit on your worktree branch and git rebase onto <integration-branch>.`")
 	for name, builder := range builderDefinitions(t) {
 		t.Run(name, func(t *testing.T) {
 			mustContain(t, builder, "A forwarded approval for worktree-branch commits and for rebasing onto the integration branch covers those two actions only.")
@@ -171,4 +171,130 @@ func TestEmptyFrontierWithUnresolvedTicketsStopsAsBlocked(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	mustContain(t, implement, "**Stuck graph**")
 	mustContain(t, implement, "stop and report `Blocked` with the exact blocking chain")
+}
+
+// section returns the text from one heading to the next, or to the end of the
+// text when to is empty, failing when either heading is missing.
+func section(t *testing.T, text, from, to string) string {
+	t.Helper()
+	i := strings.Index(text, from)
+	if i < 0 {
+		t.Fatalf("missing section start %q", from)
+	}
+	if to == "" {
+		return text[i:]
+	}
+	j := strings.Index(text[i:], to)
+	if j < 0 {
+		t.Fatalf("missing section end %q after %q", to, from)
+	}
+	return text[i : i+j]
+}
+
+// code-review runs on every completed change, whatever its size or Agency Gate
+// option, and no explanation stands in for running it.
+func TestCodeReviewIsNeverSkippedOrExcused(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	modeA := section(t, implement, "## Mode A:", "## Sequential Fallback")
+	modeB := section(t, implement, "## Mode B:", "## Final Report")
+	cleanup := section(t, implement, "8. **Cleanup**", "## Final Report")
+	report := section(t, implement, "## Final Report", "")
+	mustContain(t, modeA, "regardless of diff size, including a one-line change and a change made under Agency Gate option (a) Local minimal edit")
+	mustContain(t, modeB, "regardless of diff size")
+	for name, part := range map[string]string{"step 8": cleanup, "final report": report} {
+		t.Run(name, func(t *testing.T) {
+			mustContain(t, part, "stop and invoke the `code-review` skill first; never substitute an explanation for running it")
+			mustContain(t, part, "applies only when the run completes implementation")
+		})
+	}
+	mustContain(t, report, "`code-review: <BASE_SHA> -> <target>`")
+	mustNotContain(t, implement, "or the reason it did not run")
+	// The review check is not a decisions.tsv row and not a gate.
+	mustContain(t, cleanup, "**Review completion check**")
+	mustNotContain(t, implement, "**Review gate**")
+	mustContain(t, implement, "`decisions.tsv` has no `code-review` phase")
+	// Uncommitted changes are reviewed in WIP mode, never as a target ref.
+	mustContain(t, modeA, "WIP mode anchored at `BASE_SHA`")
+	mustContain(t, report, "`code-review: <BASE_SHA> -> WIP`")
+	mustNotContain(t, implement, "`working-tree (WIP)`")
+}
+
+// The fixed point is captured before any ticket lands, so a directly committed
+// contract ticket is never mistaken for the base; a resumed run inherits it.
+func TestBaseShaIsCapturedBeforeTheFirstTicketLands(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	modeB := section(t, implement, "## Mode B:", "## Final Report")
+	capture := strings.Index(modeB, "before any ticket lands, capture `BASE_SHA=$(git rev-parse HEAD)`")
+	landing := strings.Index(modeB, "Immediately after each ticket lands on the integration branch")
+	if capture < 0 || landing < 0 || capture > landing {
+		t.Fatalf("Mode B must capture BASE_SHA before the first landing rule (capture=%d, landing=%d)", capture, landing)
+	}
+	mustContain(t, implement, "never the commit of the first landed ticket")
+	// A worktree merge can carry several commits, so the parent of the first
+	// landed commit is not the branch point.
+	mustContain(t, implement, "`git merge-base <integration-branch> <parent-branch>`")
+	mustContain(t, implement, "`<earliest-direct-sha>^`")
+	mustNotContain(t, implement, "<earliest-landed-sha>^")
+	// Sequential Fallback keeps one BASE_SHA across all children.
+	mustContain(t, section(t, implement, "## Mode A:", "## Sequential Fallback"), "`BASE_SHA=${BASE_SHA:-$(git rev-parse HEAD)}`")
+	fallback := section(t, implement, "## Sequential Fallback", "## Mode B:")
+	mustContain(t, fallback, "Skip Mode A's per-child `BASE_SHA` capture and per-child review")
+	mustContain(t, fallback, "On a fresh run, capture `BASE_SHA=$(git rev-parse HEAD)` once before the first child")
+	mustContain(t, fallback, "When resuming an interrupted Sequential Fallback run, never re-capture `HEAD`")
+	mustContain(t, fallback, "the earliest `direct` row whose `evidence` is a commit SHA")
+	mustContain(t, fallback, "if no `direct` row has a commit SHA, ask the user")
+	mustContain(t, fallback, "run it in WIP mode anchored at `BASE_SHA`")
+	// Mode B resume reads the recorded base first and never guesses a parent branch.
+	modeBResume := section(t, implement, "A resumed run takes `BASE_SHA`", "In the same step, before the first dispatch")
+	mustContain(t, modeBResume, "the run-plan `gate` row")
+	mustContain(t, modeBResume, "only when `<parent-branch>` is explicitly known from the session or the spec; never guess `main` or `master`")
+	mustContain(t, modeBResume, "the earliest `direct` row whose `evidence` is a commit SHA")
+	mustContain(t, implement, "The first row is the run-plan `gate` row")
+	modeA := section(t, implement, "## Mode A:", "## Sequential Fallback")
+	// A WIP review covers exactly the files the task modified or created.
+	for name, part := range map[string]string{"mode A": modeA, "fallback": fallback} {
+		t.Run(name, func(t *testing.T) {
+			mustContain(t, part, "the files modified or created for this task as the pathspec")
+		})
+	}
+	mustContain(t, fallback, "record it in the run-plan `gate` row")
+	step4 := section(t, implement, "4. **Create the Integration Branch and Its Decision Trail**", "5. **Dispatch Frontier")
+	mustContain(t, step4, "`BASE_SHA=<full-sha>`")
+	mustContain(t, step4, "`parent=<branch>`")
+	mustContain(t, modeBResume, "If none of the applicable sources above yields `BASE_SHA`, ask the user.")
+	mustNotContain(t, modeBResume, "no known parent branch, or no `direct` row with a commit SHA")
+	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "the integration branch and the branch it was created from (when used), the run's `BASE_SHA`, and the `decisions.tsv` path")
+}
+
+// A builder pause answer is a gate row with a legal result.
+func TestPauseAnswersRecordAGateResult(t *testing.T) {
+	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "the chosen pattern or seam in `decision` and `why`, and `result` `Approved`, or `Declined` when the user rejects the proposal")
+}
+
+// result cells are bare tokens, each row is written when its event happens
+// with the real clock, and fix phases follow the Step 7 review.
+func TestDecisionRowsUseBareTokensAndRealTimestamps(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	mustContain(t, implement, "is a bare token with no parenthetical note or prose")
+	mustContain(t, implement, "`date -u +\"%Y-%m-%dT%H:%M:%SZ\"`")
+	mustContain(t, implement, "Never invent or round a timestamp, and never write rows in a batch at the end of the run.")
+	mustContain(t, implement, "A fix committed before Step 7's `code-review` runs is `integration-fix`.")
+	mustContain(t, implement, "A `gate` row's `result` is only `Approved` or `Declined`.")
+}
+
+func TestFixAndLandingRowsCiteOneCommit(t *testing.T) {
+	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "`evidence` is the single landed commit SHA, never an `a...b` revision range")
+}
+
+// A direct commit's scope is checked mechanically on the staged change.
+func TestDirectCommitScopeIsCheckedOnTheStagedDiff(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	mustContain(t, implement, "run `git diff --cached --name-only` before committing")
+	mustContain(t, implement, "a manual read of the files is not this check")
+}
+
+func TestStyleQuestionCitesFileAndLine(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	mustContain(t, implement, "`Pattern A (path/file.ext:12) vs. Pattern B (path/other.ext:34)`")
+	mustContain(t, implement, "A file name without a line number is not a citation.")
 }
