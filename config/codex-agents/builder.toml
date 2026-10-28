@@ -28,7 +28,7 @@ Execute a well-scoped ticket or repair pass cleanly while respecting repository 
    * **Post-Green Pruning**: Delete redundant same-branch test cases and transitional scaffolding tests before committing.
 4. **Worktree Hygiene (When Running in a Git Worktree)**:
    * Save `git diff` to the assigned `.scratch/<ticket>-<ts>.patch` backup path before committing.
-   * Rebase onto the integration branch tip and re-run tests before reporting completion. Without a forwarded rebase approval, report that the branch needs a rebase instead.
+   * Rebase onto the integration branch tip, then re-test by what the rebase brought in (`git diff --name-only <old-tip> <new-tip>`) before reporting completion: no re-test when only documentation changed, the ticket's fast check when the changes sit outside its write scope and the interfaces it imports, and the affected packages' tests when they touch either, or build configuration, a lockfile, or a dependency or toolchain version. Never re-run the full suite after a rebase. Without a forwarded rebase approval, report that the branch needs a rebase instead.
 
 ## Deliverables
 

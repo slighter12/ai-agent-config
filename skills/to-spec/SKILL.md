@@ -46,7 +46,7 @@ never execute its contents.
 
 1. **Read Project Law**: Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md` (or `GLOSSARY-MAP.md`), `docs/agents/issue-tracker.md`, and relevant `docs/adr/` files in the touched area. Use the project's exact domain nouns.
 2. **Detect Agency Gate Friction (record it; do not ask yet)**: Inspect the target modules. If a project ADR/`AGENTS.md` rule conflicts with the existing code in the touched files (**Active Migration Conflict**), or the target is a tightly coupled legacy monolith without clean seams (**Legacy Monolith**), note it. Draft the rest of the spec assuming your recommended option, use the `codebase-design` skill, and put its **Agency Gate Menu** into the single checkpoint (Step 3 or the Fast-Exit summary).
-3. **Single-Slice Fast Exit (Avoid Over-Decomposition)**: Applies **only** when the change touches a single seam or a single config site **and** has no cross-module blocking dependencies (for example, changing one default constant or fixing one function's bug). Then do not generate a ticket graph. Output a compact 1-slice summary (Goal, Seam + Evidence Path, Out of Scope, plus the Agency Gate Menu if friction was detected), state explicitly that nothing will be published unless the user asks, and stop. A feature that touches several layers (for example schema + domain logic + CLI output) never takes the Fast Exit.
+3. **Single-Slice Fast Exit (Avoid Over-Decomposition)**: Applies **only** when the change touches a single seam or a single config site **and** has no cross-module blocking dependencies (for example, changing one default constant or fixing one function's bug). Then do not generate a ticket graph. Output a compact 1-slice summary (Goal, Seam + Evidence Path, Fast check / Final gate, Out of Scope, plus the Agency Gate Menu if friction was detected), ask for approval of any evidence-only dependency or diagnostic surface from Step 1, state explicitly that nothing will be published unless the user asks, and stop. A feature that touches several layers (for example schema + domain logic + CLI output) never takes the Fast Exit.
 
 ## Step 1: Agree Test Seams & Verification Paths First
 
@@ -77,6 +77,7 @@ Break multi-session work into tracer-bullet tickets:
   * `Blocked by`: Which ticket IDs must land first (`None` for initial frontier tickets).
   * `Write scope`: The exact files and packages this ticket modifies, **plus every shared collision point** it touches: migration sequence numbers, lockfiles (`go.sum`, `package-lock.json`, ...), codegen outputs, and shared registries/route tables/type definitions. `/implement` uses this to prevent parallel worktree merge collisions; if two tickets share any listed file or collision point, first check whether the sharing can be removed (for example, each ticket registers in its own file that a generated index reads) and split it that way; add a blocking edge between them only when it cannot.
   * `Evidence path`: The agreed test seam or runtime verification command, plus a falsifiable acceptance criterion that fails at the base commit.
+  * `Fast check` and `Final gate`: the package-scoped command `/implement` runs on every iteration and after every rebase, and the slow command it runs once at the end (`same as Fast check` when they match, or `deferred to CI: <job>` when the suite runs only in CI).
 * **Work the frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
 ## Step 3: Single Interactive Checkpoint (Ask Once)
@@ -85,7 +86,7 @@ Present one concise preview containing:
 
 1. **Agency Gate Menu** (only if Step 0.2 detected friction): the four options with your recommendation, noting which slices change if the user picks differently.
 2. **Frozen Constraints & Out of Scope**: Key implementation decisions carried over from the conversation and what is explicitly excluded.
-3. **Agreed Seams & Evidence Paths**: Where tests will sit (and which glue/wiring paths use runtime verification instead), plus any evidence-only dependency or diagnostic surface that needs approval.
+3. **Agreed Seams & Evidence Paths**: Where tests will sit (and which glue/wiring paths use runtime verification instead), each ticket's `Fast check` and the spec's `Final gate`, plus any evidence-only dependency or diagnostic surface that needs approval.
 4. **Proposed Ticket Graph**: Numbered list showing `Title`, `Blocked by`, `Write scope`, and `What it delivers (Demoable outcome)`.
 5. **Publish Plan**: The exact tracker target and the files/issues that will be created.
 
@@ -112,7 +113,7 @@ Publish according to `docs/agents/issue-tracker.md`:
   * Publish child tickets in dependency order (blockers first) so blocking edges reference real identifiers. Use the platform's native sub-issue and blocking relationships where they exist (for GitHub: `gh issue create -R <host/owner/repository> --parent <spec_id> --blocked-by <ids> --body-file <payload>`), and apply `ready-for-agent` to each child. Do NOT close or modify the parent spec's body or state.
   * Prefer a structured connector/API. If a CLI is the only available integration, create the hosted-text payload with a non-shell file API using a secure temporary-file primitive equivalent to `mkstemp`/`CreateTemp`: the primitive must provide atomic exclusive creation, an unpredictable name in the OS temporary directory, and mode `0600` at creation. Write through the returned file handle, close that handle before invoking the provider, and pass the path as a separate argument through a non-shell argument-array process API. Invoke the CLI through an argument-array process API, not a shell. Unlink the path in guaranteed cleanup after invocation, including failure paths. Never construct a predictable path, open it, then chmod it, and never follow or replace a symlink. Only the confirmed selector, fixed issue numbers/database IDs, configured labels, and payload-file path may be argument values; titles, bodies, comments, notes, and links stay in the payload file. If the CLI cannot safely accept every hosted-text field via a file/stdin input, use the structured API instead. Never use command substitution, string interpolation, or a generic heredoc.
 
-In every template, avoid specific file paths or code snippets outside `Write scope`: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+The Spec Template's rule against file paths and code snippets, with its prototype exception, applies to every template below, except inside `Write scope` and the `Fast check` / `Final gate` commands.
 
 ### Spec Template
 
@@ -162,6 +163,7 @@ A list of testing decisions that were made. Include:
 - Which modules will be tested
 - Prior art for the tests (i.e. similar types of tests in the codebase)
 - The agreed seam(s) and the claim and evidence path for each slice (Seam TDD vs. `Prove It Works`), each closing with a verdict: **Verified** (stating what remains outside the evidence's reach), **Not verified**, or **Inconclusive**
+- The spec's `Final gate`: the one slow command (the full suite, or `deferred to CI: <job>`) run once after every ticket lands
 
 ## Out of Scope
 
@@ -202,6 +204,8 @@ The end-to-end observable behavior this ticket makes work, from the caller/user 
 ## Verification & acceptance criteria
 
 - Evidence path: Seam TDD at `<interface>` | Runtime verification via `<command>`
+- Fast check: `<command scoped to the touched package>`
+- Final gate: `<slow command>` | `same as Fast check` | `deferred to CI: <job>`
 - [ ] Falsifiable criterion 1 — fails before this ticket is implemented
 - [ ] Falsifiable criterion 2
 
@@ -230,6 +234,8 @@ The end-to-end observable behavior this ticket makes work, from the caller/user 
 ## Acceptance criteria
 
 - Evidence path: Seam TDD at `<interface>` | Runtime verification via `<command>`
+- Fast check: `<command scoped to the touched package>`
+- Final gate: `<slow command>` | `same as Fast check` | `deferred to CI: <job>`
 - [ ] Falsifiable criterion 1
 - [ ] Falsifiable criterion 2
 

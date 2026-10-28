@@ -59,6 +59,8 @@ Be specific about edge cases and error conditions.
 - Config shape: any new configuration options needed
 
 **Evidence path:** `Seam TDD` at <named seam> / `Runtime Verification` with <command and expected output>
+**Fast check:** the narrowest test command for the change, named by module or package area as in Write scope
+**Final gate:** the slow command run once before the work is done, `same as fast check`, or `deferred to CI: <job>`
 **Write scope:** module, package, or directory areas the change may touch (re-verify at pickup)
 **Project-law friction:** none, or the ADR vs. legacy pattern found during verification and the maintainer's chosen Agency Gate option (a)–(d). If friction exists and no option is chosen, the state is `ready-for-human`, not `ready-for-agent`.
 
@@ -99,6 +101,8 @@ and append "..." to indicate truncation.
 
 **Evidence path:** `Seam TDD` at the description-processing function, replaying
 a real 1100-character description as-is
+**Fast check:** the frontmatter parsing module's tests
+**Final gate:** the full test suite
 **Write scope:** the skill frontmatter parsing module and its tests
 **Project-law friction:** none
 
@@ -143,6 +147,8 @@ checked for matches.
 
 **Evidence path:** `Seam TDD` at the out-of-scope matching function, plus
 `Runtime Verification` of one wontfix triage run producing the file
+**Fast check:** the triage workflow module's tests
+**Final gate:** the full test suite
 **Write scope:** the triage workflow module and the `.out-of-scope/` directory
 **Project-law friction:** none
 
@@ -187,6 +193,8 @@ is untouched when the flag is absent.
 - Reuse the existing serializer the PR already added; don't introduce a second
 
 **Evidence path:** `Seam TDD` at the command's output layer (the test below)
+**Fast check:** the `triage list` command module's tests
+**Final gate:** same as fast check
 **Write scope:** the `triage list` command module and its tests
 **Project-law friction:** none
 

@@ -125,7 +125,7 @@ Make one simplification at a time.
 For each simplification:
 
 1. Make the change
-2. Rerun the baseline checks to check preservation
+2. Rerun the baseline tests for the file or package the step touched to check preservation
 3. Keep it only when the evidence supports preservation
 
 Revert a change whose checks fail or whose preservation you cannot show; do not stack a second change on an unverified first. Separate refactoring from feature work whenever possible.
@@ -138,6 +138,7 @@ After simplifying, confirm:
 - The diff is clean and reviewable
 - Project conventions still match
 - No behavior, error handling, or side effects changed
+- The whole Step 2 baseline, rerun once after the last step, still passes (record the command and result)
 
 ## Report
 

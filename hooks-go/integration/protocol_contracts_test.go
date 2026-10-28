@@ -246,7 +246,7 @@ func TestBaseShaIsCapturedBeforeTheFirstTicketLands(t *testing.T) {
 	mustContain(t, fallback, "run it in WIP mode anchored at `BASE_SHA`")
 	// Mode B resume reads the recorded base first and never guesses a parent branch.
 	modeBResume := section(t, implement, "A resumed run takes `BASE_SHA`", "In the same step, before the first dispatch")
-	mustContain(t, modeBResume, "the run-plan `gate` row")
+	mustContain(t, modeBResume, "the latest `gate` row in `decisions.tsv` whose `evidence` records `BASE_SHA=`")
 	mustContain(t, modeBResume, "only when `<parent-branch>` is explicitly known from the session or the spec; never guess `main` or `master`")
 	mustContain(t, modeBResume, "the earliest `direct` row whose `evidence` is a commit SHA")
 	mustContain(t, implement, "The first row is the run-plan `gate` row")
@@ -260,10 +260,11 @@ func TestBaseShaIsCapturedBeforeTheFirstTicketLands(t *testing.T) {
 	mustContain(t, fallback, "record it in the run-plan `gate` row")
 	step4 := section(t, implement, "4. **Create the Integration Branch and Its Decision Trail**", "5. **Dispatch Frontier")
 	mustContain(t, step4, "`BASE_SHA=<full-sha>`")
-	mustContain(t, step4, "`parent=<branch>`")
+	mustContain(t, step4, "`BASE_SHA=<full-sha> parent=<branch>`")
+	mustContain(t, step4, "read its parent with `git branch --show-current`")
 	mustContain(t, modeBResume, "If none of the applicable sources above yields `BASE_SHA`, ask the user.")
 	mustNotContain(t, modeBResume, "no known parent branch, or no `direct` row with a commit SHA")
-	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "the integration branch and the branch it was created from (when used), the run's `BASE_SHA`, and the `decisions.tsv` path")
+	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "the integration branch and its parent branch (when used), the run's current `BASE_SHA` (the latest `BASE_SHA=` recorded in `decisions.tsv`, which moves only by `implement`'s **When the base moves** rule), and the `decisions.tsv` path")
 }
 
 // A builder pause answer is a gate row with a legal result.
@@ -297,4 +298,116 @@ func TestStyleQuestionCitesFileAndLine(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	mustContain(t, implement, "`Pattern A (path/file.ext:12) vs. Pattern B (path/other.ext:34)`")
 	mustContain(t, implement, "A file name without a line number is not a citation.")
+}
+
+// The review base moves only to a merge-base that keeps the run's own commits
+// in the review and the parent's commits out of it, and never to HEAD once a
+// run commit has landed.
+func TestBaseMovesOnlyToAMergeBaseThatKeepsRunCommits(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	moves := section(t, implement, "**When the base moves**", "5. **Dispatch Frontier")
+	mustContain(t, moves, "No commit of this run has landed yet")
+	mustContain(t, moves, "the new `BASE_SHA` is the current `HEAD`")
+	mustContain(t, moves, "`git merge-base --all <parent-branch> <integration-branch>`")
+	mustContain(t, moves, "(a) it prints one commit, and the current `BASE_SHA` is its ancestor")
+	mustContain(t, moves, "(b) no landed run commit")
+	mustContain(t, moves, "(c) every file a landed run commit changed still appears in `git diff --name-only <candidate> <integration-branch>`")
+	mustContain(t, moves, "keep `BASE_SHA` and ask the user before Step 7")
+	mustContain(t, moves, "Never move `BASE_SHA` to `HEAD` once a run commit has landed.")
+	mustContain(t, section(t, implement, "## Mode A:", "## Sequential Fallback"), "follow **When the base moves** in Mode B Step 4")
+	mustContain(t, implement, "A `code-review` result is never a `gate` row.")
+}
+
+// Re-tests after a rebase follow what the rebase brought in; the full suite
+// runs once, at the final gate.
+func TestRetestsFollowWhatTheRebaseBroughtIn(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	retest := section(t, implement, "**Re-test after a rebase or tip move**:", "**Deferred-green migration batches**")
+	mustContain(t, retest, "`git diff --name-only <old-tip> <new-tip>`")
+	mustContain(t, retest, "keep the earlier verdict without re-testing")
+	mustContain(t, retest, "compile or typecheck the touched packages and run the ticket's `Fast check`")
+	mustContain(t, retest, "run the tests of every affected package")
+	mustContain(t, retest, "is normal drift, never a reason to stop")
+	mustContain(t, retest, "Never run the full suite here; it runs once, at the `Final gate`.")
+	mustContain(t, implement, "re-test per **Re-test after a rebase or tip move** (Step 6) before reporting done")
+	mustNotContain(t, implement, "re-tests again")
+	mustNotContain(t, implement, "verify its tests pass on the rebased branch")
+	mustNotContain(t, implement, "Run the full relevant test suite once at the end.")
+	mustContain(t, section(t, implement, "## Mode A:", "## Sequential Fallback"), "Run the `Final gate` once at the end")
+	mustContain(t, section(t, implement, "7. **Single Integration", "8. **Cleanup**"), "run the spec's `Final gate` once on the integration tip")
+	mustContain(t, implement, "a patch-level dependency bump needs only the tests of the packages that import that dependency")
+	for name, builder := range builderDefinitions(t) {
+		t.Run(name, func(t *testing.T) {
+			mustContain(t, builder, "re-test by what the rebase brought in")
+			mustContain(t, builder, "Never re-run the full suite after a rebase.")
+			mustNotContain(t, builder, "re-run tests before reporting completion")
+		})
+	}
+	for name, runner := range map[string]string{
+		"agents":        flat(t, "agents", "test-runner.md"),
+		"claude-agents": flat(t, "claude-agents", "test-runner.md"),
+		"codex":         flat(t, "config", "codex-agents", "test-runner.toml"),
+	} {
+		t.Run("test-runner "+name, func(t *testing.T) {
+			mustContain(t, runner, "Run the full suite only when the dispatching session asks for the final gate")
+			mustNotContain(t, runner, "run the full suite once after targeted checks pass")
+		})
+	}
+}
+
+// Specs and briefs name the fast iteration check apart from the final gate,
+// so implement never has to guess which command is slow.
+func TestTicketsNameAFastCheckAndAFinalGate(t *testing.T) {
+	toSpec := flat(t, "skills", "to-spec", "SKILL.md")
+	for _, tmpl := range []struct{ from, to string }{
+		{"<local-ticket-template>", "</local-ticket-template>"},
+		{"<issue-template>", "</issue-template>"},
+	} {
+		part := section(t, toSpec, tmpl.from, tmpl.to)
+		mustContain(t, part, "- Fast check: `<command scoped to the touched package>`")
+		mustContain(t, part, "- Final gate: `<slow command>` | `same as Fast check` | `deferred to CI: <job>`")
+	}
+	mustContain(t, section(t, toSpec, "<spec-template>", "</spec-template>"), "The spec's `Final gate`")
+	brief := flat(t, "skills", "triage", "AGENT-BRIEF.md")
+	mustContain(t, brief, "**Fast check:**")
+	mustContain(t, brief, "**Final gate:**")
+}
+
+// A Fast Exit still asks before adding an evidence-only dependency or
+// diagnostic surface.
+func TestFastExitAsksForEvidenceOnlyAffordances(t *testing.T) {
+	fastExit := section(t, flat(t, "skills", "to-spec", "SKILL.md"), "3. **Single-Slice Fast Exit", "## Step 1:")
+	mustContain(t, fastExit, "Fast check / Final gate")
+	mustContain(t, fastExit, "ask for approval of any evidence-only dependency or diagnostic surface from Step 1")
+}
+
+// Worktree removal and branch deletion follow the approved plan, and a
+// resumed run asks again.
+func TestCleanupRemovesOnlyApprovedWorktreesAndBranches(t *testing.T) {
+	implement := flat(t, "skills", "implement", "SKILL.md")
+	mustContain(t, implement, "Commits, creating, switching, or deleting branches, creating or removing git worktrees")
+	mustContain(t, section(t, implement, "2. **Get Approval for the Run Plan**", "3. **Shared Exploration**"), "the worktrees to remove and any branch to delete at Cleanup")
+	cleanup := section(t, implement, "8. **Cleanup**", "## Final Report")
+	mustContain(t, cleanup, "Remove only the worktrees the approved run plan lists (`git worktree remove` keeps each worktree's branch)")
+	mustContain(t, cleanup, "delete a branch only when the approved run plan or a later user message names it")
+	mustContain(t, cleanup, "A resumed run asks again before removing a worktree or deleting a branch")
+	mustContain(t, cleanup, "run `git worktree list` and report any worktree left")
+}
+
+// tidy checks each step on what it touched and the whole baseline once.
+func TestTidyRunsTheWholeBaselineOnceAtTheEnd(t *testing.T) {
+	tidy := flat(t, "skills", "tidy", "SKILL.md")
+	mustContain(t, tidy, "Rerun the baseline tests for the file or package the step touched")
+	mustContain(t, tidy, "The whole Step 2 baseline, rerun once after the last step, still passes")
+	mustNotContain(t, tidy, "Rerun the baseline checks to check preservation")
+}
+
+// Both local tracker contracts create a ticket directory only on an
+// authorized request.
+func TestLocalTrackerCreatesDirectoriesOnlyWhenAuthorized(t *testing.T) {
+	for name, contract := range localTrackerContracts(t) {
+		t.Run(name, func(t *testing.T) {
+			mustContain(t, contract, "only when the request authorizes artifact creation")
+		})
+	}
 }
