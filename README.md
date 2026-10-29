@@ -13,3 +13,7 @@ A portable, language-agnostic configuration suite of **Skills**, **Always-On Ste
    * Replaces language-coupled TDD dogma with observable syntactic redlines (`Single-Caller Helper Ban`, `No Call-Only Mock Assertions`, `Evidence Conservation Law`, and `Post-Green Same-Branch Test Pruning`).
 4. **Single-Window Default, Escalate Only at Smart-Zone Boundaries**:
    * Works with zero custom agent overhead by default (Level 0), offloading noisy read-only searches to `explorer` / `librarian` / `oracle` (Level 1) and escalating to parallel git worktrees (Level 2) only for multi-ticket specs with non-overlapping write scopes.
+
+## Development
+
+Run `scripts/check.sh` before committing; CI runs it on Linux and macOS.
