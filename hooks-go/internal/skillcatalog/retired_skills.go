@@ -708,10 +708,7 @@ func scanRoutingFileWithHook(path string, names []string, failures *[]string, bu
 	if afterOpen != nil {
 		afterOpen()
 	}
-	readLimit := int64(maxRoutingSurfaceBytes)
-	if budget.remaining < readLimit {
-		readLimit = budget.remaining
-	}
+	readLimit := min(budget.remaining, int64(maxRoutingSurfaceBytes))
 	raw, err := io.ReadAll(io.LimitReader(file, readLimit+1))
 	if err != nil {
 		return fmt.Errorf("read routing surface %s: %w", path, err)

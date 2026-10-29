@@ -204,7 +204,7 @@ printf 'after=%s\n' "$after"
 			mustNotContain(t, output, "attacker-visible")
 			mustNotContain(t, output, "attacker-secret")
 			before, after := "", ""
-			for _, line := range strings.Split(output, "\n") {
+			for line := range strings.SplitSeq(output, "\n") {
 				switch {
 				case strings.HasPrefix(line, "before="):
 					before = strings.TrimPrefix(line, "before=")
@@ -727,8 +727,8 @@ fi
 
 	cmd := exec.Command(bash, scriptPath)
 	for _, item := range extraEnv {
-		if strings.HasPrefix(item, "WIZARD_TEST_CWD=") {
-			cmd.Dir = strings.TrimPrefix(item, "WIZARD_TEST_CWD=")
+		if after, ok := strings.CutPrefix(item, "WIZARD_TEST_CWD="); ok {
+			cmd.Dir = after
 		}
 	}
 	cmd.Env = append(os.Environ(), "PATH="+binDir+string(os.PathListSeparator)+os.Getenv("PATH"), "GH_CALLS="+callsPath)

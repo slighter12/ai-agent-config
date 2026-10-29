@@ -122,8 +122,8 @@ func runInitSkill(args []string) error {
 			index++
 			continue
 		}
-		if strings.HasPrefix(arg, "--path=") {
-			path = strings.TrimPrefix(arg, "--path=")
+		if after, ok := strings.CutPrefix(arg, "--path="); ok {
+			path = after
 			continue
 		}
 		if strings.HasPrefix(arg, "-") {

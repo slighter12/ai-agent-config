@@ -893,7 +893,7 @@ func renderPlaceholders(text string, replacements map[string]string) string {
 }
 
 func roleNameFromTemplate(text string) (string, bool) {
-	for _, line := range strings.Split(text, "\n") {
+	for line := range strings.SplitSeq(text, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if !strings.HasPrefix(trimmed, "name") {
 			continue
@@ -1051,7 +1051,7 @@ func (c Config) codexMarketplaceConfigured() bool {
 		return false
 	}
 	inMarketplace := false
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		line := strings.TrimSpace(line)
 		if table, ok := tomlTableName(line); ok {
 			inMarketplace = table == "marketplaces.ai-agent-config"

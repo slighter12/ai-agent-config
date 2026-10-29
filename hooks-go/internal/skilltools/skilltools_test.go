@@ -256,7 +256,7 @@ func TestValidateSkillsBudgetsOnlyModelDiscovery(t *testing.T) {
 	t.Run("user descriptions are excluded", func(t *testing.T) {
 		skillsDir := t.TempDir()
 		var userNames []string
-		for index := 0; index < 10; index++ {
+		for index := range 10 {
 			name := "user-" + string(rune('a'+index))
 			writeInvocationSkillWithDescription(t, skillsDir, name, "user", longDescription)
 			userNames = append(userNames, name)
@@ -277,7 +277,7 @@ func TestValidateSkillsBudgetsOnlyModelDiscovery(t *testing.T) {
 	t.Run("model descriptions enforce the limit", func(t *testing.T) {
 		skillsDir := t.TempDir()
 		var modelNames []string
-		for index := 0; index < 10; index++ {
+		for index := range 10 {
 			name := "model-" + string(rune('a'+index))
 			writeInvocationSkillWithDescription(t, skillsDir, name, "model", longDescription)
 			modelNames = append(modelNames, name)

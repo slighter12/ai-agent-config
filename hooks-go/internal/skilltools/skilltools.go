@@ -141,10 +141,7 @@ func readValidatorFileHandle(file *os.File, path string, budget *validatorBudget
 	if afterOpen != nil {
 		afterOpen()
 	}
-	readLimit := int64(maxValidatorFileBytes)
-	if budget.remaining < readLimit {
-		readLimit = budget.remaining
-	}
+	readLimit := min(budget.remaining, int64(maxValidatorFileBytes))
 	raw, err := io.ReadAll(io.LimitReader(file, readLimit+1))
 	if err != nil {
 		return nil, fmt.Errorf("read validator input %s: %w", path, err)
@@ -480,7 +477,7 @@ func catalogReferenceFailuresFromDirectory(directory *os.File, skillsPath string
 	section := ""
 	hasUserSection := false
 	hasModelSection := false
-	for _, line := range strings.Split(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
+	for line := range strings.SplitSeq(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
 		trimmed := strings.TrimSpace(line)
 		switch trimmed {
 		case "## User-invoked":
@@ -543,7 +540,7 @@ func catalogRowSkillName(line string) (string, bool) {
 
 func codexImplicitInvocationDisabled(text string) bool {
 	inPolicy := false
-	for _, line := range strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
+	for line := range strings.SplitSeq(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
 			continue
@@ -672,15 +669,14 @@ func extractFrontmatter(content string) (string, bool) {
 		return "", false
 	}
 	rest := content[len("---\n"):]
-	index := strings.Index(rest, "\n---")
-	if index < 0 {
+	frontmatter, after, ok := strings.Cut(rest, "\n---")
+	if !ok {
 		return "", false
 	}
-	after := rest[index+len("\n---"):]
 	if after != "" && !strings.HasPrefix(after, "\n") {
 		return "", false
 	}
-	return rest[:index], true
+	return frontmatter, true
 }
 
 func parseFrontmatter(text string) (map[string]frontmatterValue, error) {

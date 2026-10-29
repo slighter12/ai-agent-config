@@ -140,7 +140,7 @@ func WorkspaceGitProfileConfig() string {
 
 func rejectLegacySandbox(text string) error {
 	currentTable := ""
-	for _, line := range strings.Split(text, "\n") {
+	for line := range strings.SplitSeq(text, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
 			continue

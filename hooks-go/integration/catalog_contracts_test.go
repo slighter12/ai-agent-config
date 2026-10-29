@@ -740,7 +740,7 @@ func TestAgencyGateMenuHasOneCanonicalCopy(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	menu := func(text string) []string {
 		var options []string
-		for _, line := range strings.Split(text, "\n") {
+		for line := range strings.SplitSeq(text, "\n") {
 			trimmed := strings.TrimSpace(line)
 			for _, label := range []string{"(a)", "(b)", "(c)", "(d)"} {
 				if strings.HasPrefix(trimmed, "* **"+label+" ") {
