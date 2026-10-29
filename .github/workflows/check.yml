@@ -16,4 +16,6 @@ jobs:
       - uses: actions/setup-go@v7.0.0
         with:
           go-version-file: hooks-go/go.mod
+          # hooks-go has no module dependencies, so there is nothing to cache.
+          cache: false
       - run: bash scripts/check.sh
