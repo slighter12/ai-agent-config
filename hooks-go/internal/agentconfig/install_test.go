@@ -534,6 +534,28 @@ func TestGenerateCodexRoleFilesDoesNotFollowReplacementSymlink(t *testing.T) {
 }
 
 func TestGenerateCodexRoleFilesDoesNotRemoveReplacementRegularStaleFile(t *testing.T) {
+	assertStaleRoleReplacementSurvives(t, func(path string) {
+		if err := os.Remove(path); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte("replacement-owned"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+// An in-place rewrite keeps the inode, as Linux does when it hands a freed
+// inode to the replacement, so only the content shows the file changed.
+func TestGenerateCodexRoleFilesDoesNotRemoveStaleFileRewrittenInPlace(t *testing.T) {
+	assertStaleRoleReplacementSurvives(t, func(path string) {
+		if err := os.WriteFile(path, []byte("replacement-owned"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+func assertStaleRoleReplacementSurvives(t *testing.T, replace func(path string)) {
+	t.Helper()
 	repo := t.TempDir()
 	sourceDir := filepath.Join(repo, "config", "codex-agents")
 	targetDir := filepath.Join(repo, "home", ".codex", "agents")
@@ -552,16 +574,9 @@ func TestGenerateCodexRoleFilesDoesNotRemoveReplacementRegularStaleFile(t *testi
 		t.Fatal(err)
 	}
 	config := Config{
-		RepoRoot: repo,
-		Out:      &bytes.Buffer{},
-		beforeStaleRoleRemove: func(path string) {
-			if err := os.Remove(path); err != nil {
-				t.Fatal(err)
-			}
-			if err := os.WriteFile(path, []byte("replacement-owned"), 0o644); err != nil {
-				t.Fatal(err)
-			}
-		},
+		RepoRoot:              repo,
+		Out:                   &bytes.Buffer{},
+		beforeStaleRoleRemove: replace,
 	}
 	if err := config.generateCodexRoleFiles(targetDir); err != nil {
 		t.Fatal(err)

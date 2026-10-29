@@ -609,7 +609,17 @@ func (c Config) generateCodexRoleFiles(targetDir string) error {
 		if err != nil {
 			return err
 		}
-		if currentInfo.Mode()&os.ModeSymlink != 0 || !currentInfo.Mode().IsRegular() || !os.SameFile(info, currentInfo) {
+		changed := currentInfo.Mode()&os.ModeSymlink != 0 || !currentInfo.Mode().IsRegular() || !os.SameFile(info, currentInfo)
+		if !changed {
+			// Linux can hand a freed inode straight to a replacement file, so
+			// SameFile alone misses it; the content must still match too.
+			currentRaw, err := targetRoot.ReadFile(entry.Name())
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+			changed = err != nil || !bytes.Equal(raw, currentRaw)
+		}
+		if changed {
 			c.printf("   ! Stale managed role target changed during validation, leaving unchanged: %s\n", target)
 			continue
 		}
