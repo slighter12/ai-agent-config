@@ -21,6 +21,8 @@ usage() {
 	cat >&2 <<'EOF'
 usage: run-trail.sh [--dir DIR] <command> [options]
 
+--dir DIR names the trail directory in place of --slug, before or after the command.
+
   init      --slug S --mode A|B|fallback [--integration BRANCH] [--parent BRANCH|none]
             [--decision TEXT] [--why TEXT] [--fresh]
   log       --slug S --phase P --decision TEXT --why TEXT --result R
@@ -210,6 +212,7 @@ cmd_init() {
 		[ $# -ge 2 ] || die "$1 needs a value"
 		case $1 in
 		--slug) SLUG=$2 ;;
+		--dir) DIR=$2 ;;
 		--mode) MODE=$2 ;;
 		--parent) PARENT=$2 ;;
 		--integration) INTEGRATION=$2 ;;
@@ -244,10 +247,11 @@ cmd_init() {
 	fi
 	resolve_trail create
 	if [ -f "$STATE" ]; then
+		[ "$(state_get repo_key)" = "$KEY" ] || die "the trail at $TRAIL belongs to another repository"
 		# Re-running init is a no-op only while nothing happened since it ran.
 		expected_rows=1
 		[ "$MODE" != A ] || expected_rows=0
-		if [ -z "$FRESH" ] && [ "$(state_get repo_key)" = "$KEY" ] && [ "$(state_get mode)" = "$MODE" ] &&
+		if [ -z "$FRESH" ] && [ "$(state_get mode)" = "$MODE" ] &&
 			[ "$(state_get parent)" = "$PARENT" ] && [ "$(state_get integration)" = "$INTEGRATION" ] &&
 			[ "$(state_get capture)" = "$head" ] && [ "$(awk 'NR > 1' "$TSV" | grep -c . || true)" = "$expected_rows" ]; then
 			CAPTURE=$head
@@ -284,6 +288,7 @@ cmd_log() {
 		[ $# -ge 2 ] || die "$1 needs a value"
 		case $1 in
 		--slug) SLUG=$2 ;;
+		--dir) DIR=$2 ;;
 		--phase) PHASE=$2 ;;
 		--decision) DECISION=$2 ;;
 		--why) WHY=$2 ;;
@@ -365,6 +370,7 @@ cmd_status() {
 		[ $# -ge 2 ] || die "$1 needs a value"
 		case $1 in
 		--slug) SLUG=$2 ;;
+		--dir) DIR=$2 ;;
 		*) die "unknown status option: $1" ;;
 		esac
 		shift 2
@@ -390,6 +396,7 @@ cmd_base() {
 		[ $# -ge 2 ] || die "$1 needs a value"
 		case $1 in
 		--slug) SLUG=$2 ;;
+		--dir) DIR=$2 ;;
 		--target) TARGET=$2 ;;
 		--committed) COMMITTED=$2 ;;
 		*) die "unknown base option: $1" ;;
@@ -430,6 +437,7 @@ cmd_scope() {
 		esac
 		[ $# -ge 2 ] || die "$1 needs a value"
 		case $1 in
+		--dir) DIR=$2 ;;
 		--allow) ALLOW="${ALLOW:+$ALLOW$NL}$2" ;;
 		--since) SOURCE=since SINCE=$2 ;;
 		*) die "unknown scope option: $1" ;;
@@ -482,7 +490,11 @@ cmd_scope() {
 }
 
 cmd_worktrees() {
-	[ $# -eq 0 ] || die "worktrees takes no options"
+	while [ $# -gt 0 ]; do
+		[ "$1" = --dir ] && [ $# -ge 2 ] || die "worktrees takes only --dir"
+		DIR=$2
+		shift 2
+	done
 	require_repo
 	count=0
 	first=1

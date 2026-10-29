@@ -24,6 +24,7 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
      * Local Markdown: every `.scratch/<feature-slug>/issues/*.md` file beside the spec. `.scratch/` is a hidden directory, so list that `issues/` path directly; a recursive listing from the repository root (`ls -R .`) skips it. A file whose `Parent spec:` line names a different spec is not a child. A file with a `Type:` of `research`, `prototype`, or `grilling` is a wayfinder decision ticket, not a child.
      * Hosted tracker: the spec issue's native sub-issues; where the tracker has none, the issues whose `## Parent` section references the spec.
      * Read every child ticket before writing code. Child acceptance criteria are requirements of the spec; building the spec without them is a missing-requirement defect.
+     * A `Fast check` or `Final gate` written as a module description, as triage briefs write them, resolves here to the concrete command for that module.
 2. **Read Project Law**:
    * Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md`, and any `docs/adr/` covering the touched modules.
 3. **Run the 6-Scenario Friction Check on Target Files**:
@@ -37,7 +38,7 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
 
 Choose the mode from what the user passed and, for a spec, from the child tickets listed in Step 1, not from how the request is phrased.
 
-* **Resume an interrupted run**: before choosing a mode, if the integration branch already exists or a `/handoff` document names a run trail, run `run-trail.sh status --slug <feature-slug>`, adding `--dir <trail-directory>` when the handoff names one, since another session's `$TMPDIR` can differ. Compare its `ticket=` lines with `git log` of the integration branch: a row whose commit is not on the branch, or a landed ticket commit without a row, is a mismatch; settle it with the user before any dispatch. Only then treat every `ticket=` it lists as resolved in the in-memory graph, and never re-dispatch it. When no trail is found, ask the user before rebuilding any ticket.
+* **Resume an interrupted run**: before choosing a mode, if the integration branch already exists or a `/handoff` document names a run trail, run `run-trail.sh status --slug <feature-slug>`, or `run-trail.sh --dir <trail-directory> status` when the handoff names a trail directory, since another session's `$TMPDIR` can differ. Compare its `ticket=` lines with `git log` of the integration branch: a row whose commit is not on the branch, or a landed ticket commit without a row, is a mismatch; settle it with the user before any dispatch. Only then treat every `ticket=` it lists as resolved in the in-memory graph, and never re-dispatch it. When no trail is found, ask the user before rebuilding any ticket.
 * **Unfulfilled blockers**: only a fulfilled ticket (`Status: resolved`, or a hosted issue closed as completed) clears a `Blocked by` edge. A blocker closed without being fulfilled (`Status: closed (wontfix)`, `closed (duplicate)`, or `closed (out-of-scope)`, or a hosted issue closed as not planned or duplicate) never does: stop and ask the user to replan that dependency.
 
 * **Given a child ticket** -> **Mode A (In-Window Surgical Build)** on that ticket only. If any of its `Blocked by` tickets is unresolved, and was not built and verified earlier in this run (see the Sequential Fallback), stop and report which. Never expand to the parent spec's other children; the parent spec is context, not scope.
@@ -116,7 +117,7 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * Each `builder` subagent MUST:
      1. Confirm its worktree is based on the current integration branch tip before starting.
      2. Stop before writing code and return a pause when the ticket leaves a choice unsettled: an Agency Gate (State 2 or 4), a style for a new file among competing patterns (State 3, each pattern cited as `file:line` as in Step 1), or a test seam.
-     3. Build its ticket using the `tdd` skill.
+     3. Build its ticket using the `tdd` skill, iterating with the ticket's `Fast check`.
      4. Write `git diff` before committing to the backup path the dispatching session assigns, `<trail-directory>/<ticket>-<ts>.patch`, outside the worktree and never committed, so pre-commit hook failures never lose work.
      5. Rebase its worktree branch onto the latest integration branch tip and re-test per **Re-test after a rebase or tip move** (Step 6) before reporting done.
      6. Report `git diff --name-only <integration-tip>...HEAD` alongside its declared `Write scope`.

@@ -134,7 +134,7 @@ func TestResolveReconcilesMissingMapPointers(t *testing.T) {
 func TestImplementResumeReconcilesLandedTickets(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	mustContain(t, implement, "**Resume an interrupted run**")
-	mustContain(t, implement, "run `run-trail.sh status --slug <feature-slug>`, adding `--dir <trail-directory>` when the handoff names one")
+	mustContain(t, implement, "run `run-trail.sh status --slug <feature-slug>`, or `run-trail.sh --dir <trail-directory> status` when the handoff names a trail directory")
 	resume := section(t, implement, "**Resume an interrupted run**", "**Unfulfilled blockers**")
 	if strings.Index(resume, "settle it with the user before any dispatch") > strings.Index(resume, "Only then treat every `ticket=` it lists as resolved") {
 		t.Fatal("resume must settle a trail mismatch before treating tickets as resolved")
@@ -228,7 +228,7 @@ func TestCodeReviewIsNeverSkippedOrExcused(t *testing.T) {
 
 // The fixed point is captured by run-trail init before any ticket lands, so a
 // directly committed contract ticket is never mistaken for the base; a resumed
-// run reads the recorded base instead of capturing a new one.
+// run's base re-derives from git and falls back to the capture.
 func TestBaseShaIsCapturedBeforeTheFirstTicketLands(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	modeB := section(t, implement, "## Mode B:", "## Final Report")

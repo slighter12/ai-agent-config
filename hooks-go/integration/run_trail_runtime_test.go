@@ -205,8 +205,13 @@ func TestRunTrailInitCapturesTheBaseOutsideTheWorkingTree(t *testing.T) {
 		if outputValue(t, out, "capture") != head || outputValue(t, out, "dir") != filepath.Dir(trail) {
 			t.Fatalf("status --dir read another trail:\n%s", out)
 		}
+		after := r.mustRun(0, "status", "--dir", filepath.Dir(trail))
+		if outputValue(t, after, "dir") != filepath.Dir(trail) {
+			t.Fatalf("status with --dir after the command read another trail:\n%s", after)
+		}
 		other := newTrailRepo(t)
 		other.mustRun(2, "--dir", filepath.Dir(trail), "status")
+		other.mustRun(2, "init", "--dir", filepath.Dir(trail), "--mode", "B", "--integration", "feat/x")
 	})
 
 	t.Run("--fresh archives the old trail and captures the new HEAD", func(t *testing.T) {

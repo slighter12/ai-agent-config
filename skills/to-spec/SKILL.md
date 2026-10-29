@@ -77,7 +77,7 @@ Break multi-session work into tracer-bullet tickets:
   * `Blocked by`: Which ticket IDs must land first (`None` for initial frontier tickets).
   * `Write scope`: The exact files and packages this ticket modifies, **plus every shared collision point** it touches: migration sequence numbers, lockfiles (`go.sum`, `package-lock.json`, ...), codegen outputs, and shared registries/route tables/type definitions. `/implement` uses this to prevent parallel worktree merge collisions; if two tickets share any listed file or collision point, first check whether the sharing can be removed (for example, each ticket registers in its own file that a generated index reads) and split it that way; add a blocking edge between them only when it cannot.
   * `Evidence path`: The agreed test seam or runtime verification command, plus a falsifiable acceptance criterion that fails at the base commit.
-  * `Fast check` and `Final gate`: the package-scoped command `/implement` runs on every iteration and after every rebase, and the slow command it runs once at the end (`same as Fast check` when they match, or `deferred to CI: <job>` when the suite runs only in CI).
+  * `Fast check` and `Final gate`: the package-scoped command `/implement` runs on every iteration and after a rebase per its Re-test rule, and the slow command it runs once at the end (`same as Fast check` when they match, or `deferred to CI: <job>` when the suite runs only in CI).
 * **Work the frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
 ## Step 3: Single Interactive Checkpoint (Ask Once)
