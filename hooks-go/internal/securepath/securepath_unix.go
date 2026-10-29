@@ -1,4 +1,4 @@
-//go:build aix || android || darwin || dragonfly || freebsd || ios || linux || netbsd || openbsd || solaris
+//go:build darwin || linux
 
 package securepath
 

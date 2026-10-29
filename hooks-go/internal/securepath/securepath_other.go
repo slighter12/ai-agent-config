@@ -1,4 +1,4 @@
-//go:build js || plan9 || wasip1 || windows
+//go:build windows
 
 package securepath
 
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// These targets do not expose a portable no-follow *at API through the Go
+// Windows does not expose a portable no-follow *at API through the Go
 // standard library. Every pathname component is validated with Lstat and any
 // symlink is rejected before the open; the Unix implementation provides the
 // race-free descriptor-relative variant where the kernel API is available.
