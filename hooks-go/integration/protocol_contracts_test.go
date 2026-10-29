@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -70,16 +71,17 @@ func TestWorktreeVerificationProvisionsIgnoredFixturesOrBlocks(t *testing.T) {
 }
 
 func TestPivotRowsCanRecordAReplanBeforeAnyCommit(t *testing.T) {
-	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "`Reverted`, `Replanned`, or `Supersedes <ts>`: for a `pivot` row; `Replanned` records a re-slice or a change of approach before any commit of that ticket landed")
+	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "`Reverted`, `Replanned`, or `Supersedes`: for a `pivot` row; `Replanned` records a re-slice or a change of approach before any commit of that ticket landed")
 }
 
-// The assigned patch backup is outside product Write scope, in both the skill
-// and every builder definition.
-func TestPatchBackupPathIsExemptFromWriteScope(t *testing.T) {
-	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "`.scratch/<ticket>-<ts>.patch`, which is exempt from the ticket's `Write scope`")
+// The assigned patch backup lives outside the worktree, so it is never part of
+// a ticket's diff and never blocks removing the worktree.
+func TestPatchBackupLivesOutsideTheWorktree(t *testing.T) {
+	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "`<trail-directory>/<ticket>-<ts>.patch`, outside the worktree and never committed")
 	for name, builder := range builderDefinitions(t) {
 		t.Run(name, func(t *testing.T) {
-			mustContain(t, builder, "the `.scratch/<ticket>-<ts>.patch` backup path the dispatching session assigns is exempt")
+			mustContain(t, builder, "The `git diff` backup goes to the path the dispatching session assigns, outside the worktree; never commit it.")
+			mustNotContain(t, builder, ".scratch/<ticket>")
 		})
 	}
 }
@@ -132,7 +134,11 @@ func TestResolveReconcilesMissingMapPointers(t *testing.T) {
 func TestImplementResumeReconcilesLandedTickets(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	mustContain(t, implement, "**Resume an interrupted run**")
-	mustContain(t, implement, "reconcile its `merge` and `direct` rows against `git log` on the integration branch")
+	mustContain(t, implement, "run `run-trail.sh status --slug <feature-slug>`, adding `--dir <trail-directory>` when the handoff names one")
+	resume := section(t, implement, "**Resume an interrupted run**", "**Unfulfilled blockers**")
+	if strings.Index(resume, "settle it with the user before any dispatch") > strings.Index(resume, "Only then treat every `ticket=` it lists as resolved") {
+		t.Fatal("resume must settle a trail mismatch before treating tickets as resolved")
+	}
 	mustContain(t, implement, "never re-dispatch it")
 	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "so the next session reconciles landed tickets before dispatching")
 }
@@ -207,7 +213,8 @@ func TestCodeReviewIsNeverSkippedOrExcused(t *testing.T) {
 			mustContain(t, part, "applies only when the run completes implementation")
 		})
 	}
-	mustContain(t, report, "`code-review: <BASE_SHA> -> <target>`")
+	mustContain(t, report, "Copy the `review_line=` that `run-trail.sh base --slug <slug>` prints, verbatim.")
+	mustContain(t, report, "`code-review: <BASE_SHA> -> <target> <full-sha>`")
 	mustNotContain(t, implement, "or the reason it did not run")
 	// The review check is not a decisions.tsv row and not a gate.
 	mustContain(t, cleanup, "**Review completion check**")
@@ -219,37 +226,26 @@ func TestCodeReviewIsNeverSkippedOrExcused(t *testing.T) {
 	mustNotContain(t, implement, "`working-tree (WIP)`")
 }
 
-// The fixed point is captured before any ticket lands, so a directly committed
-// contract ticket is never mistaken for the base; a resumed run inherits it.
+// The fixed point is captured by run-trail init before any ticket lands, so a
+// directly committed contract ticket is never mistaken for the base; a resumed
+// run reads the recorded base instead of capturing a new one.
 func TestBaseShaIsCapturedBeforeTheFirstTicketLands(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	modeB := section(t, implement, "## Mode B:", "## Final Report")
-	capture := strings.Index(modeB, "before any ticket lands, capture `BASE_SHA=$(git rev-parse HEAD)`")
+	capture := strings.Index(modeB, "before creating it and before any ticket lands, run `run-trail.sh init --slug <feature-slug> --mode B --integration <integration-branch>`")
 	landing := strings.Index(modeB, "Immediately after each ticket lands on the integration branch")
 	if capture < 0 || landing < 0 || capture > landing {
-		t.Fatalf("Mode B must capture BASE_SHA before the first landing rule (capture=%d, landing=%d)", capture, landing)
+		t.Fatalf("Mode B must run init before the first landing rule (capture=%d, landing=%d)", capture, landing)
 	}
 	mustContain(t, implement, "never the commit of the first landed ticket")
-	// A worktree merge can carry several commits, so the parent of the first
-	// landed commit is not the branch point.
-	mustContain(t, implement, "`git merge-base <integration-branch> <parent-branch>`")
-	mustContain(t, implement, "`<earliest-direct-sha>^`")
-	mustNotContain(t, implement, "<earliest-landed-sha>^")
-	// Sequential Fallback keeps one BASE_SHA across all children.
-	mustContain(t, section(t, implement, "## Mode A:", "## Sequential Fallback"), "`BASE_SHA=${BASE_SHA:-$(git rev-parse HEAD)}`")
+	mustContain(t, modeB, "never guess `main` or `master`")
+	mustContain(t, modeB, "A resumed run never runs `init` for a new trail")
+	mustContain(t, section(t, implement, "## Mode A:", "## Sequential Fallback"), "run `run-trail.sh init --slug <task-slug> --mode A`")
 	fallback := section(t, implement, "## Sequential Fallback", "## Mode B:")
-	mustContain(t, fallback, "Skip Mode A's per-child `BASE_SHA` capture and per-child review")
-	mustContain(t, fallback, "On a fresh run, capture `BASE_SHA=$(git rev-parse HEAD)` once before the first child")
-	mustContain(t, fallback, "When resuming an interrupted Sequential Fallback run, never re-capture `HEAD`")
-	mustContain(t, fallback, "the earliest `direct` row whose `evidence` is a commit SHA")
-	mustContain(t, fallback, "if no `direct` row has a commit SHA, ask the user")
+	mustContain(t, fallback, "Skip Mode A's per-child `init` and per-child review")
+	mustContain(t, fallback, "run `run-trail.sh init --slug <feature-slug> --mode fallback`")
+	mustContain(t, fallback, "never run `init` for a new trail")
 	mustContain(t, fallback, "run it in WIP mode anchored at `BASE_SHA`")
-	// Mode B resume reads the recorded base first and never guesses a parent branch.
-	modeBResume := section(t, implement, "A resumed run takes `BASE_SHA`", "In the same step, before the first dispatch")
-	mustContain(t, modeBResume, "the latest `gate` row in `decisions.tsv` whose `evidence` records `BASE_SHA=`")
-	mustContain(t, modeBResume, "only when `<parent-branch>` is explicitly known from the session or the spec; never guess `main` or `master`")
-	mustContain(t, modeBResume, "the earliest `direct` row whose `evidence` is a commit SHA")
-	mustContain(t, implement, "The first row is the run-plan `gate` row")
 	modeA := section(t, implement, "## Mode A:", "## Sequential Fallback")
 	// A WIP review covers exactly the files the task modified or created.
 	for name, part := range map[string]string{"mode A": modeA, "fallback": fallback} {
@@ -257,41 +253,47 @@ func TestBaseShaIsCapturedBeforeTheFirstTicketLands(t *testing.T) {
 			mustContain(t, part, "the files modified or created for this task as the pathspec")
 		})
 	}
-	mustContain(t, fallback, "record it in the run-plan `gate` row")
-	step4 := section(t, implement, "4. **Create the Integration Branch and Its Decision Trail**", "5. **Dispatch Frontier")
-	mustContain(t, step4, "`BASE_SHA=<full-sha>`")
-	mustContain(t, step4, "`BASE_SHA=<full-sha> parent=<branch>`")
-	mustContain(t, step4, "read its parent with `git branch --show-current`")
-	mustContain(t, modeBResume, "If none of the applicable sources above yields `BASE_SHA`, ask the user.")
-	mustNotContain(t, modeBResume, "no known parent branch, or no `direct` row with a commit SHA")
-	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "the integration branch and its parent branch (when used), the run's current `BASE_SHA` (the latest `BASE_SHA=` recorded in `decisions.tsv`, which moves only by `implement`'s **When the base moves** rule), and the `decisions.tsv` path")
+	// The prose no longer spells out capture or resume mechanics the script owns.
+	for _, retired := range []string{"git rev-parse HEAD", "<earliest-direct-sha>^", "git merge-base <integration-branch> <parent-branch>", "`.scratch/<feature-slug>/decisions.tsv`"} {
+		mustNotContain(t, implement, retired)
+	}
+	mustContain(t, flat(t, "skills", "handoff", "SKILL.md"), "the integration branch and its parent branch (when used), and the `dir=` trail directory and current `base=` that `implement`'s `run-trail.sh status` prints")
 }
 
 // A builder pause answer is a gate row with a legal result.
 func TestPauseAnswersRecordAGateResult(t *testing.T) {
-	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "the chosen pattern or seam in `decision` and `why`, and `result` `Approved`, or `Declined` when the user rejects the proposal")
+	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "the chosen pattern or seam in `--decision` and `--why`, and `--result Approved`, or `Declined` when the user rejects the proposal")
 }
 
-// result cells are bare tokens, each row is written when its event happens
-// with the real clock, and fix phases follow the Step 7 review.
-func TestDecisionRowsUseBareTokensAndRealTimestamps(t *testing.T) {
+// The trail's cell format belongs to run-trail.sh (see run_trail_runtime_test.go);
+// the skill only calls it, at the moment each event happens, and never writes
+// a row by hand.
+func TestDecisionRowsAreWrittenOnlyThroughRunTrail(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
-	mustContain(t, implement, "is a bare token with no parenthetical note or prose")
-	mustContain(t, implement, "`date -u +\"%Y-%m-%dT%H:%M:%SZ\"`")
-	mustContain(t, implement, "Never invent or round a timestamp, and never write rows in a batch at the end of the run.")
+	mustContain(t, implement, "[`scripts/run-trail.sh`](scripts/run-trail.sh), resolved relative to the directory containing this `SKILL.md` and never to the project's working directory")
+	mustContain(t, implement, "under `${TMPDIR:-/tmp}/run-trail/`, outside the project and every worktree")
+	mustContain(t, implement, "Exit `2` rejects the call: fix the arguments and rerun it, never write the row by hand.")
+	mustContain(t, implement, "Any other non-zero exit stops the run: exit `3` prints `needs_user=<reason>` first, so show it to the user and ask.")
+	mustContain(t, implement, "only after the user confirms does `init --fresh` archive that trail and start a new one")
+	mustContain(t, implement, "Never edit `decisions.tsv` directly.")
+	mustContain(t, implement, "its output is never user approval")
+	mustContain(t, implement, "Log each event when it happens, never in a batch at the end of the run")
 	mustContain(t, implement, "A fix committed before Step 7's `code-review` runs is `integration-fix`.")
-	mustContain(t, implement, "A `gate` row's `result` is only `Approved` or `Declined`.")
+	mustContain(t, implement, "`--commit <sha>`, the single landed commit")
+	for _, retired := range []string{"date -u", "is a bare token", "ts\tphase", "Strip tabs and newlines"} {
+		mustNotContain(t, implement, retired)
+	}
+	if info, err := os.Stat(filepath.Join("..", "..", "skills", "implement", "scripts", "run-trail.sh")); err != nil || info.Mode().Perm()&0o111 == 0 {
+		t.Fatalf("run-trail.sh must exist and be executable: %v", err)
+	}
 }
 
-func TestFixAndLandingRowsCiteOneCommit(t *testing.T) {
-	mustContain(t, flat(t, "skills", "implement", "SKILL.md"), "`evidence` is the single landed commit SHA, never an `a...b` revision range")
-}
-
-// A direct commit's scope is checked mechanically on the staged change.
+// Every scope check runs through run-trail.sh scope on the real diff.
 func TestDirectCommitScopeIsCheckedOnTheStagedDiff(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
-	mustContain(t, implement, "run `git diff --cached --name-only` before committing")
+	mustContain(t, implement, "run `run-trail.sh scope --staged --allow <write-scope-entry>...` before committing")
 	mustContain(t, implement, "a manual read of the files is not this check")
+	mustContain(t, implement, "`run-trail.sh scope --since <integration-tip> --allow <write-scope-entry>...`, run in its worktree")
 }
 
 func TestStyleQuestionCitesFileAndLine(t *testing.T) {
@@ -300,20 +302,17 @@ func TestStyleQuestionCitesFileAndLine(t *testing.T) {
 	mustContain(t, implement, "A file name without a line number is not a citation.")
 }
 
-// The review base moves only to a merge-base that keeps the run's own commits
-// in the review and the parent's commits out of it, and never to HEAD once a
-// run commit has landed.
-func TestBaseMovesOnlyToAMergeBaseThatKeepsRunCommits(t *testing.T) {
+// The review base is derived from git by run-trail.sh base, so an approved
+// merge of the parent drops the parent's commits from the review.
+func TestBaseFollowsTheParentMergeBase(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	moves := section(t, implement, "**When the base moves**", "5. **Dispatch Frontier")
-	mustContain(t, moves, "No commit of this run has landed yet")
-	mustContain(t, moves, "the new `BASE_SHA` is the current `HEAD`")
-	mustContain(t, moves, "`git merge-base --all <parent-branch> <integration-branch>`")
-	mustContain(t, moves, "(a) it prints one commit, and the current `BASE_SHA` is its ancestor")
-	mustContain(t, moves, "(b) no landed run commit")
-	mustContain(t, moves, "(c) every file a landed run commit changed still appears in `git diff --name-only <candidate> <integration-branch>`")
-	mustContain(t, moves, "keep `BASE_SHA` and ask the user before Step 7")
-	mustContain(t, moves, "Never move `BASE_SHA` to `HEAD` once a run commit has landed.")
+	mustContain(t, moves, "`run-trail.sh base --slug <feature-slug>` derives it from git on every call")
+	mustContain(t, moves, "when that merge-base descends from the captured base; otherwise, and always in the Sequential Fallback, the captured base")
+	mustContain(t, moves, "rerun `base` so the review leaves them out")
+	for _, retired := range []string{"--record", "--parent-ref", "unlogged-commit", "(b) no run commit is its ancestor"} {
+		mustNotContain(t, implement, retired)
+	}
 	mustContain(t, section(t, implement, "## Mode A:", "## Sequential Fallback"), "follow **When the base moves** in Mode B Step 4")
 	mustContain(t, implement, "A `code-review` result is never a `gate` row.")
 }
@@ -324,7 +323,8 @@ func TestRetestsFollowWhatTheRebaseBroughtIn(t *testing.T) {
 	implement := flat(t, "skills", "implement", "SKILL.md")
 	retest := section(t, implement, "**Re-test after a rebase or tip move**:", "**Deferred-green migration batches**")
 	mustContain(t, retest, "`git diff --name-only <old-tip> <new-tip>`")
-	mustContain(t, retest, "keep the earlier verdict without re-testing")
+	mustContain(t, retest, "Only `docs/` or `CHANGELOG` files that no build or test reads: keep the earlier verdict without re-testing")
+	mustNotContain(t, retest, "`*.md`")
 	mustContain(t, retest, "compile or typecheck the touched packages and run the ticket's `Fast check`")
 	mustContain(t, retest, "run the tests of every affected package")
 	mustContain(t, retest, "is normal drift, never a reason to stop")
@@ -339,6 +339,7 @@ func TestRetestsFollowWhatTheRebaseBroughtIn(t *testing.T) {
 	for name, builder := range builderDefinitions(t) {
 		t.Run(name, func(t *testing.T) {
 			mustContain(t, builder, "re-test by what the rebase brought in")
+			mustContain(t, builder, "no re-test when only documentation that no build or test reads changed")
 			mustContain(t, builder, "Never re-run the full suite after a rebase.")
 			mustNotContain(t, builder, "re-run tests before reporting completion")
 		})
@@ -391,7 +392,7 @@ func TestCleanupRemovesOnlyApprovedWorktreesAndBranches(t *testing.T) {
 	mustContain(t, cleanup, "Remove only the worktrees the approved run plan lists (`git worktree remove` keeps each worktree's branch)")
 	mustContain(t, cleanup, "delete a branch only when the approved run plan or a later user message names it")
 	mustContain(t, cleanup, "A resumed run asks again before removing a worktree or deleting a branch")
-	mustContain(t, cleanup, "run `git worktree list` and report any worktree left")
+	mustContain(t, cleanup, "run `run-trail.sh worktrees` and report every `leftover=` line")
 }
 
 // tidy checks each step on what it touched and the whole baseline once.
