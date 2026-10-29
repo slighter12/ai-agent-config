@@ -24,7 +24,6 @@ Implement the requested work cleanly, verify it with hard evidence, and leave it
      * Local Markdown: every `.scratch/<feature-slug>/issues/*.md` file beside the spec. `.scratch/` is a hidden directory, so list that `issues/` path directly; a recursive listing from the repository root (`ls -R .`) skips it. A file whose `Parent spec:` line names a different spec is not a child. A file with a `Type:` of `research`, `prototype`, or `grilling` is a wayfinder decision ticket, not a child.
      * Hosted tracker: the spec issue's native sub-issues; where the tracker has none, the issues whose `## Parent` section references the spec.
      * Read every child ticket before writing code. Child acceptance criteria are requirements of the spec; building the spec without them is a missing-requirement defect.
-     * A `Fast check` or `Final gate` written as a module description, as triage briefs write them, resolves here to the concrete command for that module.
 2. **Read Project Law**:
    * Read `AGENTS.md` / `CLAUDE.md`, `GLOSSARY.md`, and any `docs/adr/` covering the touched modules.
 3. **Run the 6-Scenario Friction Check on Target Files**:
@@ -117,7 +116,7 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * Each `builder` subagent MUST:
      1. Confirm its worktree is based on the current integration branch tip before starting.
      2. Stop before writing code and return a pause when the ticket leaves a choice unsettled: an Agency Gate (State 2 or 4), a style for a new file among competing patterns (State 3, each pattern cited as `file:line` as in Step 1), or a test seam.
-     3. Build its ticket using the `tdd` skill, iterating with the ticket's `Fast check`.
+     3. Build its ticket using the `tdd` skill, iterating with the ticket's `Fast check` (without one, the affected test file or package).
      4. Write `git diff` before committing to the backup path the dispatching session assigns, `<trail-directory>/<ticket>-<ts>.patch`, outside the worktree and never committed, so pre-commit hook failures never lose work.
      5. Rebase its worktree branch onto the latest integration branch tip and re-test per **Re-test after a rebase or tip move** (Step 6) before reporting done.
      6. Report `git diff --name-only <integration-tip>...HEAD` alongside its declared `Write scope`.

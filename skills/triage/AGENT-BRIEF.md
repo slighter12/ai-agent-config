@@ -59,7 +59,7 @@ Be specific about edge cases and error conditions.
 - Config shape: any new configuration options needed
 
 **Evidence path:** `Seam TDD` at <named seam> / `Runtime Verification` with <command and expected output>
-**Fast check:** the narrowest test command for the change, named by module or package area as in Write scope; `/implement` resolves it to a concrete command before it builds
+**Fast check:** the narrowest test command for the change, named by module or package area as in Write scope
 **Final gate:** the slow command run once before the work is done, `same as Fast check`, or `deferred to CI: <job>`
 **Write scope:** module, package, or directory areas the change may touch (re-verify at pickup)
 **Project-law friction:** none, or the ADR vs. legacy pattern found during verification and the maintainer's chosen Agency Gate option (a)–(d). If friction exists and no option is chosen, the state is `ready-for-human`, not `ready-for-agent`.
