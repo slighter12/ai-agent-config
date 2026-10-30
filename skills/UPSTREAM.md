@@ -105,7 +105,7 @@ The same rule covers these Matt skills, re-synced against the pinned `v1.3.1` co
 `skills/ask-matt/PHASE-BOUNDARIES.md` divergences from `ask-matt/PHASE-BOUNDARIES.md`:
 
 - The heading reads "Phase Boundaries & Context Management".
-- The smart zone "(~150k tokens)" becomes "(roughly the first half of the window, as `AGENTS.md` §3 defines it)", so the window size is not hard-coded.
+- The smart zone "(~150k tokens)" becomes "(roughly the first half of the window)", so the window size is not hard-coded.
 - Question 4 adds one sentence naming this repository's subagent roles.
 
 `skills/ask-matt/SKILL.md` divergences from `ask-matt`:
@@ -184,7 +184,7 @@ Category C, local additions kept on purpose:
 - `domain-modeling/ADR-FORMAT.md`: the **Brownfield / Migration Strategy** optional section.
 - `triage/AGENT-BRIEF.md`: the `Evidence path`, `Fast check`, `Final gate`, and `Write scope` fields and their examples.
 - `code-review`: the Act On / Consider / Dismiss triage with its Nitpick gravity and Premature abstraction filters, the four local smells, the architecture and test smells, and the bounded repair rule.
-- Punctuation: upstream uses no em dashes. Upstream sentences keep upstream punctuation; text that exists only locally (overlays, the Agency Gate menu that matches `AGENTS.md` word for word) may keep its em dashes.
+- Punctuation: upstream uses no em dashes. Upstream sentences keep upstream punctuation; text that exists only locally (overlays, the canonical Agency Gate menu in `codebase-design`) may keep its em dashes.
 
 Files adapted from these sources (stitched under the rule above, not vendored):
 

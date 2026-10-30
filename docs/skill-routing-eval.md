@@ -11,7 +11,7 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 ### Architectural Mitigations
 
 1. **Always-On Constitution (`AGENTS.md` / `CLAUDE.md`)**:
-   * Holds the 4-Tier Precedence Hierarchy, the 6-Scenario Friction Stop & User Agency Table, the Single-Caller Helper Ban, and the Evidence Conservation Law (< 100 lines total).
+   * Holds the standing safety and authorization rules, rule precedence, and the verification bar (under 20 lines); the Agency Gate Menu lives in `codebase-design`.
    * Guarantees safety even on **0-skill turns** (casual one-line code edits).
 2. **Self-Contained Stage Skills**:
    * Each core engineering stage (`grilling`, `to-spec`, `codebase-design`, `tdd`, `implement`, `code-review`, `pr`, `retro`) embeds the Pre-Flight Agency Gate directly so activating **any single skill** is sufficient for stable execution.

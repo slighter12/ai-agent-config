@@ -67,7 +67,7 @@ Ask these in order; the first one that applies picks the route.
 
 Keep steps 1–2 in **one unbroken context window** (don't compact or clear until after `/to-spec` has written the tickets) so the grilling, spec, and tickets all build on the same thinking. Each `/implement` run then starts fresh, working from the ticket or spec. Run `/retro` in the session it's looking back on, before you clear; after clearing, point it at that session's log instead.
 
-The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone)**: the part of the window (roughly the first half, as `AGENTS.md` §3 defines it) within which the model still reasons sharply. If a session approaches it before `/to-spec` has written the tickets, don't push on degraded; `/compact` at the nearest phase boundary and carry on (see Phase Boundaries).
+The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone)**: the part of the window (roughly the first half) within which the model still reasons sharply. If a session approaches it before `/to-spec` has written the tickets, don't push on degraded; `/compact` at the nearest phase boundary and carry on (see Phase Boundaries).
 
 ## Phase Boundaries
 

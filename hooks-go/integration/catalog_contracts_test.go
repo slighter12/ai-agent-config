@@ -562,8 +562,8 @@ func TestTidyAndUnslopPreserveBehaviorAndMeaning(t *testing.T) {
 
 	tidy := readFile(t, filepath.Join(repoRoot, "skills", "tidy", "SKILL.md"))
 	mustContain(t, tidy, "Edit only on a change request")
-	mustContain(t, tidy, "In State 6 (Hotfix / Surgical), do not tidy")
-	mustContain(t, tidy, "In State 2 or State 4, stop and present the Agency Gate Menu")
+	mustContain(t, tidy, "minimal blast radius, do not tidy")
+	mustContain(t, tidy, "present its Agency Gate Menu instead of tidying")
 	mustContain(t, tidy, "Never change public interfaces, error-return shape, state transitions, or I/O seams")
 	mustContain(t, tidy, "If a candidate lacks behavioral coverage, pause and ask the user")
 	mustContain(t, tidy, "use the `why` skill")
@@ -734,8 +734,8 @@ func TestSetupCreatesMissingTriageLabelsOnlyAfterApproval(t *testing.T) {
 	mustContain(t, gitlab, "glab issue list -O json")
 }
 
-// The Agency Gate menu has one copy in AGENTS.md and one in codebase-design;
-// every other skill presents it from codebase-design.
+// The Agency Gate menu has one copy, in codebase-design; every other skill and
+// the global steering file present it from there.
 func TestAgencyGateMenuHasOneCanonicalCopy(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join("..", ".."))
 	menu := func(text string) []string {
@@ -750,10 +750,13 @@ func TestAgencyGateMenuHasOneCanonicalCopy(t *testing.T) {
 		}
 		return options
 	}
-	canonical := menu(readFile(t, filepath.Join(repoRoot, "AGENTS.md")))
-	design := menu(readFile(t, filepath.Join(repoRoot, "skills", "codebase-design", "SKILL.md")))
-	if len(canonical) != 4 || strings.Join(canonical, "\n") != strings.Join(design, "\n") {
-		t.Fatalf("codebase-design Agency Gate menu must match AGENTS.md word for word:\nAGENTS.md:\n%s\ncodebase-design:\n%s", strings.Join(canonical, "\n"), strings.Join(design, "\n"))
+	if design := menu(readFile(t, filepath.Join(repoRoot, "skills", "codebase-design", "SKILL.md"))); len(design) != 4 {
+		t.Fatalf("codebase-design must hold the four Agency Gate options, found:\n%s", strings.Join(design, "\n"))
+	}
+	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
+		if options := menu(readFile(t, filepath.Join(repoRoot, name))); len(options) > 0 {
+			t.Errorf("%s copies the Agency Gate menu; point to the `codebase-design` skill instead", name)
+		}
 	}
 
 	skillsRoot := filepath.Join(repoRoot, "skills")

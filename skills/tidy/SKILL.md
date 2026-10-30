@@ -31,8 +31,8 @@ Simplify code by reducing complexity while preserving exact behavior. The goal i
 
 - Edit only on a change request: the user asked to simplify or clean up code, or agreed to a tidy step. Otherwise report candidates without editing.
 - Scope: the changes since a fixed point the user names (or the uncommitted diff), or one named module.
-- Before editing, identify the project state in `AGENTS.md` §1. In State 6 (Hotfix / Surgical), do not tidy; report that and stop. In State 2 or State 4, stop and present the Agency Gate Menu from `AGENTS.md` §1 instead of tidying.
-- Never change public interfaces, error-return shape, state transitions, or I/O seams; those are Tier 2 structural contracts.
+- Before editing, check the request and the target. For an urgent fix or one the user wants with minimal blast radius, do not tidy; report that and stop. For an Active Migration Conflict or a Legacy Monolith, use the `codebase-design` skill and present its Agency Gate Menu instead of tidying.
+- Never change public interfaces, error-return shape, state transitions, or I/O seams; those are structural contracts governed by Project Law.
 - Add no dependencies.
 - Leave changes uncommitted. Commits, branches, and PRs need their own approval.
 

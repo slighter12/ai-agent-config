@@ -115,7 +115,7 @@ Use when implementing an entire multi-ticket spec (`spec + tickets with Blocked 
    * Pass sparse context pointers (path/ID to the spec, the specific ticket, the trail's `notes.md`, and the integration branch name) and include this line verbatim, with `<integration-branch>` replaced by the branch name: `User pre-approved in run plan: you are authorized to git commit on your worktree branch and git rebase onto <integration-branch>.`
    * Each `builder` subagent MUST:
      1. Confirm its worktree is based on the current integration branch tip before starting.
-     2. Stop before writing code and return a pause when the ticket leaves a choice unsettled: an Agency Gate (State 2 or 4), a style for a new file among competing patterns (State 3, each pattern cited as `file:line` as in Step 1), or a test seam.
+     2. Stop before writing code and return a pause when the ticket leaves a choice unsettled: an Agency Gate (Active Migration Conflict or Legacy Monolith), a style for a new file among competing patterns (Multi-Author Style Drift, each pattern cited as `file:line` as in Step 1), or a test seam.
      3. Build its ticket using the `tdd` skill, iterating with the ticket's `Fast check` (without one, the affected test file or package).
      4. Write `git diff` before committing to the backup path the dispatching session assigns, `<trail-directory>/<ticket>-<ts>.patch`, outside the worktree and never committed, so pre-commit hook failures never lose work.
      5. Rebase its worktree branch onto the latest integration branch tip and re-test per **Re-test after a rebase or tip move** (Step 6) before reporting done.

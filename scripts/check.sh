@@ -5,6 +5,11 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
+if ! cmp -s AGENTS.md CLAUDE.md; then
+  echo "AGENTS.md and CLAUDE.md differ; edit one and copy it over the other" >&2
+  exit 1
+fi
+
 go -C hooks-go run ./cmd/agent-config validate-skills ../skills
 go -C hooks-go vet ./...
 unformatted=$(gofmt -l hooks-go)
