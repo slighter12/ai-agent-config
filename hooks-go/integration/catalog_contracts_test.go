@@ -839,7 +839,7 @@ func TestAskMattRoutesByWhereTheWorkStands(t *testing.T) {
 	mustContain(t, router, "the first one that applies picks the route")
 	mustContain(t, router, "**Can one session hold the open decisions?**")
 	mustContain(t, router, "A well-scoped feature never goes here, however many design questions it has: those are grilling questions.")
-	mustContain(t, router, "**Project state belongs to `/implement`.** Do not classify the 6 project states or present the Agency Gate Menu here")
+	mustContain(t, router, "**Project state belongs to `/implement`.** Do not classify project state or present the Agency Gate Menu here")
 	mustContain(t, router, "recommend `/implement <spec>`, not one `/implement` per ticket, however small the tickets are")
 	mustContain(t, router, "if the user declines, it builds the children one at a time in `Blocked by` order")
 	mustNotContain(t, router, "**Project state**:")

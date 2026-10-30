@@ -33,7 +33,7 @@ Ask these in order; the first one that applies picks the route.
 4. **Are the decisions settled?** If not, run `/grill-with-docs` (`/grill-me` outside a repo).
 5. **One slice or several?** One slice: `/implement` in the current window, skipping `/to-spec`. Several slices: `/to-spec`, then `/implement <spec>`.
 
-**Project state belongs to `/implement`.** Do not classify the 6 project states or present the Agency Gate Menu here: `/implement` checks the target files against Project Law and runs the gate before writing code. When you see friction (an ADR the target code contradicts, or a coupled legacy file), say in the **Why** line that `/implement` will stop at its Agency Gate.
+**Project state belongs to `/implement`.** Do not classify project state or present the Agency Gate Menu here: `/implement` checks the target files against Project Law and runs the gate before writing code. When you see friction (an ADR the target code contradicts, or a coupled legacy file), say in the **Why** line that `/implement` will stop at its Agency Gate.
 
 ## The Skills Along the Route
 
