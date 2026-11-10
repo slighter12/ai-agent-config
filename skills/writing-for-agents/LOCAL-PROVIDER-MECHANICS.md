@@ -1,6 +1,6 @@
 # Local Provider Mechanics
 
-This repository keeps one flat, editable skill source and links it into Codex, Claude Code, OpenCode, and Gemini/Antigravity discovery roots.
+This repository keeps one flat, editable skill source and links it into Codex, Claude Code, OpenCode, and Antigravity CLI discovery roots.
 
 - Every skill declares `metadata.invocation: user|model`.
 - User-invoked skills also set `disable-model-invocation: true`, `metadata["opencode/autoinvoke"]: "false"`, and `agents/openai.yaml` with `policy.allow_implicit_invocation: false`.
