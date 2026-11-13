@@ -142,7 +142,7 @@ func (c Config) Install() error {
 			return err
 		}
 	} else {
-		c.printf("   - Antigravity CLI/Gemini home not found, skipping: %s\n", c.AntigravityHome)
+		c.printf("   - Antigravity CLI home not found, skipping: %s\n", c.AntigravityHome)
 	}
 
 	c.println("")

@@ -104,7 +104,7 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 | Codex | User skills expose `agents/openai.yaml` with implicit invocation disabled; model discovery contribution stays below 8,000 characters. |
 | Claude | User skills expose `disable-model-invocation: true`; `argument-hint` is accepted where supplied upstream. |
 | OpenCode | User skills expose `metadata["opencode/autoinvoke"] = "false"`; OpenCode 2.x reports them as `autoinvoke: false` in its skill catalog. |
-| Gemini | Link discovery may be checked; invocation remains unverified until a fresh-session probe succeeds. |
+| Antigravity CLI | `agy -p "/skills" --output-format json` lists each skill's load path; invocation remains unverified until a fresh-session probe succeeds. |
 
 ## Recorded Runtime Evidence
 
@@ -118,6 +118,8 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 - Claude Code 2.1.228 remains unverified for this skill because the local CLI was not authenticated; Gemini remains unverified because no compatible CLI was available.
 - On 2026-10-22, after the installer linked the 33-skill catalog, Claude Code 2.1.308 and Codex CLI 0.163.0 fresh sessions loaded `why`, `how`, `blast-radius`, `verify-app`, `tidy`, and `unslop` from matching plain prompts (M19–M22, M24, M26 shapes). Explicit `/step-back` and `$step-back` returned its five H2 headings, and the equivalent plain request returned `NO_STEP_BACK_CONTEXT` on both. OpenCode 1.19.3 failed every run, including a bare control, on a local Magic Context plugin migration mismatch, so OpenCode routing for these skills was unverified until the OpenCode 2.1.2 rerun below. Details are in `docs/captures/2026-10-22-phase3-standalone-skills.md`.
 - On 2026-10-22, after the Magic Context plugin was repaired, OpenCode 2.1.2 fresh `--standalone` sessions ran the same probes with `openai/gpt-5.6-terra` under a probe agent that allowed only the `skill` tool. The `why`, `how`, `blast-radius`, `verify-app`, and `unslop` prompts each loaded the matching skill. The M24 prompt ("Tests are green. Simplify the code I just changed...") loaded `oh-my-opencode-slim`'s bundled `simplify` skill on two runs, because both skills are active in OpenCode; the same prompt with "Clean up" loaded `tidy`. Attaching `skills: [{"id": "step-back"}]` through the session API returned its five H2 headings, and the plain request returned `NO_STEP_BACK_CONTEXT` with no skill load. OpenCode 2.x does not expand `/step-back` in `opencode run`.
+
+- On 2026-11-10, `agy -p "/skills" --output-format json` on a macOS install listed the 33 catalog skills from `~/.gemini/antigravity-cli/skills` and 6 built-in skills; none resolved from `~/.agents/skills`, although that directory was also linked. Discovery only; invocation was not probed.
 
 ## Acceptance
 
@@ -139,4 +141,4 @@ Across Claude Code, Codex CLI, and OpenCode, the runtime injects only `name` and
 - Local Markdown ticket templates emit unbolded literal `Blocked by:`, `Category:`, `Triage:`, and `Status:` lines; ordinary triage transitions preserve `Status:`, while closing sets it to `resolved`.
 - Codex and Claude each require current-catalog evidence for implicit `diagnosing-bugs` routing, explicit `ask-matt` discovery, and absence of implicit `ask-matt` body loading.
 - Codex, Claude, and OpenCode require fresh-session evidence that explicit `mcp-builder-go` invocation loads its five-step workflow while an equivalent plain request does not expose the skill body. Codex and OpenCode pass this requirement; Claude remains unverified until an authenticated probe succeeds.
-- Gemini runtime routing remains unverified until a compatible CLI and successful probe exist.
+- Antigravity CLI runtime routing remains unverified until a fresh-session probe succeeds.
